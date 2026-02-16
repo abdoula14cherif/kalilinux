@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kali Linux Master - Tutoriels Complets</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --dark-blue: #0a1931;
+            --navy-blue: #185adb;
+            --electric-blue: #2d46b9;
+            --blood-red: #b33939;
+            --orange: #ff8c32;
+            --light-orange: #ffb74d;
+            --gray: #8d93ab;
+            --light-gray: #f1f3f8;
+            --card-bg: #1a2b4a;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 15px;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-blue) 0%, #0c2461 100%);
+            color: var(--light-gray);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        /* Header avec sélecteur de langue */
+        .header {
+            background: var(--card-bg);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .header.hidden {
+            transform: translateY(-100%);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, var(--orange), var(--light-orange));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            color: var(--orange);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .language-selector {
+            position: relative;
+        }
+
+        .lang-btn {
+            background: var(--electric-blue);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn:hover {
+            background: var(--blood-red);
+            transform: translateY(-2px);
+        }
+
+        .lang-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 15px;
+            margin-top: 10px;
+            min-width: 180px;
+            display: none;
+            z-index: 10;
+            border: 1px solid var(--navy-blue);
+        }
+
+        .lang-dropdown.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .lang-option {
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            color: white;
+        }
+
+        .lang-option:hover {
+            background: var(--navy-blue);
+            color: var(--orange);
+        }
+
+        .lang-flag {
+            width: 24px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        /* Menu burger */
+        .menu-btn {
+            background: var(--blood-red);
+            border: none;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            padding: 12px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-btn:hover {
+            background: var(--orange);
+            transform: rotate(90deg);
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 300px;
+            height: 100vh;
+            background: var(--card-bg);
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.4);
+            padding: 30px 20px;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border-left: 3px solid var(--orange);
+        }
+
+        .side-menu.active {
+            right: 0;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            z-index: 999;
+        }
+
+        .menu-overlay.active {
+            display: block;
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--navy-blue);
+        }
+
+        .menu-title {
+            font-size: 1.3rem;
+            color: var(--orange);
+            font-weight: 600;
+        }
+
+        .close-menu {
+            background: var(--blood-red);
+            border: none;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .close-menu:hover {
+            background: var(--orange);
+            transform: rotate(90deg);
+        }
+
+        .menu-links {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: var(--electric-blue);
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .menu-link:hover {
+            background: var(--blood-red);
+            color: white;
+            transform: translateX(5px);
+            border-left-color: var(--orange);
+        }
+
+        .menu-link i {
+            font-size: 1.2rem;
+            width: 24px;
+            color: var(--light-orange);
+        }
+
+        /* Hero section - La carte du haut */
+        .hero {
+            padding: 40px 5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+            flex-wrap: wrap;
+            background: linear-gradient(135deg, rgba(10, 25, 49, 0.9), rgba(179, 57, 57, 0.1));
+            border-radius: 0 0 var(--radius) var(--radius);
+            margin-bottom: 40px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: top;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero.hidden {
+            opacity: 0;
+            transform: translateY(-100%) scaleY(0);
+            margin-bottom: 0;
+            padding: 0 5%;
+            max-height: 0;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .hero-title {
+            font-size: 2.8rem;
+            background: linear-gradient(90deg, var(--orange), var(--blood-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .hero-image {
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        .hero-image img {
+            max-width: 100%;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            animation: float 6s ease-in-out infinite;
+            border: 3px solid var(--orange);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Grille d'options */
+        .options-section {
+            padding: 20px 5%;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title:after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--orange), var(--blood-red));
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .option-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--orange);
+            box-shadow: 0 20px 40px rgba(255, 140, 50, 0.2);
+        }
+
+        .option-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--blood-red), var(--orange));
+        }
+
+        .option-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .option-card:hover .option-icon {
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        .option-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .option-desc {
+            color: var(--gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Barre de navigation inférieure */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--card-bg);
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.4);
+            z-index: 90;
+            border-top: 2px solid var(--orange);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--gray);
+            transition: all 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 12px;
+            min-width: 80px;
+        }
+
+        .nav-item.active, .nav-item:hover {
+            color: var(--orange);
+            background: var(--electric-blue);
+        }
+
+        .nav-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .nav-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Section bas de page */
+        .bottom-section {
+            padding: 40px 5%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .bottom-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        .bottom-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--orange);
+        }
+
+        .bottom-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--blood-red), var(--orange));
+        }
+
+        .quiz-card {
+            background: linear-gradient(135deg, var(--electric-blue), var(--navy-blue));
+        }
+
+        .premium-card {
+            background: linear-gradient(135deg, var(--dark-blue), var(--blood-red));
+            position: relative;
+        }
+
+        .premium-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--orange);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .card-desc {
+            margin-bottom: 20px;
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        .card-btn {
+            display: inline-block;
+            background: var(--orange);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid var(--orange);
+        }
+
+        .card-btn:hover {
+            background: transparent;
+            color: var(--orange);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 140, 50, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .options-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            .bottom-nav {
+                padding: 10px 0;
+            }
+            
+            .nav-label {
+                font-size: 0.7rem;
+            }
+            
+            .lang-btn span {
+                display: none;
+            }
+            
+            .header-right {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero {
+                flex-direction: column;
+            }
+            
+            .bottom-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .menu-btn, .close-menu {
+                width: 45px;
+                height: 45px;
+            }
+        }
+
+        /* Animation pour les cartes */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animated {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: var(--orange);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header avec sélecteur de langue -->
+    <header class="header" id="header">
+        <div class="logo">
+            <i class="fas fa-terminal"></i>
+            <span data-i18n="logo">Kali Linux Master</span>
+        </div>
+        
+        <div class="header-right">
+            <!-- Sélecteur de langue -->
+            <div class="language-selector">
+                <button class="lang-btn" id="langBtn">
+                    <i class="fas fa-globe"></i>
+                    <span data-i18n="currentLang">Français</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="lang-dropdown" id="langDropdown">
+                    <div class="lang-option" data-lang="fr">
+                        <img src="https://flagcdn.com/w20/fr.png" class="lang-flag" alt="Français">
+                        <span>Français</span>
+                    </div>
+                    <div class="lang-option" data-lang="en">
+                        <img src="https://flagcdn.com/w20/gb.png" class="lang-flag" alt="English">
+                        <span>English</span>
+                    </div>
+                    <div class="lang-option" data-lang="es">
+                        <img src="https://flagcdn.com/w20/es.png" class="lang-flag" alt="Español">
+                        <span>Español</span>
+                    </div>
+                    <div class="lang-option" data-lang="de">
+                        <img src="https://flagcdn.com/w20/de.png" class="lang-flag" alt="Deutsch">
+                        <span>Deutsch</span>
+                    </div>
+                    <div class="lang-option" data-lang="ar">
+                        <img src="https://flagcdn.com/w20/ma.png" class="lang-flag" alt="العربية">
+                        <span>العربية</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Menu burger -->
+            <button class="menu-btn" id="menuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Menu latéral -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <div class="menu-title" data-i18n="menuTitle">Menu Principal</div>
+            <button class="close-menu" id="closeMenu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="menu-links">
+            <a href="support.html" class="menu-link">
+                <i class="fas fa-headset"></i>
+                <span data-i18n="menuSupport">Support</span>
+            </a>
+            <a href="https://t.me/joinchat/example" target="_blank" class="menu-link">
+                <i class="fab fa-telegram"></i>
+                <span data-i18n="menuTelegram">Notre Groupe Telegram</span>
+            </a>
+            <a href="https://wa.me/1234567890" target="_blank" class="menu-link">
+                <i class="fab fa-whatsapp"></i>
+                <span data-i18n="menuWhatsapp">Notre Chaîne WhatsApp</span>
+            </a>
+            <a href="more-apps.html" class="menu-link">
+                <i class="fas fa-mobile-alt"></i>
+                <span data-i18n="menuApps">Plus d'Applications</span>
+            </a>
+            <a href="premium.html" class="menu-link">
+                <i class="fas fa-star"></i>
+                <span data-i18n="menuPremium">Version Premium</span>
+            </a>
+            <a href="share.html" class="menu-link">
+                <i class="fas fa-share-alt"></i>
+                <span data-i18n="menuShare">Partager l'App</span>
+            </a>
+            <a href="settings.html" class="menu-link">
+                <i class="fas fa-cog"></i>
+                <span data-i18n="menuSettings">Paramètres</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Section Hero avec image - LA CARTE DU HAUT -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <h1 class="hero-title" data-i18n="heroTitle">Maîtrisez Kali Linux comme un Expert</h1>
+            <p class="hero-subtitle" data-i18n="heroSubtitle">
+                Apprenez tout sur Kali Linux, des bases aux techniques avancées de sécurité. 
+                Guides complets, tutoriels détaillés et ressources pratiques pour devenir 
+                un professionnel de la cybersécurité.
+            </p>
+        </div>
+        <div class="hero-image">
+            <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                 alt="Programmeur utilisant Kali Linux"
+                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iIzBhMTkzMSIvPjx0ZXh0IHg9IjQwMCIgeT0iMzAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZjhjMzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiPktBTEkgTElOVVg8L3RleHQ+PC9zdmc+'">
+        </div>
+    </section>
+
+    <!-- Grille d'options -->
+    <section class="options-section">
+        <h2 class="section-title" data-i18n="sectionTitle">Tout sur Kali Linux</h2>
+        <div class="options-grid" id="optionsGrid">
+            <!-- Les options seront générées par JavaScript -->
+        </div>
+    </section>
+
+    <!-- Section bas de page -->
+    <section class="bottom-section">
+        <div class="bottom-card quiz-card">
+            <h3 class="card-title" data-i18n="quizTitle">🎮 Quiz Interactif</h3>
+            <p class="card-desc" data-i18n="quizDesc">Testez vos connaissances sur Kali Linux avec notre quiz interactif et gagnez des badges !</p>
+            <a href="quiz.html" class="card-btn" data-i18n="quizBtn">Commencer le Quiz</a>
+        </div>
+        
+        <div class="bottom-card premium-card">
+            <div class="premium-badge" data-i18n="premiumBadge">PRO</div>
+            <h3 class="card-title" data-i18n="premiumTitle">🚀 Passez à Premium</h3>
+            <p class="card-desc" data-i18n="premiumDesc">Débloquez tous les cours avancés, téléchargements exclusifs et support prioritaire.</p>
+            <a href="premium.html" class="card-btn" data-i18n="premiumBtn">Voir les Offres</a>
+        </div>
+    </section>
+
+    <!-- Barre de navigation inférieure -->
+    <nav class="bottom-nav">
+        <a href="basique.html" class="nav-item active">
+            <i class="fas fa-graduation-cap nav-icon"></i>
+            <span class="nav-label" data-i18n="navBasic">Basique</span>
+        </a>
+        <a href="intermediaire.html" class="nav-item">
+            <i class="fas fa-chart-line nav-icon"></i>
+            <span class="nav-label" data-i18n="navIntermediate">Intermédiaire</span>
+        </a>
+        <a href="avance.html" class="nav-item">
+            <i class="fas fa-crown nav-icon"></i>
+            <span class="nav-label" data-i18n="navAdvanced">Avancé</span>
+        </a>
+        <a href="formation.html" class="nav-item">
+            <i class="fas fa-video nav-icon"></i>
+            <span class="nav-label" data-i18n="navTraining">Formation</span>
+        </a>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Données des options avec leurs pages
+            const options = [
+                { 
+                    id: 'introduction', 
+                    title: { fr: 'Introduction', en: 'Introduction', es: 'Introducción', de: 'Einführung', ar: 'مقدمة' },
+                    desc: { fr: 'Découvrez les bases de Kali Linux', en: 'Discover the basics of Kali Linux', es: 'Descubre los conceptos básicos de Kali Linux', de: 'Entdecken Sie die Grundlagen von Kali Linux', ar: 'اكتشف أساسيات كالي لينكس' },
+                    icon: 'fas fa-play-circle',
+                    page: 'introduction.html'
+                },
+                { 
+                    id: 'what-is-kali', 
+                    title: { fr: 'Qu\'est-ce que Kali Linux', en: 'What is Kali Linux', es: 'Qué es Kali Linux', de: 'Was ist Kali Linux', ar: 'ما هو كالي لينكس' },
+                    desc: { fr: 'Comprendre l\'OS de sécurité', en: 'Understand the security OS', es: 'Comprender el sistema operativo de seguridad', de: 'Verstehen Sie das Sicherheits-Betriebssystem', ar: 'فهم نظام التشغيل الأمني' },
+                    icon: 'fas fa-question-circle',
+                    page: 'what-is-kali.html'
+                },
+                { 
+                    id: 'download', 
+                    title: { fr: 'Télécharger Kali Linux', en: 'Download Kali Linux', es: 'Descargar Kali Linux', de: 'Kali Linux herunterladen', ar: 'تحميل كالي لينكس' },
+                    desc: { fr: 'Obtenir l\'image ISO officielle', en: 'Get the official ISO image', es: 'Obtén la imagen ISO oficial', de: 'Holen Sie sich das offizielle ISO-Image', ar: 'احصل على صورة ISO الرسمية' },
+                    icon: 'fas fa-download',
+                    page: 'download.html'
+                },
+                { 
+                    id: 'install', 
+                    title: { fr: 'Installer Kali Linux', en: 'Install Kali Linux', es: 'Instalar Kali Linux', de: 'Kali Linux installieren', ar: 'تثبيت كالي لينكس' },
+                    desc: { fr: 'Guide d\'installation complet', en: 'Complete installation guide', es: 'Guía de instalación completa', de: 'Vollständige Installationsanleitung', ar: 'دليل التثبيت الكامل' },
+                    icon: 'fas fa-desktop',
+                    page: 'install.html'
+                },
+                { 
+                    id: 'best-commands', 
+                    title: { fr: 'Meilleures Commandes', en: 'Best Commands', es: 'Mejores Comandos', de: 'Beste Befehle', ar: 'أفضل الأوامر' },
+                    desc: { fr: 'Commandes essentielles à connaître', en: 'Essential commands to know', es: 'Comandos esenciales que debes conocer', de: 'Wesentliche Befehle', ar: 'أوامر أساسية يجب معرفتها' },
+                    icon: 'fas fa-terminal',
+                    page: 'best-commands.html'
+                },
+                { 
+                    id: 'post-install', 
+                    title: { fr: 'Après Installation', en: 'After Installation', es: 'Después de la Instalación', de: 'Nach der Installation', ar: 'بعد التثبيت' },
+                    desc: { fr: 'Choses à faire après installation', en: 'Things to do after installation', es: 'Cosas que hacer después de la instalación', de: 'Dinge, die nach der Installation zu tun sind', ar: 'أشياء يجب القيام بها بعد التثبيت' },
+                    icon: 'fas fa-check-circle',
+                    page: 'post-install.html'
+                },
+                { 
+                    id: 'install-software', 
+                    title: { fr: 'Installer un Logiciel', en: 'Install Software', es: 'Instalar Software', de: 'Software installieren', ar: 'تثبيت البرامج' },
+                    desc: { fr: 'Guide d\'installation de programmes', en: 'Program installation guide', es: 'Guía de instalación de programas', de: 'Programminstallationsanleitung', ar: 'دليل تثبيت البرامج' },
+                    icon: 'fas fa-box-open',
+                    page: 'install-software.html'
+                },
+                { 
+                    id: 'uninstall-software', 
+                    title: { fr: 'Désinstaller un Logiciel', en: 'Uninstall Software', es: 'Desinstalar Software', de: 'Software deinstallieren', ar: 'إلغاء تثبيت البرامج' },
+                    desc: { fr: 'Supprimer des programmes proprement', en: 'Properly remove programs', es: 'Eliminar programas correctamente', de: 'Programme ordnungsgemäß entfernen', ar: 'إزالة البرامج بشكل صحيح' },
+                    icon: 'fas fa-trash-alt',
+                    page: 'uninstall-software.html'
+                }
+            ];
+
+            // Remplir la grille d'options
+            const optionsGrid = document.getElementById('optionsGrid');
+            
+            function renderOptions(lang = 'fr') {
+                optionsGrid.innerHTML = '';
+                options.forEach((option, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'option-card animated';
+                    card.style.animationDelay = `${index * 0.05}s`;
+                    card.innerHTML = `
+                        <div class="option-icon">
+                            <i class="${option.icon}"></i>
+                        </div>
+                        <h3 class="option-title">${option.title[lang]}</h3>
+                        <p class="option-desc">${option.desc[lang]}</p>
+                    `;
+                    card.addEventListener('click', () => {
+                        window.location.href = option.page;
+                    });
+                    optionsGrid.appendChild(card);
+                });
+            }
+
+            // Traductions pour tous les textes
+            const translations = {
+                fr: {
+                    logo: 'Kali Linux Master',
+                    currentLang: 'Français',
+                    menuTitle: 'Menu Principal',
+                    menuSupport: 'Support',
+                    menuTelegram: 'Notre Groupe Telegram',
+                    menuWhatsapp: 'Notre Chaîne WhatsApp',
+                    menuApps: "Plus d'Applications",
+                    menuPremium: 'Version Premium',
+                    menuShare: "Partager l'App",
+                    menuSettings: 'Paramètres',
+                    heroTitle: 'Maîtrisez Kali Linux comme un Expert',
+                    heroSubtitle: 'Apprenez tout sur Kali Linux, des bases aux techniques avancées de sécurité. Guides complets, tutoriels détaillés et ressources pratiques pour devenir un professionnel de la cybersécurité.',
+                    sectionTitle: 'Tout sur Kali Linux',
+                    quizTitle: '🎮 Quiz Interactif',
+                    quizDesc: 'Testez vos connaissances sur Kali Linux avec notre quiz interactif et gagnez des badges !',
+                    quizBtn: 'Commencer le Quiz',
+                    premiumBadge: 'PRO',
+                    premiumTitle: '🚀 Passez à Premium',
+                    premiumDesc: 'Débloquez tous les cours avancés, téléchargements exclusifs et support prioritaire.',
+                    premiumBtn: 'Voir les Offres',
+                    navBasic: 'Basique',
+                    navIntermediate: 'Intermédiaire',
+                    navAdvanced: 'Avancé',
+                    navTraining: 'Formation'
+                },
+                en: {
+                    logo: 'Kali Linux Master',
+                    currentLang: 'English',
+                    menuTitle: 'Main Menu',
+                    menuSupport: 'Support',
+                    menuTelegram: 'Our Telegram Group',
+                    menuWhatsapp: 'Our WhatsApp Channel',
+                    menuApps: 'More Apps',
+                    menuPremium: 'Premium Version',
+                    menuShare: 'Share App',
+                    menuSettings: 'Settings',
+                    heroTitle: 'Master Kali Linux like an Expert',
+                    heroSubtitle: 'Learn everything about Kali Linux, from basics to advanced security techniques. Complete guides, detailed tutorials and practical resources to become a cybersecurity professional.',
+                    sectionTitle: 'All about Kali Linux',
+                    quizTitle: '🎮 Interactive Quiz',
+                    quizDesc: 'Test your knowledge of Kali Linux with our interactive quiz and earn badges!',
+                    quizBtn: 'Start Quiz',
+                    premiumBadge: 'PRO',
+                    premiumTitle: '🚀 Go Premium',
+                    premiumDesc: 'Unlock all advanced courses, exclusive downloads and priority support.',
+                    premiumBtn: 'View Offers',
+                    navBasic: 'Basic',
+                    navIntermediate: 'Intermediate',
+                    navAdvanced: 'Advanced',
+                    navTraining: 'Training'
+                },
+                es: {
+                    logo: 'Kali Linux Master',
+                    currentLang: 'Español',
+                    menuTitle: 'Menú Principal',
+                    menuSupport: 'Soporte',
+                    menuTelegram: 'Nuestro Grupo de Telegram',
+                    menuWhatsapp: 'Nuestro Canal de WhatsApp',
+                    menuApps: 'Más Aplicaciones',
+                    menuPremium: 'Versión Premium',
+                    menuShare: 'Compartir App',
+                    menuSettings: 'Ajustes',
+                    heroTitle: 'Domina Kali Linux como un Experto',
+                    heroSubtitle: 'Aprende todo sobre Kali Linux, desde lo básico hasta técnicas avanzadas de seguridad. Guías completas, tutoriales detallados y recursos prácticos para convertirte en un profesional de la ciberseguridad.',
+                    sectionTitle: 'Todo sobre Kali Linux',
+                    quizTitle: '🎮 Quiz Interactivo',
+                    quizDesc: '¡Pon a prueba tus conocimientos sobre Kali Linux con nuestro quiz interactivo y gana insignias!',
+                    quizBtn: 'Comenzar Quiz',
+                    premiumBadge: 'PRO',
+                    premiumTitle: '🚀 Hazte Premium',
+                    premiumDesc: 'Desbloquea todos los cursos avanzados, descargas exclusivas y soporte prioritario.',
+                    premiumBtn: 'Ver Ofertas',
+                    navBasic: 'Básico',
+                    navIntermediate: 'Intermedio',
+                    navAdvanced: 'Avanzado',
+                    navTraining: 'Formación'
+                },
+                de: {
+                    logo: 'Kali Linux Master',
+                    currentLang: 'Deutsch',
+                    menuTitle: 'Hauptmenü',
+                    menuSupport: 'Support',
+                    menuTelegram: 'Unsere Telegram-Gruppe',
+                    menuWhatsapp: 'Unser WhatsApp-Kanal',
+                    menuApps: 'Weitere Apps',
+                    menuPremium: 'Premium-Version',
+                    menuShare: 'App teilen',
+                    menuSettings: 'Einstellungen',
+                    heroTitle: 'Meistern Sie Kali Linux wie ein Experte',
+                    heroSubtitle: 'Lernen Sie alles über Kali Linux, von den Grundlagen bis zu fortgeschrittenen Sicherheitstechniken. Vollständige Anleitungen, detaillierte Tutorials und praktische Ressourcen, um ein Cybersicherheitsexperte zu werden.',
+                    sectionTitle: 'Alles über Kali Linux',
+                    quizTitle: '🎮 Interaktives Quiz',
+                    quizDesc: 'Testen Sie Ihr Wissen über Kali Linux mit unserem interaktiven Quiz und verdienen Sie Abzeichen!',
+                    quizBtn: 'Quiz starten',
+                    premiumBadge: 'PRO',
+                    premiumTitle: '🚀 Zur Premium-Version',
+                    premiumDesc: 'Schalten Sie alle fortgeschrittenen Kurse, exklusive Downloads und vorrangigen Support frei.',
+                    premiumBtn: 'Angebote ansehen',
+                    navBasic: 'Grundlagen',
+                    navIntermediate: 'Mittelstufe',
+                    navAdvanced: 'Fortgeschritten',
+                    navTraining: 'Training'
+                },
+                ar: {
+                    logo: 'كالي لينكس ماستر',
+                    currentLang: 'العربية',
+                    menuTitle: 'القائمة الرئيسية',
+                    menuSupport: 'الدعم',
+                    menuTelegram: 'مجموعة التليغرام',
+                    menuWhatsapp: 'قناة الواتساب',
+                    menuApps: 'تطبيقات أخرى',
+                    menuPremium: 'نسخة بريميوم',
+                    menuShare: 'مشاركة التطبيق',
+                    menuSettings: 'الإعدادات',
+                    heroTitle: 'أتقن كالي لينكس كخبير',
+                    heroSubtitle: 'تعلم كل شيء عن كالي لينكس، من الأساسيات إلى تقنيات الأمان المتقدمة. أدلة كاملة، دروس مفصلة وموارد عملية لتصبح محترفاً في الأمن السيبراني.',
+                    sectionTitle: 'كل شيء عن كالي لينكس',
+                    quizTitle: '🎮 اختبار تفاعلي',
+                    quizDesc: 'اختبر معرفتك بكالي لينكس من خلال اختبارنا التفاعلي واربح شارات!',
+                    quizBtn: 'ابدأ الاختبار',
+                    premiumBadge: 'بريميوم',
+                    premiumTitle: '🚀 انتقل إلى بريميوم',
+                    premiumDesc: 'افتح جميع الدورات المتقدمة، التنزيلات الحصرية والدعم ذو الأولوية.',
+                    premiumBtn: 'عرض العروض',
+                    navBasic: 'أساسي',
+                    navIntermediate: 'متوسط',
+                    navAdvanced: 'متقدم',
+                    navTraining: 'تدريب'
+                }
+            };
+
+            // Fonction pour changer la langue
+            function changeLanguage(lang) {
+                // Mettre à jour tous les éléments avec data-i18n
+                document.querySelectorAll('[data-i18n]').forEach(element => {
+                    const key = element.getAttribute('data-i18n');
+                    if (translations[lang] && translations[lang][key]) {
+                        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                            element.placeholder = translations[lang][key];
+                        } else {
+                            element.textContent = translations[lang][key];
+                        }
+                    }
+                });
+
+                // Mettre à jour le texte du bouton de langue
+                const langBtnSpan = document.querySelector('#langBtn span');
+                if (langBtnSpan) {
+                    langBtnSpan.textContent = translations[lang].currentLang;
+                }
+
+                // Re-rendre les options de la grille
+                renderOptions(lang);
+            }
+
+            // Gestion du menu burger
+            const menuBtn = document.getElementById('menuBtn');
+            const sideMenu = document.getElementById('sideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+            const closeMenu = document.getElementById('closeMenu');
+
+            menuBtn.addEventListener('click', () => {
+                sideMenu.classList.add('active');
+                menuOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            const closeSideMenu = () => {
+                sideMenu.classList.remove('active');
+                menuOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            };
+
+            closeMenu.addEventListener('click', closeSideMenu);
+            menuOverlay.addEventListener('click', closeSideMenu);
+
+            // Gestion du sélecteur de langue
+            const langBtn = document.getElementById('langBtn');
+            const langDropdown = document.getElementById('langDropdown');
+            const langOptions = document.querySelectorAll('.lang-option');
+
+            langBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                langDropdown.classList.toggle('active');
+            });
+
+            langOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const lang = option.dataset.lang;
+                    changeLanguage(lang);
+                    langDropdown.classList.remove('active');
+                    
+                    // Afficher une notification
+                    showNotification(translations[lang].currentLang);
+                });
+            });
+
+            // Fermer le dropdown en cliquant ailleurs
+            document.addEventListener('click', (e) => {
+                if (!langBtn.contains(e.target) && !langDropdown.contains(e.target)) {
+                    langDropdown.classList.remove('active');
+                }
+            });
+
+            // Gestion de la disparition de la carte du haut au scroll
+            const hero = document.getElementById('hero');
+            const header = document.getElementById('header');
+            let lastScrollTop = 0;
+            let scrollThreshold = 100; // Seuil de défilement avant de cacher/montrer
+
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Gestion de la carte hero
+                if (scrollTop > scrollThreshold) {
+                    hero.classList.add('hidden');
+                } else {
+                    hero.classList.remove('hidden');
+                }
+
+                // Gestion du header (optionnel - le header reste visible car sticky)
+                // Vous pouvez ajouter cette logique si vous voulez que le header se cache aussi
+                if (scrollTop > lastScrollTop && scrollTop > scrollThreshold) {
+                    // Scroll vers le bas
+                    header.classList.add('hidden');
+                } else {
+                    // Scroll vers le haut
+                    header.classList.remove('hidden');
+                }
+                
+                lastScrollTop = scrollTop;
+            });
+
+            // Gestion de la navigation inférieure
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const href = item.getAttribute('href');
+                    
+                    // Animation de clic
+                    item.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        item.style.transform = '';
+                    }, 200);
+                    
+                    // Redirection après animation
+                    setTimeout(() => {
+                        if (href) {
+                            window.location.href = href;
+                        }
+                    }, 300);
+                });
+            });
+
+            // Fonction pour afficher les notifications
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.textContent = `Langue changée : ${message}`;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
+            }
+
+            // Animation pour les boutons
+            document.querySelectorAll('.card-btn, .menu-link, .option-card').forEach(btn => {
+                btn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px)';
+                });
+                btn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            // Initialisation avec la langue française
+            renderOptions('fr');
+        });
+    </script>
+</body>
+      </html>
