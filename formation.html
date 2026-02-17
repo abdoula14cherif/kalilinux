@@ -26,6 +26,8 @@
             --card-bg: #1a2b4a;
             --shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
             --radius: 10px;
+            --gold: #FFD700;
+            --premium-gradient: linear-gradient(135deg, #FFD700, #FFA500);
         }
 
         body {
@@ -242,7 +244,62 @@
             line-height: 1.5;
         }
 
-        /* Grille compacte 3x3 */
+        /* Premium Banner */
+        .premium-banner {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
+            border: 2px solid var(--gold);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .premium-banner-text {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .premium-banner i {
+            font-size: 3rem;
+            color: var(--gold);
+        }
+
+        .premium-banner h3 {
+            color: var(--gold);
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .premium-banner p {
+            color: var(--light-gray);
+        }
+
+        .premium-banner-btn {
+            background: var(--premium-gradient);
+            color: #000;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            border: 2px solid var(--gold);
+        }
+
+        .premium-banner-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+        }
+
+        /* Grille des formations */
         .courses-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -262,7 +319,7 @@
             }
         }
 
-        /* Carte compacte avec photo */
+        /* Carte formation */
         .course-card {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -271,7 +328,7 @@
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border: 2px solid transparent;
             position: relative;
-            height: 320px;
+            height: 340px;
             display: flex;
             flex-direction: column;
         }
@@ -280,6 +337,20 @@
             transform: translateY(-10px) scale(1.02);
             border-color: var(--orange);
             box-shadow: 0 20px 40px rgba(255, 140, 50, 0.2);
+        }
+
+        .course-card.premium::before {
+            content: '🔒 PREMIUM';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--premium-gradient);
+            color: #000;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 10;
         }
 
         .course-image {
@@ -367,6 +438,7 @@
             align-items: center;
             padding-top: 15px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 10px;
         }
 
         .course-duration {
@@ -378,13 +450,13 @@
         }
 
         .course-price {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: bold;
-            color: var(--terminal-green);
-            background: rgba(57, 255, 20, 0.1);
+            color: var(--gold);
+            background: rgba(255, 215, 0, 0.1);
             padding: 5px 12px;
             border-radius: 20px;
-            border: 1px solid var(--terminal-green);
+            border: 1px solid var(--gold);
         }
 
         .course-btn {
@@ -400,7 +472,6 @@
             border: 2px solid var(--orange);
             text-align: center;
             width: 100%;
-            margin-top: 15px;
             cursor: pointer;
         }
 
@@ -409,6 +480,17 @@
             color: var(--orange);
             transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(255, 140, 50, 0.2);
+        }
+
+        .course-btn.premium {
+            background: var(--premium-gradient);
+            color: #000;
+            border: 2px solid var(--gold);
+        }
+
+        .course-btn.premium:hover {
+            background: transparent;
+            color: var(--gold);
         }
 
         /* Section Ebooks */
@@ -559,6 +641,74 @@
             box-shadow: 0 10px 20px rgba(255, 140, 50, 0.3);
         }
 
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--orange), var(--blood-red));
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            z-index: 10000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 5px solid white;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .notification-icon {
+            font-size: 2rem;
+        }
+
+        .notification-content h4 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .notification-content p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .notification-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: white;
+            animation: progress 3s linear forwards;
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
         /* Barre de navigation inférieure */
         .bottom-nav {
             position: fixed;
@@ -626,157 +776,6 @@
             animation: float 4s ease-in-out infinite;
         }
 
-        /* Modal de paiement */
-        .payment-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            backdrop-filter: blur(5px);
-        }
-
-        .payment-modal.active {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .payment-content {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
-            width: 90%;
-            border: 3px solid var(--orange);
-            position: relative;
-            animation: slideUp 0.4s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .payment-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: var(--blood-red);
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .payment-close:hover {
-            background: var(--orange);
-            transform: rotate(90deg);
-        }
-
-        .payment-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--terminal-green), var(--orange));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 25px;
-            font-size: 2.5rem;
-            color: var(--dark-blue);
-        }
-
-        .payment-title {
-            color: var(--light-orange);
-            text-align: center;
-            margin-bottom: 15px;
-            font-size: 1.8rem;
-        }
-
-        .payment-price {
-            text-align: center;
-            font-size: 2.5rem;
-            color: var(--terminal-green);
-            font-weight: bold;
-            margin-bottom: 25px;
-            background: rgba(57, 255, 20, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-        }
-
-        .payment-details {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-        }
-
-        .payment-detail-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .payment-detail-item:last-child {
-            border-bottom: none;
-        }
-
-        .payment-detail-item i {
-            color: var(--orange);
-            font-size: 1.2rem;
-            width: 25px;
-        }
-
-        .payment-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            background: linear-gradient(135deg, var(--terminal-green), var(--orange));
-            color: var(--dark-blue);
-            padding: 18px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin-top: 25px;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .payment-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(57, 255, 20, 0.3);
-            border-color: white;
-        }
-
         /* Responsive */
         @media (max-width: 992px) {
             .page-title h1 {
@@ -784,7 +783,7 @@
             }
             
             .course-card {
-                height: 300px;
+                height: 320px;
             }
             
             .course-image {
@@ -821,10 +820,6 @@
                 font-size: 1.1rem;
             }
             
-            .course-price {
-                font-size: 1.1rem;
-            }
-            
             .bottom-nav {
                 padding: 10px 0;
             }
@@ -840,6 +835,16 @@
             
             .nav-label {
                 font-size: 0.7rem;
+            }
+
+            .premium-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .premium-banner-text {
+                flex-direction: column;
+                text-align: center;
             }
 
             .ebooks-header h2 {
@@ -869,7 +874,7 @@
             }
             
             .course-card {
-                height: 280px;
+                height: 300px;
             }
             
             .course-image {
@@ -889,22 +894,10 @@
                 font-size: 1.2rem;
             }
 
-            .payment-content {
-                padding: 25px;
-            }
-
-            .payment-icon {
-                width: 60px;
-                height: 60px;
-                font-size: 2rem;
-            }
-
-            .payment-title {
-                font-size: 1.5rem;
-            }
-
-            .payment-price {
-                font-size: 2rem;
+            .notification {
+                left: 20px;
+                right: 20px;
+                width: auto;
             }
         }
     </style>
@@ -914,7 +907,7 @@
     <header class="header">
         <div class="logo">
             <i class="fas fa-graduation-cap"></i>
-            <span>Formations Expertes</span>
+            <span>Formations Premium</span>
         </div>
         
         <div class="header-right">
@@ -973,8 +966,24 @@
     <!-- Contenu principal -->
     <div class="container">
         <div class="page-title">
-            <h1>🚀 Formations à Prix Mini</h1>
-            <p>Des formations de qualité à partir de 5€ seulement. Apprenez sans vous ruiner !</p>
+            <h1>🚀 Formations Expertes</h1>
+            <p>Débloquez l'accès à nos formations vidéo avec le mode premium à partir de 5€ seulement</p>
+        </div>
+
+        <!-- Premium Banner -->
+        <div class="premium-banner">
+            <div class="premium-banner-text">
+                <i class="fas fa-crown"></i>
+                <div>
+                    <h3>✨ Mode Premium - Accès Illimité</h3>
+                    <p>Débloquez toutes les formations et ebooks pour un accès complet</p>
+                </div>
+            </div>
+            <a href="premium.html" class="premium-banner-btn">
+                <i class="fas fa-star"></i>
+                Devenir Premium
+                <i class="fas fa-arrow-right"></i>
+            </a>
         </div>
 
         <!-- Grille des formations -->
@@ -993,7 +1002,7 @@
             </div>
 
             <div class="ebooks-grid" id="ebooksGrid">
-                <!-- Les 12 premiers ebooks seront affichés ici -->
+                <!-- Les ebooks seront générés par JavaScript -->
             </div>
 
             <div class="ebooks-more">
@@ -1003,33 +1012,6 @@
                     <i class="fas fa-arrow-down"></i>
                 </button>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal de paiement -->
-    <div class="payment-modal" id="paymentModal">
-        <div class="payment-content">
-            <button class="payment-close" id="closePaymentModal">
-                <i class="fas fa-times"></i>
-            </button>
-            
-            <div class="payment-icon" id="paymentIcon">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            
-            <h2 class="payment-title" id="paymentTitle">Paiement Formation</h2>
-            
-            <div class="payment-price" id="paymentPrice">7€</div>
-            
-            <div class="payment-details" id="paymentDetails">
-                <!-- Les détails seront injectés dynamiquement -->
-            </div>
-            
-            <button class="payment-btn" id="confirmPaymentBtn">
-                <i class="fas fa-lock"></i>
-                Confirmer le Paiement
-                <i class="fas fa-arrow-right"></i>
-            </button>
         </div>
     </div>
 
@@ -1282,7 +1264,7 @@
             
             formations.forEach((formation, index) => {
                 const card = document.createElement('div');
-                card.className = 'course-card animated';
+                card.className = 'course-card premium animated';
                 card.style.animationDelay = `${index * 0.1}s`;
                 card.dataset.formation = JSON.stringify(formation);
                 
@@ -1303,16 +1285,64 @@
                             </div>
                             <div class="course-price">${formation.prix}</div>
                         </div>
-                        <button class="course-btn buy-btn">Acheter cette formation</button>
+                        <button class="course-btn premium demander-formation">
+                            <i class="fas fa-lock"></i> Demander la formation
+                        </button>
                     </div>
                 `;
                 
                 coursesGrid.appendChild(card);
             });
 
-            // Générer les 2000 ebooks (affichage paginé)
-            const categories = ['Programmation', 'Cybersécurité', 'Web', 'Data', 'Marketing', 'Design', 'Business', 'IA'];
-            const titres = ['Guide Complet', 'Les Bases', 'Pratique', 'Théorie', 'Exercices', 'Projets', 'Tutoriel', 'Manuel', 'Cours', 'Formation'];
+            // Fonction pour afficher une notification
+            function showNotification(formation) {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.innerHTML = `
+                    <div class="notification-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="notification-content">
+                        <h4>Formation demandée !</h4>
+                        <p>Vous avez demandé : <strong>${formation.titre}</strong></p>
+                        <p style="font-size: 0.8rem; margin-top: 5px;">Redirection vers la page premium...</p>
+                    </div>
+                    <div class="notification-progress"></div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Animation de disparition après 3 secondes
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2800);
+            }
+
+            // Gestion des boutons "Demander la formation"
+            document.querySelectorAll('.demander-formation').forEach((btn, index) => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const card = this.closest('.course-card');
+                    const formationData = JSON.parse(card.dataset.formation);
+                    
+                    // Afficher la notification
+                    showNotification(formationData);
+                    
+                    // Animation du bouton
+                    this.style.transform = 'scale(0.95)';
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirection...';
+                    
+                    // Rediriger vers la page premium après 1 seconde
+                    setTimeout(() => {
+                        window.location.href = 'premium.html';
+                    }, 1000);
+                });
+            });
+
+            // Générer les ebooks
+            const categories = ['Programmation', 'Cybersécurité', 'Web', 'Data', 'Marketing', 'Design', 'Business', 'IA', 'Réseaux', 'Bureautique'];
+            const titres = ['Guide Complet', 'Les Bases', 'Pratique', 'Théorie', 'Exercices', 'Projets', 'Tutoriel', 'Manuel', 'Cours', 'Formation', 'Méthodologie', 'Techniques Avancées'];
             
             const ebooks = [];
             for (let i = 1; i <= 2000; i++) {
@@ -1340,8 +1370,8 @@
                         </div>
                         <h4 class="ebook-title">${ebook.titre}</h4>
                         <div class="ebook-category">${ebook.categorie}</div>
-                        <button class="ebook-btn voir-ebook" data-id="${ebook.id}">
-                            <i class="fas fa-download"></i> Voir l'ebook
+                        <button class="ebook-btn demander-ebook" data-id="${ebook.id}">
+                            <i class="fas fa-lock"></i> Demander l'ebook
                         </button>
                     `;
                     ebooksGrid.appendChild(card);
@@ -1350,6 +1380,30 @@
 
             // Afficher les 12 premiers ebooks
             afficherEbooks(0, 12);
+
+            // Gestion des boutons "Demander l'ebook"
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('demander-ebook') || e.target.closest('.demander-ebook')) {
+                    const btn = e.target.closest('.demander-ebook');
+                    const ebookId = btn.dataset.id;
+                    const ebook = ebooks.find(e => e.id == ebookId);
+                    
+                    // Afficher la notification
+                    showNotification({
+                        titre: ebook.titre,
+                        categorie: ebook.categorie
+                    });
+                    
+                    // Animation du bouton
+                    btn.style.transform = 'scale(0.95)';
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirection...';
+                    
+                    // Rediriger vers la page premium après 1 seconde
+                    setTimeout(() => {
+                        window.location.href = 'premium.html';
+                    }, 1000);
+                }
+            });
 
             // Gestion du bouton "Voir plus d'ebooks"
             document.getElementById('loadMoreEbooks').addEventListener('click', function() {
@@ -1360,149 +1414,6 @@
                 if (ebooksAffiches >= ebooks.length) {
                     this.style.display = 'none';
                 }
-            });
-
-            // Gestion du modal de paiement
-            const paymentModal = document.getElementById('paymentModal');
-            const closePaymentModal = document.getElementById('closePaymentModal');
-            const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
-
-            // Ouvrir le modal de paiement pour une formation
-            document.querySelectorAll('.buy-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const card = this.closest('.course-card');
-                    const formationData = JSON.parse(card.dataset.formation);
-                    
-                    document.getElementById('paymentIcon').innerHTML = `<i class="${formationData.icone}"></i>`;
-                    document.getElementById('paymentTitle').textContent = formationData.titre;
-                    document.getElementById('paymentPrice').textContent = formationData.prix;
-                    
-                    const detailsHtml = `
-                        <div class="payment-detail-item">
-                            <i class="fas fa-tag"></i>
-                            <span>Catégorie</span>
-                            <span style="margin-left: auto; color: white;">${formationData.categorie}</span>
-                        </div>
-                        <div class="payment-detail-item">
-                            <i class="far fa-clock"></i>
-                            <span>Durée</span>
-                            <span style="margin-left: auto; color: white;">${formationData.duree}</span>
-                        </div>
-                        <div class="payment-detail-item">
-                            <i class="fas fa-book"></i>
-                            <span>Chapitres</span>
-                            <span style="margin-left: auto; color: white;">${formationData.chapitres}</span>
-                        </div>
-                        <div class="payment-detail-item">
-                            <i class="fas fa-tasks"></i>
-                            <span>Exercices</span>
-                            <span style="margin-left: auto; color: white;">${formationData.exercices}</span>
-                        </div>
-                        <div class="payment-detail-item">
-                            <i class="fas fa-certificate"></i>
-                            <span>Certification</span>
-                            <span style="margin-left: auto; color: white;">${formationData.certification ? 'Oui' : 'Non'}</span>
-                        </div>
-                    `;
-                    
-                    document.getElementById('paymentDetails').innerHTML = detailsHtml;
-                    
-                    paymentModal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                });
-            });
-
-            // Ouvrir le modal pour un ebook
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('voir-ebook') || e.target.closest('.voir-ebook')) {
-                    const btn = e.target.closest('.voir-ebook');
-                    const ebookId = btn.dataset.id;
-                    const ebook = ebooks.find(e => e.id == ebookId);
-                    
-                    document.getElementById('paymentIcon').innerHTML = '<i class="fas fa-book"></i>';
-                    document.getElementById('paymentTitle').textContent = ebook.titre;
-                    document.getElementById('paymentPrice').textContent = '2€';
-                    
-                    const detailsHtml = `
-                        <div class="payment-detail-item">
-                            <i class="fas fa-tag"></i>
-                            <span>Catégorie</span>
-                            <span style="margin-left: auto; color: white;">${ebook.categorie}</span>
-                        </div>
-                        <div class="payment-detail-item">
-                            <i class="fas fa-file-pdf"></i>
-                            <span>Format</span>
-                            <span style="margin-left: auto; color: white;">PDF</span>
-                        </div>
-                        <div class="payment-detail-item">
-                            <i class="fas fa-file"></i>
-                            <span>Pages</span>
-                            <span style="margin-left: auto; color: white;">150-300</span>
-                        </div>
-                        <div class="payment-detail-item">
-                            <i class="fas fa-language"></i>
-                            <span>Langue</span>
-                            <span style="margin-left: auto; color: white;">Français</span>
-                        </div>
-                    `;
-                    
-                    document.getElementById('paymentDetails').innerHTML = detailsHtml;
-                    
-                    paymentModal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                }
-            });
-
-            // Fermer le modal
-            closePaymentModal.addEventListener('click', () => {
-                paymentModal.classList.remove('active');
-                document.body.style.overflow = '';
-            });
-
-            paymentModal.addEventListener('click', (e) => {
-                if (e.target === paymentModal) {
-                    paymentModal.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            });
-
-            // Confirmer le paiement
-            confirmPaymentBtn.addEventListener('click', function() {
-                // Animation de succès
-                this.innerHTML = '<i class="fas fa-check-circle"></i> Paiement réussi !';
-                this.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
-                
-                setTimeout(() => {
-                    paymentModal.classList.remove('active');
-                    document.body.style.overflow = '';
-                    
-                    // Notification de succès
-                    const notification = document.createElement('div');
-                    notification.style.cssText = `
-                        position: fixed;
-                        top: 20px;
-                        right: 20px;
-                        background: #4CAF50;
-                        color: white;
-                        padding: 15px 25px;
-                        border-radius: 10px;
-                        z-index: 10000;
-                        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-                    `;
-                    notification.innerHTML = '<i class="fas fa-check-circle"></i> Formation débloquée ! Accès immédiat.';
-                    document.body.appendChild(notification);
-                    
-                    setTimeout(() => {
-                        notification.remove();
-                    }, 3000);
-                    
-                    // Réinitialiser le bouton
-                    setTimeout(() => {
-                        confirmPaymentBtn.innerHTML = '<i class="fas fa-lock"></i> Confirmer le Paiement <i class="fas fa-arrow-right"></i>';
-                        confirmPaymentBtn.style.background = 'linear-gradient(135deg, var(--terminal-green), var(--orange))';
-                    }, 500);
-                }, 2000);
             });
 
             // Gestion du bouton retour
@@ -1541,7 +1452,7 @@
                 observer.observe(card);
             });
 
-            // Animation au survol
+            // Animation au survol des cartes
             document.querySelectorAll('.course-card').forEach(card => {
                 card.addEventListener('mouseenter', function() {
                     this.style.transform = 'translateY(-12px) scale(1.03)';
