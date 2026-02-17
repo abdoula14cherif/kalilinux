@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page en Développement | Kali Linux Master</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --dark-blue: #0a1931;
+            --navy-blue: #185adb;
+            --electric-blue: #2d46b9;
+            --blood-red: #b33939;
+            --orange: #ff8c32;
+            --light-orange: #ffb74d;
+            --gray: #8d93ab;
+            --light-gray: #f1f3f8;
+            --card-bg: #1a2b4a;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 15px;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-blue) 0%, #0c2461 100%);
+            color: var(--light-gray);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Construction Site */
+        .construction-site {
+            position: relative;
+            height: 300px;
+            margin-bottom: 40px;
+            overflow: hidden;
+            border-radius: var(--radius);
+            background: linear-gradient(135deg, rgba(10, 25, 49, 0.9), rgba(179, 57, 57, 0.1));
+            box-shadow: var(--shadow);
+            border: 2px solid var(--orange);
+        }
+
+        .crane {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 150px;
+        }
+
+        .crane-base {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 50px;
+            background: #555;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .crane-tower {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 100px;
+            background: #777;
+        }
+
+        .crane-arm {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 150px;
+            height: 5px;
+            background: #888;
+            transform-origin: left center;
+            animation: craneMove 6s infinite alternate ease-in-out;
+        }
+
+        @keyframes craneMove {
+            0% { transform: rotate(-30deg); }
+            100% { transform: rotate(30deg); }
+        }
+
+        .crane-hook {
+            position: absolute;
+            right: 0;
+            bottom: -20px;
+            width: 20px;
+            height: 20px;
+            background: var(--orange);
+            border-radius: 50%;
+            animation: hookMove 6s infinite alternate ease-in-out;
+        }
+
+        @keyframes hookMove {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100px); }
+        }
+
+        .bricks {
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            display: flex;
+            gap: 5px;
+        }
+
+        .brick {
+            width: 40px;
+            height: 20px;
+            background: #b33939;
+            border-radius: 3px;
+            animation: brickBuild 4s infinite;
+        }
+
+        .brick:nth-child(2) { animation-delay: 0.5s; }
+        .brick:nth-child(3) { animation-delay: 1s; }
+        .brick:nth-child(4) { animation-delay: 1.5s; }
+
+        @keyframes brickBuild {
+            0%, 100% { transform: translateY(0); opacity: 1; }
+            50% { transform: translateY(-100px); opacity: 0.5; }
+        }
+
+        /* Content */
+        .content {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 40px;
+            box-shadow: var(--shadow);
+            border-top: 5px solid var(--orange);
+        }
+
+        .construction-icon {
+            font-size: 4rem;
+            color: var(--orange);
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, var(--orange), var(--blood-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            margin: 40px 0;
+        }
+
+        .progress-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: var(--light-orange);
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blood-red), var(--orange));
+            border-radius: 5px;
+            width: 65%;
+            animation: progressAnimation 3s infinite alternate;
+        }
+
+        @keyframes progressAnimation {
+            0% { width: 60%; }
+            100% { width: 70%; }
+        }
+
+        /* Loading Animation */
+        .loading-animation {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .dot {
+            width: 15px;
+            height: 15px;
+            background: var(--orange);
+            border-radius: 50%;
+            animation: loadingDots 1.4s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        .dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes loadingDots {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Code Terminal */
+        .code-terminal {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            border: 2px solid var(--orange);
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            color: var(--light-orange);
+            font-size: 0.9rem;
+        }
+
+        .terminal-content {
+            color: #00ff00;
+            line-height: 1.5;
+        }
+
+        .code-line {
+            margin-bottom: 5px;
+        }
+
+        .terminal-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 20px;
+            background: var(--orange);
+            animation: blink 1s infinite;
+            margin-left: 5px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .action-btn:hover {
+            background: transparent;
+            color: var(--orange);
+            border-color: var(--orange);
+            transform: translateY(-3px);
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            color: var(--light-orange);
+            border: 2px solid var(--light-orange);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--light-orange);
+            color: var(--dark-blue);
+        }
+
+        /* Developer Info */
+        .developer-info {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .developer-info h3 {
+            color: var(--light-orange);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .status-tags {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-tag {
+            background: rgba(255, 140, 50, 0.1);
+            color: var(--light-orange);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 140, 50, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .construction-site {
+                height: 200px;
+            }
+            
+            .crane {
+                transform: translateX(-50%) scale(0.8);
+            }
+            
+            .content {
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .construction-site {
+                height: 150px;
+            }
+            
+            .crane {
+                transform: translateX(-50%) scale(0.6);
+            }
+            
+            .construction-icon {
+                font-size: 3rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Construction Site -->
+        <div class="construction-site">
+            <div class="crane">
+                <div class="crane-base"></div>
+                <div class="crane-tower"></div>
+                <div class="crane-arm">
+                    <div class="crane-hook"></div>
+                </div>
+            </div>
+            <div class="bricks">
+                <div class="brick"></div>
+                <div class="brick"></div>
+                <div class="brick"></div>
+                <div class="brick"></div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="construction-icon">
+                <i class="fas fa-tools"></i>
+            </div>
+            
+            <h1>Page en Cours de Construction</h1>
+            
+            <p class="subtitle">
+                Cette section est actuellement en développement. Notre équipe travaille dur pour créer 
+                du contenu de qualité. Merci de votre patience !
+            </p>
+
+            <!-- Progress Section -->
+            <div class="progress-section">
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span>Progression du développement</span>
+                        <span id="progressPercent">65%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Animation -->
+            <div class="loading-animation">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+
+            <!-- Code Terminal -->
+            <div class="code-terminal">
+                <div class="terminal-header">
+                    <span>kali@developer:~$</span>
+                    <span>page_builder.sh</span>
+                </div>
+                <div class="terminal-content">
+                    <div class="code-line">[INFO] Initialisation de la page...</div>
+                    <div class="code-line">[OK] Structure HTML chargée</div>
+                    <div class="code-line">[OK] Styles CSS appliqués</div>
+                    <div class="code-line">[PROGRESS] JavaScript en cours d'intégration (65%)</div>
+                    <div class="code-line">[PENDING] Contenu éducatif à ajouter</div>
+                    <div class="code-line">[PENDING] Tests d'optimisation</div>
+                    <div class="code-line">$ <span class="terminal-cursor"></span></div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="index.html" class="action-btn">
+                    <i class="fas fa-home"></i>
+                    Retour à l'Accueil
+                </a>
+                <a href="javascript:void(0)" class="action-btn secondary" id="refreshBtn">
+                    <i class="fas fa-redo"></i>
+                    Actualiser la Page
+                </a>
+                <a href="javascript:void(0)" class="action-btn secondary" id="notifyBtn">
+                    <i class="fas fa-bell"></i>
+                    M'avertir quand c'est prêt
+                </a>
+            </div>
+
+            <!-- Developer Info -->
+            <div class="developer-info">
+                <h3>Statut du Développement</h3>
+                <div class="status-tags">
+                    <span class="status-tag">En Cours</span>
+                    <span class="status-tag">HTML/CSS ✓</span>
+                    <span class="status-tag">JavaScript ⏳</span>
+                    <span class="status-tag">Contenu 📝</span>
+                    <span class="status-tag">Tests ⏳</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation du pourcentage de progression
+            const progressPercent = document.getElementById('progressPercent');
+            let percent = 65;
+            
+            const progressInterval = setInterval(() => {
+                percent += Math.random() * 2;
+                if (percent >= 95) {
+                    percent = 95;
+                    clearInterval(progressInterval);
+                }
+                progressPercent.textContent = Math.floor(percent) + '%';
+                
+                // Mettre à jour la barre de progression
+                const progressBar = document.querySelector('.progress');
+                progressBar.style.width = percent + '%';
+            }, 2000);
+
+            // Simulation de compilation dans le terminal
+            const terminalContent = document.querySelector('.terminal-content');
+            const codeLines = [
+                "[INFO] Compression des ressources...",
+                "[OK] Images optimisées",
+                "[PROGRESS] Intégration des animations (72%)",
+                "[INFO] Vérification de la compatibilité mobile...",
+                "[OK] Responsive design validé",
+                "[PROGRESS] Tests de performance en cours",
+                "[INFO] Génération du contenu éducatif..."
+            ];
+            
+            let lineIndex = 0;
+            const codeInterval = setInterval(() => {
+                if (lineIndex < codeLines.length) {
+                    const newLine = document.createElement('div');
+                    newLine.className = 'code-line';
+                    newLine.textContent = codeLines[lineIndex];
+                    terminalContent.insertBefore(newLine, terminalContent.lastElementChild);
+                    lineIndex++;
+                    
+                    // Faire défiler vers le bas
+                    terminalContent.scrollTop = terminalContent.scrollHeight;
+                } else {
+                    clearInterval(codeInterval);
+                }
+            }, 3000);
+
+            // Bouton d'actualisation
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.addEventListener('click', function() {
+                // Animation de rotation
+                this.querySelector('i').style.transform = 'rotate(360deg)';
+                this.style.pointerEvents = 'none';
+                
+                // Réinitialiser certaines animations
+                percent = 65;
+                progressPercent.textContent = '65%';
+                document.querySelector('.progress').style.width = '65%';
+                
+                setTimeout(() => {
+                    this.querySelector('i').style.transform = 'rotate(0)';
+                    this.style.pointerEvents = 'auto';
+                    
+                    // Afficher une notification
+                    showNotification('Page rafraîchie avec succès !');
+                }, 1000);
+            });
+
+            // Bouton de notification
+            const notifyBtn = document.getElementById('notifyBtn');
+            notifyBtn.addEventListener('click', function() {
+                this.innerHTML = '<i class="fas fa-check"></i> Notification programmée';
+                this.style.background = 'linear-gradient(135deg, #4CAF50, #2E7D32)';
+                this.style.borderColor = '#4CAF50';
+                
+                showNotification('Vous serez notifié quand cette page sera disponible !');
+                
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-bell"></i> M\'avertir quand c\'est prêt';
+                    this.style.background = '';
+                    this.style.borderColor = '';
+                }, 3000);
+            });
+
+            // Animation des briques
+            const bricks = document.querySelectorAll('.brick');
+            bricks.forEach((brick, index) => {
+                setInterval(() => {
+                    brick.style.transform = `translateY(${Math.sin(Date.now()/1000 + index) * 50}px)`;
+                }, 100);
+            });
+
+            // Animation de la grue
+            const craneHook = document.querySelector('.crane-hook');
+            setInterval(() => {
+                craneHook.style.transform = `translateY(${Math.sin(Date.now()/2000) * 100}px)`;
+            }, 100);
+
+            // Fonction de notification
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, var(--blood-red), var(--orange));
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 10px;
+                    z-index: 1000;
+                    animation: slideInRight 0.3s ease;
+                    box-shadow: var(--shadow);
+                    max-width: 300px;
+                `;
+                notification.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+
+            // Ajouter les styles d'animation pour les notifications
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideInRight {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOutRight {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Simulation de temps de chargement
+            setTimeout(() => {
+                // Ajouter une ligne finale au terminal
+                const finalLine = document.createElement('div');
+                finalLine.className = 'code-line';
+                finalLine.style.color = '#ff8c32';
+                finalLine.textContent = '[SUCCESS] Construction en cours - Merci de votre patience !';
+                terminalContent.insertBefore(finalLine, terminalContent.lastElementChild);
+                
+                // Faire défiler vers le bas
+                terminalContent.scrollTop = terminalContent.scrollHeight;
+            }, 10000);
+        });
+    </script>
+</body>
+</html>
