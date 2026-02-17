@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Télécharger Kali Linux | Guide Complet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --dark-blue: #0a1931;
+            --navy-blue: #185adb;
+            --electric-blue: #2d46b9;
+            --blood-red: #b33939;
+            --orange: #ff8c32;
+            --light-orange: #ffb74d;
+            --gray: #8d93ab;
+            --light-gray: #f1f3f8;
+            --card-bg: #1a2b4a;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 15px;
+            --success: #4CAF50;
+            --warning: #ff9800;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-blue) 0%, #0c2461 100%);
+            color: var(--light-gray);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Bouton de traduction flottant */
+        .translate-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 2px solid transparent;
+        }
+
+        .translate-btn:hover {
+            transform: scale(1.1) rotate(360deg);
+            border-color: white;
+            box-shadow: 0 10px 30px rgba(255, 140, 50, 0.4);
+        }
+
+        .translate-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .translate-btn:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Menu de traduction */
+        .translate-menu {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 15px;
+            min-width: 200px;
+            display: none;
+            z-index: 999;
+            border: 2px solid var(--orange);
+            animation: slideUp 0.3s ease;
+        }
+
+        .translate-menu.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .translate-menu:before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 20px;
+            width: 20px;
+            height: 20px;
+            background: var(--card-bg);
+            transform: rotate(45deg);
+            border-right: 2px solid var(--orange);
+            border-bottom: 2px solid var(--orange);
+        }
+
+        .translate-option {
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .translate-option:hover {
+            background: var(--electric-blue);
+            transform: translateX(5px);
+        }
+
+        .translate-option i {
+            color: var(--orange);
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        .translate-option.active {
+            background: var(--orange);
+            color: white;
+        }
+
+        .translate-option.active i {
+            color: white;
+        }
+
+        /* Header */
+        .page-header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .page-header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(90deg, var(--orange), var(--blood-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .download-icon {
+            font-size: 3rem;
+            color: var(--orange);
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            color: var(--gray);
+        }
+
+        .breadcrumb a {
+            color: var(--light-orange);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--orange);
+            text-decoration: underline;
+        }
+
+        .breadcrumb i {
+            margin: 0 10px;
+        }
+
+        /* Warning Banner */
+        .warning-banner {
+            background: linear-gradient(135deg, #b33939, #ff8c32);
+            padding: 25px;
+            border-radius: var(--radius);
+            margin: 30px 0;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border-left: 5px solid #ff0000;
+        }
+
+        .warning-banner h3 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .warning-banner p {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+
+        /* Download Options */
+        .download-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .download-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.4s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--orange);
+            box-shadow: 0 20px 40px rgba(255, 140, 50, 0.2);
+        }
+
+        .download-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--blood-red), var(--orange));
+        }
+
+        .download-icon-small {
+            font-size: 2.5rem;
+            color: var(--light-orange);
+            margin-bottom: 20px;
+            height: 60px;
+        }
+
+        .download-card h3 {
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--navy-blue);
+        }
+
+        .download-card p {
+            color: var(--gray);
+            margin-bottom: 25px;
+            line-height: 1.6;
+            min-height: 80px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--orange), var(--blood-red));
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            width: 100%;
+            text-align: center;
+        }
+
+        .download-btn:hover {
+            background: transparent;
+            color: var(--orange);
+            border-color: var(--orange);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 140, 50, 0.3);
+        }
+
+        .download-btn i {
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .download-btn:hover i {
+            transform: translateX(5px);
+        }
+
+        /* Requirements */
+        .requirements {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 30px;
+            margin: 40px 0;
+            box-shadow: var(--shadow);
+        }
+
+        .requirements h2 {
+            color: var(--light-orange);
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        .req-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .req-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--orange);
+        }
+
+        .req-item h4 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .req-item p {
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        .req-item i {
+            color: var(--orange);
+            margin-right: 10px;
+        }
+
+        /* Step by Step */
+        .steps-container {
+            margin: 50px 0;
+        }
+
+        .step {
+            display: flex;
+            margin-bottom: 30px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--orange);
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            margin-right: 25px;
+        }
+
+        .step-content h3 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+
+        .step-content p {
+            color: var(--gray);
+            line-height: 1.7;
+        }
+
+        /* Verification */
+        .verification {
+            background: linear-gradient(135deg, rgba(45, 70, 185, 0.2), rgba(76, 175, 80, 0.2));
+            border-radius: var(--radius);
+            padding: 30px;
+            margin: 40px 0;
+            border-left: 5px solid var(--success);
+        }
+
+        .verification h3 {
+            color: var(--success);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .verification p {
+            color: var(--light-gray);
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            color: var(--light-orange);
+            margin: 15px 0;
+            overflow-x: auto;
+            border: 1px solid var(--navy-blue);
+        }
+
+        /* Back Arrow */
+        .back-container {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--navy-blue);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            color: white;
+            padding: 18px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border: 2px solid transparent;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(255, 140, 50, 0.3);
+            border-color: white;
+        }
+
+        .back-btn i {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .back-btn:hover i {
+            transform: translateX(-5px);
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--orange);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 2000;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animated {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .download-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .step {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .step-number {
+                margin-right: 0;
+                margin-bottom: 20px;
+                align-self: center;
+            }
+            
+            .req-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .translate-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+
+            .translate-menu {
+                bottom: 80px;
+                right: 20px;
+                min-width: 180px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .page-header {
+                padding: 20px 0;
+            }
+            
+            .back-btn {
+                padding: 15px 25px;
+                font-size: 1rem;
+            }
+            
+            .download-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Bouton de traduction flottant -->
+    <button class="translate-btn" id="translateBtn">
+        <i class="fas fa-language"></i>
+    </button>
+
+    <!-- Menu de traduction -->
+    <div class="translate-menu" id="translateMenu">
+        <div class="translate-option active" data-lang="fr">
+            <i class="fas fa-flag"></i>
+            <span>Français</span>
+        </div>
+        <div class="translate-option" data-lang="en">
+            <i class="fas fa-flag-usa"></i>
+            <span>English</span>
+        </div>
+        <div class="translate-option" data-lang="es">
+            <i class="fas fa-flag"></i>
+            <span>Español</span>
+        </div>
+        <div class="translate-option" data-lang="ar">
+            <i class="fas fa-flag"></i>
+            <span>العربية</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb animated">
+            <a href="index.html" id="breadcrumbHome">Accueil</a>
+            <i class="fas fa-chevron-right"></i>
+            <span id="breadcrumbCurrent">Télécharger Kali Linux</span>
+        </div>
+
+        <!-- Header -->
+        <header class="page-header animated">
+            <div class="download-icon">
+                <i class="fas fa-download"></i>
+            </div>
+            <h1 id="mainTitle">Télécharger Kali Linux</h1>
+            <p id="mainSubtitle">Obtenez la version officielle de Kali Linux directement depuis le site des développeurs</p>
+        </header>
+
+        <!-- Warning Banner -->
+        <div class="warning-banner animated">
+            <h3 id="warningTitle"><i class="fas fa-exclamation-triangle"></i> Téléchargez uniquement depuis les sources officielles !</h3>
+            <p id="warningText">
+                Pour éviter les versions modifiées ou malveillantes, téléchargez toujours Kali Linux depuis 
+                le site officiel d'Offensive Security. Les liens ci-dessous vous redirigeront vers les sources 
+                vérifiées et sécurisées.
+            </p>
+        </div>
+
+        <!-- Download Options -->
+        <div class="download-options">
+            <!-- Option 1 -->
+            <div class="download-card animated" style="animation-delay: 0.1s">
+                <div class="download-icon-small">
+                    <i class="fas fa-desktop"></i>
+                </div>
+                <h3 id="opt1Title">Version Standard</h3>
+                <p id="opt1Desc">
+                    Image ISO complète pour installation sur PC ou machine virtuelle. 
+                    Inclut tous les outils de sécurité et environnements de bureau.
+                </p>
+                <a href="https://www.kali.org/get-kali/" target="_blank" class="download-btn" id="opt1Btn">
+                    Télécharger ISO <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+
+            <!-- Option 2 -->
+            <div class="download-card animated" style="animation-delay: 0.2s">
+                <div class="download-icon-small">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 id="opt2Title">Pour Mobile & ARM</h3>
+                <p id="opt2Desc">
+                    Versions spécialisées pour smartphones Android (NetHunter) et 
+                    appareils ARM comme Raspberry Pi, Chromebook, etc.
+                </p>
+                <a href="https://www.kali.org/get-kali/#kali-platforms" target="_blank" class="download-btn" id="opt2Btn">
+                    Versions ARM <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+
+            <!-- Option 3 -->
+            <div class="download-card animated" style="animation-delay: 0.3s">
+                <div class="download-icon-small">
+                    <i class="fas fa-cloud-download-alt"></i>
+                </div>
+                <h3 id="opt3Title">Images Cloud & VM</h3>
+                <p id="opt3Desc">
+                    Images préconfigurées pour VirtualBox, VMware, Hyper-V et 
+                    clouds publics (AWS, Azure, Google Cloud).
+                </p>
+                <a href="https://www.kali.org/get-kali/#kali-virtual-machines" target="_blank" class="download-btn" id="opt3Btn">
+                    Machines Virtuelles <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+
+            <!-- Option 4 -->
+            <div class="download-card animated" style="animation-delay: 0.4s">
+                <div class="download-icon-small">
+                    <i class="fas fa-terminal"></i>
+                </div>
+                <h3 id="opt4Title">Installateur en Ligne</h3>
+                <p id="opt4Desc">
+                    Petit installateur qui télécharge les paquets nécessaires pendant 
+                    l'installation. Idéal pour connexions internet rapides.
+                </p>
+                <a href="https://www.kali.org/get-kali/#kali-installer-images" target="_blank" class="download-btn" id="opt4Btn">
+                    Installateur Réseau <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Requirements -->
+        <div class="requirements animated" style="animation-delay: 0.5s">
+            <h2 id="reqTitle">Configuration Requise</h2>
+            <div class="req-grid">
+                <div class="req-item">
+                    <h4><i class="fas fa-microchip"></i> <span id="req1Title">Processeur</span></h4>
+                    <p id="req1Desc">Processeur 64-bit (i386/amd64) - Minimum 1 GHz recommandé</p>
+                </div>
+                <div class="req-item">
+                    <h4><i class="fas fa-memory"></i> <span id="req2Title">Mémoire RAM</span></h4>
+                    <p id="req2Desc">Minimum 2 GB (4 GB recommandé pour une utilisation fluide)</p>
+                </div>
+                <div class="req-item">
+                    <h4><i class="fas fa-hdd"></i> <span id="req3Title">Stockage</span></h4>
+                    <p id="req3Desc">20 GB d'espace disque libre (SSD recommandé)</p>
+                </div>
+                <div class="req-item">
+                    <h4><i class="fas fa-video"></i> <span id="req4Title">Carte Graphique</span></h4>
+                    <p id="req4Desc">Carte graphique supportant au moins 800x600 de résolution</p>
+                </div>
+                <div class="req-item">
+                    <h4><i class="fas fa-network-wired"></i> <span id="req5Title">Connexion Internet</span></h4>
+                    <p id="req5Desc">Recommandé pour les mises à jour et installation des outils</p>
+                </div>
+                <div class="req-item">
+                    <h4><i class="fas fa-usb"></i> <span id="req6Title">Support d'Installation</span></h4>
+                    <p id="req6Desc">Clé USB 4 GB minimum ou DVD pour créer le média d'installation</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step by Step -->
+        <div class="steps-container">
+            <h2 style="text-align: center; margin-bottom: 40px; color: var(--light-orange);" id="stepsTitle">Guide de Téléchargement</h2>
+            
+            <div class="step animated" style="animation-delay: 0.6s">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3 id="step1Title">Choisir la Version Appropriée</h3>
+                    <p id="step1Desc">
+                        Rendez-vous sur le site officiel <strong>kali.org/get-kali</strong> via les liens ci-dessus. 
+                        Sélectionnez la version correspondant à votre matériel et besoins. Pour la plupart des 
+                        utilisateurs, l'image ISO standard 64-bit est recommandée.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step animated" style="animation-delay: 0.7s">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3 id="step2Title">Téléchargement et Vérification</h3>
+                    <p id="step2Desc">
+                        Cliquez sur le bouton de téléchargement. Le fichier ISO pèse environ 3-4 GB. 
+                        Après téléchargement, <strong>vérifiez l'intégrité</strong> avec les sommes de 
+                        contrôle SHA256 fournies sur le site.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step animated" style="animation-delay: 0.8s">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3 id="step3Title">Créer un Média d'Installation</h3>
+                    <p id="step3Desc">
+                        Utilisez un logiciel comme <strong>Rufus</strong> (Windows), <strong>BalenaEtcher</strong> 
+                        (multi-plateforme) ou <strong>dd</strong> (Linux) pour graver l'ISO sur une clé USB 
+                        ou un DVD.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step animated" style="animation-delay: 0.9s">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3 id="step4Title">Démarrer sur le Média</h3>
+                    <p id="step4Desc">
+                        Redémarrez votre ordinateur et configurez le BIOS/UEFI pour démarrer depuis la 
+                        clé USB ou le DVD. Sélectionnez "Live Boot" pour tester sans installer, ou 
+                        "Graphical Install" pour l'installation complète.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verification -->
+        <div class="verification animated" style="animation-delay: 1.0s">
+            <h3 id="verifyTitle"><i class="fas fa-shield-alt"></i> Vérification de l'Intégrité</h3>
+            <p id="verifyDesc1">
+                Il est <strong>crucial</strong> de vérifier que votre téléchargement n'a pas été corrompu 
+                ou modifié. Utilisez les sommes de contrôle SHA256 fournies sur kali.org :
+            </p>
+            
+            <div class="code-block" id="codeBlock">
+                # Sous Linux/Mac<br>
+                sha256sum kali-linux-2023.3-installer-amd64.iso<br><br>
+                
+                # Sous Windows (PowerShell)<br>
+                Get-FileHash kali-linux-2023.3-installer-amd64.iso -Algorithm SHA256
+            </div>
+            
+            <p id="verifyDesc2">
+                Comparez le résultat avec la somme de contrôle affichée sur le site officiel. 
+                Si elles correspondent, votre téléchargement est intègre et sécurisé.
+            </p>
+        </div>
+
+        <!-- Download Tools -->
+        <div class="download-card animated" style="animation-delay: 1.1s; grid-column: 1/-1; text-align: center;">
+            <div class="download-icon-small">
+                <i class="fas fa-tools"></i>
+            </div>
+            <h3 id="toolsTitle">Outils de Création de Médias</h3>
+            <p id="toolsDesc">
+                Téléchargez les outils nécessaires pour créer votre média d'installation :
+            </p>
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 20px;">
+                <a href="https://rufus.ie/" target="_blank" class="download-btn" style="width: auto; padding: 12px 25px;" id="tool1Btn">
+                    <i class="fab fa-windows"></i> Rufus (Windows)
+                </a>
+                <a href="https://www.balena.io/etcher/" target="_blank" class="download-btn" style="width: auto; padding: 12px 25px;" id="tool2Btn">
+                    <i class="fas fa-bolt"></i> BalenaEtcher
+                </a>
+                <a href="https://www.ventoy.net/" target="_blank" class="download-btn" style="width: auto; padding: 12px 25px;" id="tool3Btn">
+                    <i class="fas fa-layer-group"></i> Ventoy
+                </a>
+            </div>
+        </div>
+
+        <!-- Back Arrow -->
+        <div class="back-container animated" style="animation-delay: 1.2s">
+            <a href="index.html" class="back-btn" id="backBtn">
+                <i class="fas fa-arrow-left"></i>
+                <span id="backBtnText">Retour à la Page d'Accueil</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Traductions
+            const translations = {
+                fr: {
+                    breadcrumbHome: 'Accueil',
+                    breadcrumbCurrent: 'Télécharger Kali Linux',
+                    mainTitle: 'Télécharger Kali Linux',
+                    mainSubtitle: 'Obtenez la version officielle de Kali Linux directement depuis le site des développeurs',
+                    warningTitle: 'Téléchargez uniquement depuis les sources officielles !',
+                    warningText: 'Pour éviter les versions modifiées ou malveillantes, téléchargez toujours Kali Linux depuis le site officiel d\'Offensive Security. Les liens ci-dessous vous redirigeront vers les sources vérifiées et sécurisées.',
+                    opt1Title: 'Version Standard',
+                    opt1Desc: 'Image ISO complète pour installation sur PC ou machine virtuelle. Inclut tous les outils de sécurité et environnements de bureau.',
+                    opt1Btn: 'Télécharger ISO',
+                    opt2Title: 'Pour Mobile & ARM',
+                    opt2Desc: 'Versions spécialisées pour smartphones Android (NetHunter) et appareils ARM comme Raspberry Pi, Chromebook, etc.',
+                    opt2Btn: 'Versions ARM',
+                    opt3Title: 'Images Cloud & VM',
+                    opt3Desc: 'Images préconfigurées pour VirtualBox, VMware, Hyper-V et clouds publics (AWS, Azure, Google Cloud).',
+                    opt3Btn: 'Machines Virtuelles',
+                    opt4Title: 'Installateur en Ligne',
+                    opt4Desc: 'Petit installateur qui télécharge les paquets nécessaires pendant l\'installation. Idéal pour connexions internet rapides.',
+                    opt4Btn: 'Installateur Réseau',
+                    reqTitle: 'Configuration Requise',
+                    req1Title: 'Processeur',
+                    req1Desc: 'Processeur 64-bit (i386/amd64) - Minimum 1 GHz recommandé',
+                    req2Title: 'Mémoire RAM',
+                    req2Desc: 'Minimum 2 GB (4 GB recommandé pour une utilisation fluide)',
+                    req3Title: 'Stockage',
+                    req3Desc: '20 GB d\'espace disque libre (SSD recommandé)',
+                    req4Title: 'Carte Graphique',
+                    req4Desc: 'Carte graphique supportant au moins 800x600 de résolution',
+                    req5Title: 'Connexion Internet',
+                    req5Desc: 'Recommandé pour les mises à jour et installation des outils',
+                    req6Title: "Support d'Installation",
+                    req6Desc: 'Clé USB 4 GB minimum ou DVD pour créer le média d\'installation',
+                    stepsTitle: 'Guide de Téléchargement',
+                    step1Title: 'Choisir la Version Appropriée',
+                    step1Desc: 'Rendez-vous sur le site officiel kali.org/get-kali via les liens ci-dessus. Sélectionnez la version correspondant à votre matériel et besoins. Pour la plupart des utilisateurs, l\'image ISO standard 64-bit est recommandée.',
+                    step2Title: 'Téléchargement et Vérification',
+                    step2Desc: 'Cliquez sur le bouton de téléchargement. Le fichier ISO pèse environ 3-4 GB. Après téléchargement, vérifiez l\'intégrité avec les sommes de contrôle SHA256 fournies sur le site.',
+                    step3Title: 'Créer un Média d\'Installation',
+                    step3Desc: 'Utilisez un logiciel comme Rufus (Windows), BalenaEtcher (multi-plateforme) ou dd (Linux) pour graver l\'ISO sur une clé USB ou un DVD.',
+                    step4Title: 'Démarrer sur le Média',
+                    step4Desc: 'Redémarrez votre ordinateur et configurez le BIOS/UEFI pour démarrer depuis la clé USB ou le DVD. Sélectionnez "Live Boot" pour tester sans installer, ou "Graphical Install" pour l\'installation complète.',
+                    verifyTitle: 'Vérification de l\'Intégrité',
+                    verifyDesc1: 'Il est crucial de vérifier que votre téléchargement n\'a pas été corrompu ou modifié. Utilisez les sommes de contrôle SHA256 fournies sur kali.org :',
+                    verifyDesc2: 'Comparez le résultat avec la somme de contrôle affichée sur le site officiel. Si elles correspondent, votre téléchargement est intègre et sécurisé.',
+                    toolsTitle: 'Outils de Création de Médias',
+                    toolsDesc: 'Téléchargez les outils nécessaires pour créer votre média d\'installation :',
+                    tool1Btn: 'Rufus (Windows)',
+                    tool2Btn: 'BalenaEtcher',
+                    tool3Btn: 'Ventoy',
+                    backBtnText: 'Retour à la Page d\'Accueil'
+                },
+                en: {
+                    breadcrumbHome: 'Home',
+                    breadcrumbCurrent: 'Download Kali Linux',
+                    mainTitle: 'Download Kali Linux',
+                    mainSubtitle: 'Get the official version of Kali Linux directly from the developers website',
+                    warningTitle: 'Download only from official sources!',
+                    warningText: 'To avoid modified or malicious versions, always download Kali Linux from the official Offensive Security website. The links below will redirect you to verified and secure sources.',
+                    opt1Title: 'Standard Version',
+                    opt1Desc: 'Complete ISO image for installation on PC or virtual machine. Includes all security tools and desktop environments.',
+                    opt1Btn: 'Download ISO',
+                    opt2Title: 'For Mobile & ARM',
+                    opt2Desc: 'Specialized versions for Android smartphones (NetHunter) and ARM devices like Raspberry Pi, Chromebook, etc.',
+                    opt2Btn: 'ARM Versions',
+                    opt3Title: 'Cloud & VM Images',
+                    opt3Desc: 'Preconfigured images for VirtualBox, VMware, Hyper-V and public clouds (AWS, Azure, Google Cloud).',
+                    opt3Btn: 'Virtual Machines',
+                    opt4Title: 'Network Installer',
+                    opt4Desc: 'Small installer that downloads necessary packages during installation. Ideal for fast internet connections.',
+                    opt4Btn: 'Network Installer',
+                    reqTitle: 'System Requirements',
+                    req1Title: 'Processor',
+                    req1Desc: '64-bit processor (i386/amd64) - Minimum 1 GHz recommended',
+                    req2Title: 'RAM Memory',
+                    req2Desc: 'Minimum 2 GB (4 GB recommended for smooth use)',
+                    req3Title: 'Storage',
+                    req3Desc: '20 GB free disk space (SSD recommended)',
+                    req4Title: 'Graphics Card',
+                    req4Desc: 'Graphics card supporting at least 800x600 resolution',
+                    req5Title: 'Internet Connection',
+                    req5Desc: 'Recommended for updates and tool installation',
+                    req6Title: 'Installation Media',
+                    req6Desc: 'Minimum 4 GB USB drive or DVD to create installation media',
+                    stepsTitle: 'Download Guide',
+                    step1Title: 'Choose the Right Version',
+                    step1Desc: 'Go to the official site kali.org/get-kali via the links above. Select the version corresponding to your hardware and needs. For most users, the standard 64-bit ISO image is recommended.',
+                    step2Title: 'Download and Verification',
+                    step2Desc: 'Click the download button. The ISO file is about 3-4 GB. After downloading, verify the integrity with the SHA256 checksums provided on the site.',
+                    step3Title: 'Create Installation Media',
+                    step3Desc: 'Use software like Rufus (Windows), BalenaEtcher (cross-platform) or dd (Linux) to burn the ISO to a USB drive or DVD.',
+                    step4Title: 'Boot from Media',
+                    step4Desc: 'Restart your computer and configure BIOS/UEFI to boot from USB or DVD. Select "Live Boot" to test without installing, or "Graphical Install" for full installation.',
+                    verifyTitle: 'Integrity Verification',
+                    verifyDesc1: 'It is crucial to verify that your download has not been corrupted or modified. Use the SHA256 checksums provided on kali.org:',
+                    verifyDesc2: 'Compare the result with the checksum displayed on the official site. If they match, your download is intact and secure.',
+                    toolsTitle: 'Media Creation Tools',
+                    toolsDesc: 'Download the necessary tools to create your installation media:',
+                    tool1Btn: 'Rufus (Windows)',
+                    tool2Btn: 'BalenaEtcher',
+                    tool3Btn: 'Ventoy',
+                    backBtnText: 'Back to Home Page'
+                },
+                es: {
+                    breadcrumbHome: 'Inicio',
+                    breadcrumbCurrent: 'Descargar Kali Linux',
+                    mainTitle: 'Descargar Kali Linux',
+                    mainSubtitle: 'Obtén la versión oficial de Kali Linux directamente desde el sitio de los desarrolladores',
+                    warningTitle: '¡Descarga solo desde fuentes oficiales!',
+                    warningText: 'Para evitar versiones modificadas o maliciosas, descarga siempre Kali Linux desde el sitio oficial de Offensive Security. Los enlaces a continuación te redirigirán a fuentes verificadas y seguras.',
+                    opt1Title: 'Versión Estándar',
+                    opt1Desc: 'Imagen ISO completa para instalación en PC o máquina virtual. Incluye todas las herramientas de seguridad y entornos de escritorio.',
+                    opt1Btn: 'Descargar ISO',
+                    opt2Title: 'Para Móvil y ARM',
+                    opt2Desc: 'Versiones especializadas para smartphones Android (NetHunter) y dispositivos ARM como Raspberry Pi, Chromebook, etc.',
+                    opt2Btn: 'Versiones ARM',
+                    opt3Title: 'Imágenes Cloud y VM',
+                    opt3Desc: 'Imágenes preconfiguradas para VirtualBox, VMware, Hyper-V y nubes públicas (AWS, Azure, Google Cloud).',
+                    opt3Btn: 'Máquinas Virtuales',
+                    opt4Title: 'Instalador en Línea',
+                    opt4Desc: 'Pequeño instalador que descarga los paquetes necesarios durante la instalación. Ideal para conexiones rápidas de internet.',
+                    opt4Btn: 'Instalador de Red',
+                    reqTitle: 'Requisitos del Sistema',
+                    req1Title: 'Procesador',
+                    req1Desc: 'Procesador 64-bit (i386/amd64) - Mínimo 1 GHz recomendado',
+                    req2Title: 'Memoria RAM',
+                    req2Desc: 'Mínimo 2 GB (4 GB recomendado para uso fluido)',
+                    req3Title: 'Almacenamiento',
+                    req3Desc: '20 GB de espacio libre en disco (SSD recomendado)',
+                    req4Title: 'Tarjeta Gráfica',
+                    req4Desc: 'Tarjeta gráfica que soporte al menos resolución 800x600',
+                    req5Title: 'Conexión a Internet',
+                    req5Desc: 'Recomendada para actualizaciones e instalación de herramientas',
+                    req6Title: 'Medio de Instalación',
+                    req6Desc: 'Unidad USB de 4 GB mínimo o DVD para crear el medio de instalación',
+                    stepsTitle: 'Guía de Descarga',
+                    step1Title: 'Elegir la Versión Apropiada',
+                    step1Desc: 'Ve al sitio oficial kali.org/get-kali a través de los enlaces de arriba. Selecciona la versión correspondiente a tu hardware y necesidades. Para la mayoría de usuarios, se recomienda la imagen ISO estándar de 64 bits.',
+                    step2Title: 'Descarga y Verificación',
+                    step2Desc: 'Haz clic en el botón de descarga. El archivo ISO pesa aproximadamente 3-4 GB. Después de descargar, verifica la integridad con las sumas de verificación SHA256 proporcionadas en el sitio.',
+                    step3Title: 'Crear Medio de Instalación',
+                    step3Desc: 'Usa software como Rufus (Windows), BalenaEtcher (multiplataforma) o dd (Linux) para grabar la ISO en una unidad USB o DVD.',
+                    step4Title: 'Iniciar desde el Medio',
+                    step4Desc: 'Reinicia tu ordenador y configura BIOS/UEFI para iniciar desde USB o DVD. Selecciona "Live Boot" para probar sin instalar, o "Instalación Gráfica" para instalación completa.',
+                    verifyTitle: 'Verificación de Integridad',
+                    verifyDesc1: 'Es crucial verificar que tu descarga no haya sido corrupta o modificada. Usa las sumas de verificación SHA256 proporcionadas en kali.org:',
+                    verifyDesc2: 'Compara el resultado con la suma de verificación mostrada en el sitio oficial. Si coinciden, tu descarga está intacta y segura.',
+                    toolsTitle: 'Herramientas de Creación de Medios',
+                    toolsDesc: 'Descarga las herramientas necesarias para crear tu medio de instalación:',
+                    tool1Btn: 'Rufus (Windows)',
+                    tool2Btn: 'BalenaEtcher',
+                    tool3Btn: 'Ventoy',
+                    backBtnText: 'Volver a la Página de Inicio'
+                },
+                ar: {
+                    breadcrumbHome: 'الرئيسية',
+                    breadcrumbCurrent: 'تحميل كالي لينكس',
+                    mainTitle: 'تحميل كالي لينكس',
+                    mainSubtitle: 'احصل على النسخة الرسمية من كالي لينكس مباشرة من موقع المطورين',
+                    warningTitle: 'قم بالتحميل فقط من المصادر الرسمية!',
+                    warningText: 'لتجنب الإصدارات المعدلة أو الضارة، قم دائماً بتحميل كالي لينكس من موقع Offensive Security الرسمي. الروابط أدناه ستعيد توجيهك إلى مصادر موثوقة وآمنة.',
+                    opt1Title: 'النسخة القياسية',
+                    opt1Desc: 'صورة ISO كاملة للتثبيت على الكمبيوتر أو الجهاز الافتراضي. تشمل جميع أدوات الأمن وبيئات سطح المكتب.',
+                    opt1Btn: 'تحميل ISO',
+                    opt2Title: 'للهواتف المحمولة و ARM',
+                    opt2Desc: 'إصدارات متخصصة لهواتف Android (NetHunter) وأجهزة ARM مثل Raspberry Pi و Chromebook وغيرها.',
+                    opt2Btn: 'إصدارات ARM',
+                    opt3Title: 'صور السحابة والآلات الافتراضية',
+                    opt3Desc: 'صور مكونة مسبقاً لـ VirtualBox و VMware و Hyper-V والسحابات العامة (AWS و Azure و Google Cloud).',
+                    opt3Btn: 'آلات افتراضية',
+                    opt4Title: 'المثبت عبر الإنترنت',
+                    opt4Desc: 'مثبت صغير يقوم بتحميل الحزم اللازمة أثناء التثبيت. مثالي للاتصالات السريعة بالإنترنت.',
+                    opt4Btn: 'مثبت الشبكة',
+                    reqTitle: 'متطلبات النظام',
+                    req1Title: 'المعالج',
+                    req1Desc: 'معالج 64 بت (i386/amd64) - الحد الأدنى 1 جيجاهرتز موصى به',
+                    req2Title: 'ذاكرة الوصول العشوائي',
+                    req2Desc: '2 جيجابايت كحد أدنى (4 جيجابايت موصى بها للاستخدام السلس)',
+                    req3Title: 'التخزين',
+                    req3Desc: '20 جيجابايت مساحة حرة على القرص (SSD موصى به)',
+                    req4Title: 'بطاقة الرسومات',
+                    req4Desc: 'بطاقة رسومات تدعم دقة 800x600 على الأقل',
+                    req5Title: 'اتصال الإنترنت',
+                    req5Desc: 'موصى به للتحديثات وتثبيت الأدوات',
+                    req6Title: 'وسائط التثبيت',
+                    req6Desc: 'محرك أقراص USB بسعة 4 جيجابايت على الأقل أو DVD لإنشاء وسائط التثبيت',
+                    stepsTitle: 'دليل التحميل',
+                    step1Title: 'اختيار الإصدار المناسب',
+                    step1Desc: 'اذهب إلى الموقع الرسمي kali.org/get-kali عبر الروابط أعلاه. اختر الإصدار المطابق لأجهزتك واحتياجاتك. لمعظم المستخدمين، يوصى بصورة ISO القياسية 64 بت.',
+                    step2Title: 'التحميل والتحقق',
+                    step2Desc: 'انقر على زر التحميل. ملف ISO يزن حوالي 3-4 جيجابايت. بعد التحميل، تحقق من السلامة باستخدام مجموعات التحقق SHA256 المقدمة على الموقع.',
+                    step3Title: 'إنشاء وسائط التثبيت',
+                    step3Desc: 'استخدم برامج مثل Rufus (Windows) أو BalenaEtcher (متعدد المنصات) أو dd (لينكس) لحرق ISO على محرك USB أو DVD.',
+                    step4Title: 'الإقلاع من الوسائط',
+                    step4Desc: 'أعد تشغيل جهاز الكمبيوتر الخاص بك وقم بتكوين BIOS/UEFI للإقلاع من USB أو DVD. اختر "Live Boot" للاختبار دون تثبيت، أو "Graphical Install" للتثبيت الكامل.',
+                    verifyTitle: 'التحقق من السلامة',
+                    verifyDesc1: 'من الضروري التحقق من أن التحميل الخاص بك لم يتم العبث به أو تعديله. استخدم مجموعات التحقق SHA256 المقدمة على kali.org:',
+                    verifyDesc2: 'قارن النتيجة مع مجموع التحقق المعروض على الموقع الرسمي. إذا تطابقت، فإن التحميل الخاص بك سليم وآمن.',
+                    toolsTitle: 'أدوات إنشاء الوسائط',
+                    toolsDesc: 'قم بتحميل الأدوات اللازمة لإنشاء وسائط التثبيت الخاصة بك:',
+                    tool1Btn: 'Rufus (ويندوز)',
+                    tool2Btn: 'BalenaEtcher',
+                    tool3Btn: 'Ventoy',
+                    backBtnText: 'العودة إلى الصفحة الرئيسية'
+                }
+            };
+
+            // Éléments du DOM
+            const translateBtn = document.getElementById('translateBtn');
+            const translateMenu = document.getElementById('translateMenu');
+            const translateOptions = document.querySelectorAll('.translate-option');
+
+            // Langue actuelle
+            let currentLang = 'fr';
+
+            // Fonction pour changer la langue
+            function changeLanguage(lang) {
+                // Mettre à jour la classe active
+                translateOptions.forEach(opt => {
+                    opt.classList.remove('active');
+                    if (opt.dataset.lang === lang) {
+                        opt.classList.add('active');
+                    }
+                });
+
+                // Mettre à jour les textes
+                document.getElementById('breadcrumbHome').textContent = translations[lang].breadcrumbHome;
+                document.getElementById('breadcrumbCurrent').textContent = translations[lang].breadcrumbCurrent;
+                document.getElementById('mainTitle').textContent = translations[lang].mainTitle;
+                document.getElementById('mainSubtitle').textContent = translations[lang].mainSubtitle;
+                
+                // Warning
+                document.getElementById('warningTitle').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${translations[lang].warningTitle}`;
+                document.getElementById('warningText').textContent = translations[lang].warningText;
+                
+                // Options de téléchargement
+                document.getElementById('opt1Title').textContent = translations[lang].opt1Title;
+                document.getElementById('opt1Desc').textContent = translations[lang].opt1Desc;
+                document.getElementById('opt1Btn').innerHTML = `${translations[lang].opt1Btn} <i class="fas fa-external-link-alt"></i>`;
+                
+                document.getElementById('opt2Title').textContent = translations[lang].opt2Title;
+                document.getElementById('opt2Desc').textContent = translations[lang].opt2Desc;
+                document.getElementById('opt2Btn').innerHTML = `${translations[lang].opt2Btn} <i class="fas fa-external-link-alt"></i>`;
+                
+                document.getElementById('opt3Title').textContent = translations[lang].opt3Title;
+                document.getElementById('opt3Desc').textContent = translations[lang].opt3Desc;
+                document.getElementById('opt3Btn').innerHTML = `${translations[lang].opt3Btn} <i class="fas fa-external-link-alt"></i>`;
+                
+                document.getElementById('opt4Title').textContent = translations[lang].opt4Title;
+                document.getElementById('opt4Desc').textContent = translations[lang].opt4Desc;
+                document.getElementById('opt4Btn').innerHTML = `${translations[lang].opt4Btn} <i class="fas fa-external-link-alt"></i>`;
+                
+                // Requirements
+                document.getElementById('reqTitle').textContent = translations[lang].reqTitle;
+                document.getElementById('req1Title').textContent = translations[lang].req1Title;
+                document.getElementById('req1Desc').textContent = translations[lang].req1Desc;
+                document.getElementById('req2Title').textContent = translations[lang].req2Title;
+                document.getElementById('req2Desc').textContent = translations[lang].req2Desc;
+                document.getElementById('req3Title').textContent = translations[lang].req3Title;
+                document.getElementById('req3Desc').textContent = translations[lang].req3Desc;
+                document.getElementById('req4Title').textContent = translations[lang].req4Title;
+                document.getElementById('req4Desc').textContent = translations[lang].req4Desc;
+                document.getElementById('req5Title').textContent = translations[lang].req5Title;
+                document.getElementById('req5Desc').textContent = translations[lang].req5Desc;
+                document.getElementById('req6Title').textContent = translations[lang].req6Title;
+                document.getElementById('req6Desc').textContent = translations[lang].req6Desc;
+                
+                // Steps
+                document.getElementById('stepsTitle').textContent = translations[lang].stepsTitle;
+                document.getElementById('step1Title').textContent = translations[lang].step1Title;
+                document.getElementById('step1Desc').innerHTML = translations[lang].step1Desc;
+                document.getElementById('step2Title').textContent = translations[lang].step2Title;
+                document.getElementById('step2Desc').innerHTML = translations[lang].step2Desc;
+                document.getElementById('step3Title').textContent = translations[lang].step3Title;
+                document.getElementById('step3Desc').innerHTML = translations[lang].step3Desc;
+                document.getElementById('step4Title').textContent = translations[lang].step4Title;
+                document.getElementById('step4Desc').innerHTML = translations[lang].step4Desc;
+                
+                // Verification
+                document.getElementById('verifyTitle').innerHTML = `<i class="fas fa-shield-alt"></i> ${translations[lang].verifyTitle}`;
+                document.getElementById('verifyDesc1').innerHTML = translations[lang].verifyDesc1;
+                document.getElementById('codeBlock').innerHTML = translations[lang].codeBlock || 
+                    `# Sous Linux/Mac<br>sha256sum kali-linux-2023.3-installer-amd64.iso<br><br># Sous Windows (PowerShell)<br>Get-FileHash kali-linux-2023.3-installer-amd64.iso -Algorithm SHA256`;
+                document.getElementById('verifyDesc2').textContent = translations[lang].verifyDesc2;
+                
+                // Tools
+                document.getElementById('toolsTitle').textContent = translations[lang].toolsTitle;
+                document.getElementById('toolsDesc').textContent = translations[lang].toolsDesc;
+                document.getElementById('tool1Btn').innerHTML = `<i class="fab fa-windows"></i> ${translations[lang].tool1Btn}`;
+                document.getElementById('tool2Btn').innerHTML = `<i class="fas fa-bolt"></i> ${translations[lang].tool2Btn}`;
+                document.getElementById('tool3Btn').innerHTML = `<i class="fas fa-layer-group"></i> ${translations[lang].tool3Btn}`;
+                
+                // Back button
+                document.getElementById('backBtnText').textContent = translations[lang].backBtnText;
+
+                // Afficher une notification
+                showNotification(translations[lang].breadcrumbHome === 'Accueil' ? 'Langue changée en Français' : 
+                                translations[lang].breadcrumbHome === 'Home' ? 'Language changed to English' :
+                                translations[lang].breadcrumbHome === 'Inicio' ? 'Idioma cambiado a Español' :
+                                'تم تغيير اللغة إلى العربية');
+
+                // Changer la direction du texte pour l'arabe
+                if (lang === 'ar') {
+                    document.body.style.direction = 'rtl';
+                    document.querySelectorAll('.breadcrumb i, .back-btn i').forEach(icon => {
+                        icon.style.transform = 'rotate(180deg)';
+                    });
+                } else {
+                    document.body.style.direction = 'ltr';
+                    document.querySelectorAll('.breadcrumb i, .back-btn i').forEach(icon => {
+                        icon.style.transform = 'rotate(0)';
+                    });
+                }
+
+                currentLang = lang;
+            }
+
+            // Fonction pour afficher les notifications
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
+            }
+
+            // Toggle du menu de traduction
+            translateBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                translateMenu.classList.toggle('active');
+            });
+
+            // Fermer le menu en cliquant ailleurs
+            document.addEventListener('click', (e) => {
+                if (!translateBtn.contains(e.target) && !translateMenu.contains(e.target)) {
+                    translateMenu.classList.remove('active');
+                }
+            });
+
+            // Changer la langue quand on clique sur une option
+            translateOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const lang = option.dataset.lang;
+                    changeLanguage(lang);
+                    translateMenu.classList.remove('active');
+                });
+            });
+
+            // Animation des éléments au défilement
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Appliquer l'effet aux éléments
+            document.querySelectorAll('.animated').forEach(element => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(30px)';
+                element.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                observer.observe(element);
+            });
+
+            // Animation des boutons de téléchargement
+            document.querySelectorAll('.download-btn').forEach(btn => {
+                btn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px)';
+                });
+                
+                btn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+                
+                // Confirmation de redirection
+                btn.addEventListener('click', function(e) {
+                    if (this.getAttribute('href').includes('http')) {
+                        const url = this.getAttribute('href');
+                        const confirmed = confirm(`Vous allez être redirigé vers:\n\n${url}\n\nC'est le site officiel de téléchargement de Kali Linux. Voulez-vous continuer ?`);
+                        
+                        if (!confirmed) {
+                            e.preventDefault();
+                        } else {
+                            // Animation de sortie
+                            document.body.style.opacity = '0.7';
+                            document.body.style.transition = 'opacity 0.3s ease';
+                            
+                            setTimeout(() => {
+                                document.body.style.opacity = '1';
+                            }, 1000);
+                        }
+                    }
+                });
+            });
+
+            // Effet de clic pour le bouton retour
+            const backBtn = document.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Animation de clic
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 200);
+                    
+                    // Redirection après animation
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 300);
+                });
+            }
+
+            // Animation des étapes
+            document.querySelectorAll('.step-number').forEach((number, index) => {
+                number.addEventListener('mouseenter', function() {
+                    this.style.transform = 'rotate(360deg) scale(1.2)';
+                });
+                
+                number.addEventListener('mouseleave', function() {
+                    this.style.transform = 'rotate(0) scale(1)';
+                });
+            });
+
+            // Animation de chargement initial
+            setTimeout(() => {
+                document.querySelectorAll('.animated').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }, 300);
+
+            // Compteur de téléchargements (simulation)
+            const downloadCount = document.createElement('div');
+            downloadCount.innerHTML = `
+                <div style="text-align: center; margin: 30px 0; padding: 20px; background: rgba(255, 140, 50, 0.1); border-radius: 10px;">
+                    <p style="color: var(--light-orange); font-size: 1.1rem;">
+                        <i class="fas fa-chart-line"></i> <span id="downloadStats">Plus de <strong>5 millions</strong> de téléchargements mensuels</span>
+                    </p>
+                </div>
+            `;
+            document.querySelector('.requirements').after(downloadCount);
+            
+            // Ajouter l'ID pour la traduction
+            document.getElementById('downloadStats').id = 'downloadStats';
+            
+            // Ajouter la traduction pour les stats
+            translations.fr.downloadStats = 'Plus de <strong>5 millions</strong> de téléchargements mensuels';
+            translations.en.downloadStats = 'Over <strong>5 million</strong> monthly downloads';
+            translations.es.downloadStats = 'Más de <strong>5 millones</strong> de descargas mensuales';
+            translations.ar.downloadStats = 'أكثر من <strong>5 ملايين</strong> تحميل شهرياً';
+            
+            // Ajouter la traduction pour le code block
+            translations.fr.codeBlock = '# Sous Linux/Mac<br>sha256sum kali-linux-2023.3-installer-amd64.iso<br><br># Sous Windows (PowerShell)<br>Get-FileHash kali-linux-2023.3-installer-amd64.iso -Algorithm SHA256';
+            translations.en.codeBlock = '# On Linux/Mac<br>sha256sum kali-linux-2023.3-installer-amd64.iso<br><br># On Windows (PowerShell)<br>Get-FileHash kali-linux-2023.3-installer-amd64.iso -Algorithm SHA256';
+            translations.es.codeBlock = '# En Linux/Mac<br>sha256sum kali-linux-2023.3-installer-amd64.iso<br><br># En Windows (PowerShell)<br>Get-FileHash kali-linux-2023.3-installer-amd64.iso -Algorithm SHA256';
+            translations.ar.codeBlock = '# في لينكس/ماك<br>sha256sum kali-linux-2023.3-installer-amd64.iso<br><br># في ويندوز (PowerShell)<br>Get-FileHash kali-linux-2023.3-installer-amd64.iso -Algorithm SHA256';
+        });
+    </script>
+</body>
+</html>
