@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installer Kali Linux | Guide Complet d'Installation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --dark-blue: #0a1931;
+            --navy-blue: #185adb;
+            --electric-blue: #2d46b9;
+            --blood-red: #b33939;
+            --orange: #ff8c32;
+            --light-orange: #ffb74d;
+            --gray: #8d93ab;
+            --light-gray: #f1f3f8;
+            --card-bg: #1a2b4a;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 15px;
+            --success: #4CAF50;
+            --warning: #ff9800;
+            --info: #2196F3;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-blue) 0%, #0c2461 100%);
+            color: var(--light-gray);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Bouton de traduction flottant */
+        .translate-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 2px solid transparent;
+        }
+
+        .translate-btn:hover {
+            transform: scale(1.1) rotate(360deg);
+            border-color: white;
+            box-shadow: 0 10px 30px rgba(255, 140, 50, 0.4);
+        }
+
+        .translate-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .translate-btn:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Menu de traduction */
+        .translate-menu {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 15px;
+            min-width: 200px;
+            display: none;
+            z-index: 999;
+            border: 2px solid var(--orange);
+            animation: slideUp 0.3s ease;
+        }
+
+        .translate-menu.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .translate-menu:before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 20px;
+            width: 20px;
+            height: 20px;
+            background: var(--card-bg);
+            transform: rotate(45deg);
+            border-right: 2px solid var(--orange);
+            border-bottom: 2px solid var(--orange);
+        }
+
+        .translate-option {
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .translate-option:hover {
+            background: var(--electric-blue);
+            transform: translateX(5px);
+        }
+
+        .translate-option i {
+            color: var(--orange);
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        .translate-option.active {
+            background: var(--orange);
+            color: white;
+        }
+
+        .translate-option.active i {
+            color: white;
+        }
+
+        /* Header */
+        .page-header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .page-header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(90deg, var(--orange), var(--blood-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .install-icon {
+            font-size: 3rem;
+            color: var(--orange);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            color: var(--gray);
+        }
+
+        .breadcrumb a {
+            color: var(--light-orange);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--orange);
+            text-decoration: underline;
+        }
+
+        .breadcrumb i {
+            margin: 0 10px;
+        }
+
+        /* Warning Banner */
+        .warning-banner {
+            background: linear-gradient(135deg, #b33939, #ff8c32);
+            padding: 25px;
+            border-radius: var(--radius);
+            margin: 30px 0;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border-left: 5px solid #ff0000;
+        }
+
+        .warning-banner h3 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .warning-banner p {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+
+        /* Installation Methods */
+        .methods-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .method-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.4s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .method-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--orange);
+            box-shadow: 0 20px 40px rgba(255, 140, 50, 0.2);
+        }
+
+        .method-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--blood-red), var(--orange));
+        }
+
+        .method-icon {
+            font-size: 2.5rem;
+            color: var(--light-orange);
+            margin-bottom: 20px;
+            height: 60px;
+        }
+
+        .method-card h3 {
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--navy-blue);
+        }
+
+        .method-card p {
+            color: var(--gray);
+            margin-bottom: 25px;
+            line-height: 1.6;
+            min-height: 80px;
+        }
+
+        .method-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--orange), var(--blood-red));
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            width: 100%;
+            text-align: center;
+        }
+
+        .method-btn:hover {
+            background: transparent;
+            color: var(--orange);
+            border-color: var(--orange);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 140, 50, 0.3);
+        }
+
+        .method-btn i {
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .method-btn:hover i {
+            transform: translateX(5px);
+        }
+
+        /* Detailed Guide */
+        .detailed-guide {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 40px;
+            margin: 50px 0;
+            box-shadow: var(--shadow);
+        }
+
+        .detailed-guide h2 {
+            color: var(--light-orange);
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.2rem;
+        }
+
+        .guide-step {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid var(--orange);
+        }
+
+        .guide-step h3 {
+            color: white;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .guide-step h3 span {
+            background: var(--orange);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .guide-step p {
+            color: var(--gray);
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            color: var(--light-orange);
+            margin: 15px 0;
+            overflow-x: auto;
+            border: 1px solid var(--navy-blue);
+        }
+
+        .note {
+            background: rgba(33, 150, 243, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--info);
+            margin: 15px 0;
+        }
+
+        .note h4 {
+            color: var(--info);
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        /* Video Tutorials */
+        .video-section {
+            margin: 50px 0;
+        }
+
+        .video-section h2 {
+            color: var(--light-orange);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .video-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .video-thumbnail {
+            position: relative;
+            height: 180px;
+            background: linear-gradient(135deg, var(--electric-blue), var(--blood-red));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-thumbnail i {
+            font-size: 4rem;
+            color: white;
+            opacity: 0.8;
+        }
+
+        .video-play {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .video-content {
+            padding: 20px;
+        }
+
+        .video-content h4 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .video-content p {
+            color: var(--gray);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .video-btn {
+            display: inline-block;
+            background: var(--electric-blue);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+
+        .video-btn:hover {
+            background: var(--blood-red);
+        }
+
+        /* Troubleshooting */
+        .troubleshooting {
+            background: linear-gradient(135deg, rgba(179, 57, 57, 0.1), rgba(255, 140, 50, 0.1));
+            border-radius: var(--radius);
+            padding: 35px;
+            margin: 40px 0;
+            border-left: 5px solid var(--warning);
+        }
+
+        .troubleshooting h3 {
+            color: var(--warning);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .troubleshooting-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .troubleshooting-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .troubleshooting-item h4 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .troubleshooting-item p {
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--orange);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 2000;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Back Arrow */
+        .back-container {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--navy-blue);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            color: white;
+            padding: 18px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border: 2px solid transparent;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(255, 140, 50, 0.3);
+            border-color: white;
+        }
+
+        .back-btn i {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .back-btn:hover i {
+            transform: translateX(-5px);
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animated {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .methods-grid, .video-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .detailed-guide {
+                padding: 25px;
+            }
+            
+            .guide-step {
+                padding: 20px;
+            }
+            
+            .code-block {
+                font-size: 0.9rem;
+                padding: 15px;
+            }
+
+            .translate-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+
+            .translate-menu {
+                bottom: 80px;
+                right: 20px;
+                min-width: 180px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .page-header {
+                padding: 20px 0;
+            }
+            
+            .back-btn {
+                padding: 15px 25px;
+                font-size: 1rem;
+            }
+            
+            .method-card, .video-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Bouton de traduction flottant -->
+    <button class="translate-btn" id="translateBtn">
+        <i class="fas fa-language"></i>
+    </button>
+
+    <!-- Menu de traduction -->
+    <div class="translate-menu" id="translateMenu">
+        <div class="translate-option active" data-lang="fr">
+            <i class="fas fa-flag"></i>
+            <span>Français</span>
+        </div>
+        <div class="translate-option" data-lang="en">
+            <i class="fas fa-flag-usa"></i>
+            <span>English</span>
+        </div>
+        <div class="translate-option" data-lang="es">
+            <i class="fas fa-flag"></i>
+            <span>Español</span>
+        </div>
+        <div class="translate-option" data-lang="ar">
+            <i class="fas fa-flag"></i>
+            <span>العربية</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb animated">
+            <a href="index.html" id="breadcrumbHome">Accueil</a>
+            <i class="fas fa-chevron-right"></i>
+            <span id="breadcrumbCurrent">Installer Kali Linux</span>
+        </div>
+
+        <!-- Header -->
+        <header class="page-header animated">
+            <div class="install-icon">
+                <i class="fas fa-desktop"></i>
+            </div>
+            <h1 id="mainTitle">Installer Kali Linux</h1>
+            <p id="mainSubtitle">Guide complet pour installer Kali Linux sur votre machine ou en machine virtuelle</p>
+        </header>
+
+        <!-- Warning Banner -->
+        <div class="warning-banner animated">
+            <h3 id="warningTitle"><i class="fas fa-exclamation-triangle"></i> Important - Sauvegardez vos données !</h3>
+            <p id="warningText">
+                L'installation de Kali Linux peut effacer toutes les données de votre disque dur. 
+                <strong>Faites une sauvegarde complète</strong> de vos fichiers importants avant de commencer. 
+                Pour les débutants, nous recommandons d'utiliser une machine virtuelle.
+            </p>
+        </div>
+
+        <!-- Installation Methods -->
+        <div class="methods-grid">
+            <!-- Méthode 1 -->
+            <div class="method-card animated" style="animation-delay: 0.1s">
+                <div class="method-icon">
+                    <i class="fas fa-hdd"></i>
+                </div>
+                <h3 id="method1Title">Installation sur Disque Dur</h3>
+                <p id="method1Desc">
+                    Installation complète de Kali Linux comme système d'exploitation principal 
+                    sur votre ordinateur. Requiert un partitionnement du disque.
+                </p>
+                <a href="https://www.kali.org/docs/installation/hard-disk-install/" target="_blank" class="method-btn" id="method1Btn">
+                    Guide Complet <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+
+            <!-- Méthode 2 -->
+            <div class="method-card animated" style="animation-delay: 0.2s">
+                <div class="method-icon">
+                    <i class="fas fa-cloud"></i>
+                </div>
+                <h3 id="method2Title">Machine Virtuelle</h3>
+                <p id="method2Desc">
+                    Exécutez Kali Linux dans une VM (VirtualBox, VMware). Méthode la plus sûre 
+                    pour tester sans affecter votre système principal.
+                </p>
+                <a href="https://www.kali.org/docs/installation/virtualbox/" target="_blank" class="method-btn" id="method2Btn">
+                    VirtualBox Guide <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+
+            <!-- Méthode 3 -->
+            <div class="method-card animated" style="animation-delay: 0.3s">
+                <div class="method-icon">
+                    <i class="fas fa-usb"></i>
+                </div>
+                <h3 id="method3Title">Live USB Persistant</h3>
+                <p id="method3Desc">
+                    Exécutez Kali depuis une clé USB avec persistance des données. Idéal pour 
+                    une utilisation portable avec sauvegarde des configurations.
+                </p>
+                <a href="https://www.kali.org/docs/usb/kali-linux-live-usb-persistence/" target="_blank" class="method-btn" id="method3Btn">
+                    USB Persistant <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+
+            <!-- Méthode 4 -->
+            <div class="method-card animated" style="animation-delay: 0.4s">
+                <div class="method-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 id="method4Title">Sur Mobile (NetHunter)</h3>
+                <p id="method4Desc">
+                    Installez Kali NetHunter sur votre smartphone Android compatible. 
+                    Transformez votre mobile en station de test de pénétration.
+                </p>
+                <a href="https://www.kali.org/docs/nethunter/" target="_blank" class="method-btn" id="method4Btn">
+                    Guide NetHunter <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Detailed Guide -->
+        <div class="detailed-guide animated" style="animation-delay: 0.5s">
+            <h2 id="guideTitle">Guide d'Installation Étape par Étape</h2>
+            
+            <div class="guide-step">
+                <h3><span>1</span> <span id="step1Title">Préparation du Média d'Installation</span></h3>
+                <p id="step1Desc">
+                    Téléchargez l'image ISO de Kali Linux depuis le site officiel et créez un média 
+                    d'installation (clé USB ou DVD) :
+                </p>
+                <div class="code-block" id="codeBlock1">
+                    # Pour créer une clé USB bootable sous Linux<br>
+                    sudo dd if=kali-linux-2023.3-amd64.iso of=/dev/sdX bs=4M status=progress<br><br>
+                    
+                    # Sous Windows, utilisez Rufus ou Etcher<br>
+                    # Sélectionnez l'ISO et votre clé USB, puis cliquez sur "Start"
+                </div>
+                <div class="note">
+                    <h4><i class="fas fa-lightbulb"></i> <span id="tip1Title">Astuce</span></h4>
+                    <p id="tip1Desc">Utilisez <strong>Rufus</strong> en mode "DD Image" si vous avez des problèmes de boot.</p>
+                </div>
+            </div>
+
+            <div class="guide-step">
+                <h3><span>2</span> <span id="step2Title">Démarrage sur le Média d'Installation</span></h3>
+                <p id="step2Desc">
+                    Redémarrez votre ordinateur et accédez au menu boot (généralement F12, F2, ESC ou DEL). 
+                    Sélectionnez votre clé USB ou DVD comme périphérique de démarrage.
+                </p>
+                <div class="note">
+                    <h4><i class="fas fa-cog"></i> <span id="tip2Title">Configuration UEFI/BIOS</span></h4>
+                    <p id="tip2Desc">
+                        Pour les systèmes modernes : Désactivez le Secure Boot dans les paramètres UEFI 
+                        et activez le mode Legacy/CSM si nécessaire.
+                    </p>
+                </div>
+            </div>
+
+            <div class="guide-step">
+                <h3><span>3</span> <span id="step3Title">Menu de Démarrage de Kali</span></h3>
+                <p id="step3Desc">
+                    Après le démarrage, vous verrez le menu de Kali. Options disponibles :
+                </p>
+                <div class="code-block" id="codeBlock3">
+                    Kali Linux Live (amd64)        - Mode live sans installation<br>
+                    Kali Linux Installer           - Installation graphique<br>
+                    Advanced options               - Options de dépannage<br>
+                    Install with speech synthesis  - Avec synthèse vocale
+                </div>
+                <p id="step3Note">
+                    Sélectionnez <strong>"Graphical Install"</strong> pour l'installation standard.
+                </p>
+            </div>
+
+            <div class="guide-step">
+                <h3><span>4</span> <span id="step4Title">Configuration de l'Installation</span></h3>
+                <p id="step4Desc">
+                    Suivez l'assistant d'installation étape par étape :
+                </p>
+                <ul style="color: var(--gray); margin-left: 20px; line-height: 1.7;" id="step4List">
+                    <li><strong>Langue</strong> : Sélectionnez votre langue (Français)</li>
+                    <li><strong>Localisation</strong> : Pays et fuseau horaire</li>
+                    <li><strong>Clavier</strong> : Disposition du clavier (Français)</li>
+                    <li><strong>Réseau</strong> : Nom d'hôte (ex: kali) et domaine</li>
+                    <li><strong>Utilisateur</strong> : Nom complet, nom d'utilisateur et mot de passe</li>
+                    <li><strong>Partitionnement</strong> : Option la plus importante</li>
+                </ul>
+            </div>
+
+            <div class="guide-step">
+                <h3><span>5</span> <span id="step5Title">Partitionnement du Disque</span></h3>
+                <p id="step5Desc">
+                    <strong>Option recommandée pour débutants</strong> : "Guided - use entire disk"
+                </p>
+                <div class="code-block" id="codeBlock5">
+                    Options de partitionnement disponibles :<br>
+                    1. Guided - use entire disk          (Recommandé)<br>
+                    2. Guided - use entire disk with LVM<br>
+                    3. Manual                           (Expert)
+                </div>
+                <p id="step5Note">
+                    Si vous avez Windows déjà installé, choisissez "Guided - use the largest continuous free space".
+                </p>
+            </div>
+
+            <div class="guide-step">
+                <h3><span>6</span> <span id="step6Title">Installation des Paquets</span></h3>
+                <p id="step6Desc">
+                    L'installateur télécharge et installe les paquets de base. Assurez-vous d'avoir 
+                    une connexion Internet active. Vous pouvez aussi utiliser le miroir HTTP.
+                </p>
+                <div class="note">
+                    <h4><i class="fas fa-download"></i> <span id="tip6Title">Paquets Recommandés</span></h4>
+                    <p id="tip6Desc">
+                        Cochez "Graphical desktop environment" pour installer l'interface graphique. 
+                        Pour une installation minimale, décochez toutes les options.
+                    </p>
+                </div>
+            </div>
+
+            <div class="guide-step">
+                <h3><span>7</span> <span id="step7Title">Installation du Chargeur de Démarrage (GRUB)</span></h3>
+                <p id="step7Desc">
+                    Installez GRUB sur le disque principal (/dev/sda généralement). Cochez "Yes" 
+                    pour installer GRUB sur le MBR (Master Boot Record).
+                </p>
+                <div class="code-block" id="codeBlock7">
+                    Installation de GRUB sur le périphérique :<br>
+                    /dev/sda (ou /dev/nvme0n1 pour les SSD NVMe)<br>
+                    <br>
+                    Important : Ne pas installer GRUB si vous utilisez une VM !
+                </div>
+            </div>
+
+            <div class="guide-step">
+                <h3><span>8</span> <span id="step8Title">Redémarrage et Première Connexion</span></h3>
+                <p id="step8Desc">
+                    Après l'installation, retirez le média d'installation et redémarrez. Connectez-vous 
+                    avec le nom d'utilisateur et mot de passe que vous avez configurés.
+                </p>
+                <div class="note">
+                    <h4><i class="fas fa-check-circle"></i> <span id="tip8Title">Installation Terminée</span></h4>
+                    <p id="tip8Desc">
+                        Félicitations ! Kali Linux est maintenant installé. Exécutez <code>sudo apt update && sudo apt upgrade</code> 
+                        pour mettre à jour votre système.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Tutorials -->
+        <div class="video-section animated" style="animation-delay: 0.6s">
+            <h2 id="videoTitle">Tutoriels Vidéo Officiels</h2>
+            <div class="video-grid">
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <i class="fab fa-youtube"></i>
+                        <div class="video-play">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    <div class="video-content">
+                        <h4 id="video1Title">Installation Complète</h4>
+                        <p id="video1Desc">Guide vidéo complet d'installation de Kali Linux sur disque dur physique</p>
+                        <a href="https://www.youtube.com/watch?v=oV6b0-Ic_8k" target="_blank" class="video-btn" id="video1Btn">
+                            Regarder sur YouTube
+                        </a>
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <i class="fab fa-youtube"></i>
+                        <div class="video-play">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    <div class="video-content">
+                        <h4 id="video2Title">Installation sur VirtualBox</h4>
+                        <p id="video2Desc">Comment installer Kali Linux dans une machine virtuelle VirtualBox</p>
+                        <a href="https://www.youtube.com/watch?v=VKpKp7KGa1E" target="_blank" class="video-btn" id="video2Btn">
+                            Regarder sur YouTube
+                        </a>
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <i class="fab fa-youtube"></i>
+                        <div class="video-play">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    <div class="video-content">
+                        <h4 id="video3Title">Live USB Persistant</h4>
+                        <p id="video3Desc">Créer une clé USB Kali Linux avec persistance des données</p>
+                        <a href="https://www.youtube.com/watch?v=8T4OWE1Ywpo" target="_blank" class="video-btn" id="video3Btn">
+                            Regarder sur YouTube
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="troubleshooting animated" style="animation-delay: 0.7s">
+            <h3 id="troubleshootingTitle"><i class="fas fa-wrench"></i> Dépannage et Problèmes Courants</h3>
+            
+            <div class="troubleshooting-item">
+                <h4 id="issue1Title">Problème : L'écran reste noir après l'installation</h4>
+                <p id="issue1Desc">
+                    <strong>Solution</strong> : Au démarrage, appuyez sur E dans le menu GRUB, ajoutez 
+                    <code>nomodeset</code> à la fin de la ligne linux, puis F10 pour démarrer.
+                </p>
+            </div>
+
+            <div class="troubleshooting-item">
+                <h4 id="issue2Title">Problème : Carte WiFi non détectée</h4>
+                <p id="issue2Desc">
+                    <strong>Solution</strong> : Connectez-vous en Ethernet et exécutez 
+                    <code>sudo apt update && sudo apt install firmware-atheros</code> (adaptez au fabricant).
+                </p>
+            </div>
+
+            <div class="troubleshooting-item">
+                <h4 id="issue3Title">Problème : Dual Boot avec Windows ne fonctionne pas</h4>
+                <p id="issue3Desc">
+                    <strong>Solution</strong> : Désactivez le Fast Boot dans Windows, puis utilisez 
+                    <code>sudo update-grub</code> dans Kali.
+                </p>
+            </div>
+
+            <div class="troubleshooting-item">
+                <h4 id="issue4Title">Problème : Écran de connexion en boucle</h4>
+                <p id="issue4Desc">
+                    <strong>Solution</strong> : Appuyez Ctrl+Alt+F2 pour passer en mode console, connectez-vous, 
+                    puis réinstallez l'environnement de bureau : 
+                    <code>sudo apt install --reinstall kali-desktop-xfce</code>
+                </p>
+            </div>
+        </div>
+
+        <!-- Official Documentation Button -->
+        <div class="method-card animated" style="animation-delay: 0.8s; grid-column: 1/-1; text-align: center;">
+            <div class="method-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <h3 id="docTitle">Documentation Officielle Complète</h3>
+            <p id="docDesc">
+                Consultez la documentation officielle d'Offensive Security pour tous les détails techniques, 
+                guides avancés et mises à jour des méthodes d'installation.
+            </p>
+            <a href="https://www.kali.org/docs/" target="_blank" class="method-btn" style="background: linear-gradient(135deg, var(--electric-blue), var(--navy-blue));" id="docBtn">
+                <i class="fas fa-external-link-alt"></i> Accéder à la Documentation Officielle
+            </a>
+        </div>
+
+        <!-- Back Arrow -->
+        <div class="back-container animated" style="animation-delay: 0.9s">
+            <a href="index.html" class="back-btn" id="backBtn">
+                <i class="fas fa-arrow-left"></i>
+                <span id="backBtnText">Retour à la Page d'Accueil</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Traductions
+            const translations = {
+                fr: {
+                    breadcrumbHome: 'Accueil',
+                    breadcrumbCurrent: 'Installer Kali Linux',
+                    mainTitle: 'Installer Kali Linux',
+                    mainSubtitle: 'Guide complet pour installer Kali Linux sur votre machine ou en machine virtuelle',
+                    warningTitle: 'Important - Sauvegardez vos données !',
+                    warningText: "L'installation de Kali Linux peut effacer toutes les données de votre disque dur. Faites une sauvegarde complète de vos fichiers importants avant de commencer. Pour les débutants, nous recommandons d'utiliser une machine virtuelle.",
+                    method1Title: 'Installation sur Disque Dur',
+                    method1Desc: "Installation complète de Kali Linux comme système d'exploitation principal sur votre ordinateur. Requiert un partitionnement du disque.",
+                    method1Btn: 'Guide Complet',
+                    method2Title: 'Machine Virtuelle',
+                    method2Desc: 'Exécutez Kali Linux dans une VM (VirtualBox, VMware). Méthode la plus sûre pour tester sans affecter votre système principal.',
+                    method2Btn: 'VirtualBox Guide',
+                    method3Title: 'Live USB Persistant',
+                    method3Desc: "Exécutez Kali depuis une clé USB avec persistance des données. Idéal pour une utilisation portable avec sauvegarde des configurations.",
+                    method3Btn: 'USB Persistant',
+                    method4Title: 'Sur Mobile (NetHunter)',
+                    method4Desc: 'Installez Kali NetHunter sur votre smartphone Android compatible. Transformez votre mobile en station de test de pénétration.',
+                    method4Btn: 'Guide NetHunter',
+                    guideTitle: "Guide d'Installation Étape par Étape",
+                    step1Title: 'Préparation du Média d\'Installation',
+                    step1Desc: 'Téléchargez l\'image ISO de Kali Linux depuis le site officiel et créez un média d\'installation (clé USB ou DVD) :',
+                    step2Title: 'Démarrage sur le Média d\'Installation',
+                    step2Desc: 'Redémarrez votre ordinateur et accédez au menu boot (généralement F12, F2, ESC ou DEL). Sélectionnez votre clé USB ou DVD comme périphérique de démarrage.',
+                    step3Title: 'Menu de Démarrage de Kali',
+                    step3Desc: 'Après le démarrage, vous verrez le menu de Kali. Options disponibles :',
+                    step4Title: 'Configuration de l\'Installation',
+                    step4Desc: 'Suivez l\'assistant d\'installation étape par étape :',
+                    step5Title: 'Partitionnement du Disque',
+                    step5Desc: 'Option recommandée pour débutants : "Guided - use entire disk"',
+                    step6Title: 'Installation des Paquets',
+                    step6Desc: "L'installateur télécharge et installe les paquets de base. Assurez-vous d'avoir une connexion Internet active. Vous pouvez aussi utiliser le miroir HTTP.",
+                    step7Title: 'Installation du Chargeur de Démarrage (GRUB)',
+                    step7Desc: 'Installez GRUB sur le disque principal (/dev/sda généralement). Cochez "Yes" pour installer GRUB sur le MBR (Master Boot Record).',
+                    step8Title: 'Redémarrage et Première Connexion',
+                    step8Desc: "Après l'installation, retirez le média d'installation et redémarrez. Connectez-vous avec le nom d'utilisateur et mot de passe que vous avez configurés.",
+                    tip1Title: 'Astuce',
+                    tip1Desc: 'Utilisez Rufus en mode "DD Image" si vous avez des problèmes de boot.',
+                    tip2Title: 'Configuration UEFI/BIOS',
+                    tip2Desc: 'Pour les systèmes modernes : Désactivez le Secure Boot dans les paramètres UEFI et activez le mode Legacy/CSM si nécessaire.',
+                    tip6Title: 'Paquets Recommandés',
+                    tip6Desc: 'Cochez "Graphical desktop environment" pour installer l\'interface graphique. Pour une installation minimale, décochez toutes les options.',
+                    tip8Title: 'Installation Terminée',
+                    tip8Desc: 'Félicitations ! Kali Linux est maintenant installé. Exécutez sudo apt update && sudo apt upgrade pour mettre à jour votre système.',
+                    videoTitle: 'Tutoriels Vidéo Officiels',
+                    video1Title: 'Installation Complète',
+                    video1Desc: 'Guide vidéo complet d\'installation de Kali Linux sur disque dur physique',
+                    video1Btn: 'Regarder sur YouTube',
+                    video2Title: 'Installation sur VirtualBox',
+                    video2Desc: 'Comment installer Kali Linux dans une machine virtuelle VirtualBox',
+                    video2Btn: 'Regarder sur YouTube',
+                    video3Title: 'Live USB Persistant',
+                    video3Desc: 'Créer une clé USB Kali Linux avec persistance des données',
+                    video3Btn: 'Regarder sur YouTube',
+                    troubleshootingTitle: 'Dépannage et Problèmes Courants',
+                    issue1Title: 'Problème : L\'écran reste noir après l\'installation',
+                    issue1Desc: 'Solution : Au démarrage, appuyez sur E dans le menu GRUB, ajoutez nomodeset à la fin de la ligne linux, puis F10 pour démarrer.',
+                    issue2Title: 'Problème : Carte WiFi non détectée',
+                    issue2Desc: 'Solution : Connectez-vous en Ethernet et exécutez sudo apt update && sudo apt install firmware-atheros (adaptez au fabricant).',
+                    issue3Title: 'Problème : Dual Boot avec Windows ne fonctionne pas',
+                    issue3Desc: 'Solution : Désactivez le Fast Boot dans Windows, puis utilisez sudo update-grub dans Kali.',
+                    issue4Title: 'Problème : Écran de connexion en boucle',
+                    issue4Desc: 'Solution : Appuyez Ctrl+Alt+F2 pour passer en mode console, connectez-vous, puis réinstallez l\'environnement de bureau : sudo apt install --reinstall kali-desktop-xfce',
+                    docTitle: 'Documentation Officielle Complète',
+                    docDesc: 'Consultez la documentation officielle d\'Offensive Security pour tous les détails techniques, guides avancés et mises à jour des méthodes d\'installation.',
+                    docBtn: 'Accéder à la Documentation Officielle',
+                    backBtnText: 'Retour à la Page d\'Accueil'
+                },
+                en: {
+                    breadcrumbHome: 'Home',
+                    breadcrumbCurrent: 'Install Kali Linux',
+                    mainTitle: 'Install Kali Linux',
+                    mainSubtitle: 'Complete guide to install Kali Linux on your machine or in a virtual machine',
+                    warningTitle: 'Important - Backup your data!',
+                    warningText: 'Installing Kali Linux may erase all data on your hard drive. Make a complete backup of your important files before starting. For beginners, we recommend using a virtual machine.',
+                    method1Title: 'Hard Disk Installation',
+                    method1Desc: 'Complete installation of Kali Linux as the main operating system on your computer. Requires disk partitioning.',
+                    method1Btn: 'Complete Guide',
+                    method2Title: 'Virtual Machine',
+                    method2Desc: 'Run Kali Linux in a VM (VirtualBox, VMware). Safest method to test without affecting your main system.',
+                    method2Btn: 'VirtualBox Guide',
+                    method3Title: 'Persistent Live USB',
+                    method3Desc: 'Run Kali from a USB stick with data persistence. Ideal for portable use with configuration backup.',
+                    method3Btn: 'Persistent USB',
+                    method4Title: 'On Mobile (NetHunter)',
+                    method4Desc: 'Install Kali NetHunter on your compatible Android smartphone. Turn your mobile into a penetration testing station.',
+                    method4Btn: 'NetHunter Guide',
+                    guideTitle: 'Step by Step Installation Guide',
+                    step1Title: 'Installation Media Preparation',
+                    step1Desc: 'Download the Kali Linux ISO image from the official website and create installation media (USB or DVD):',
+                    step2Title: 'Boot from Installation Media',
+                    step2Desc: 'Restart your computer and access the boot menu (usually F12, F2, ESC, or DEL). Select your USB or DVD as the boot device.',
+                    step3Title: 'Kali Boot Menu',
+                    step3Desc: 'After booting, you will see the Kali menu. Available options:',
+                    step4Title: 'Installation Configuration',
+                    step4Desc: 'Follow the installation wizard step by step:',
+                    step5Title: 'Disk Partitioning',
+                    step5Desc: 'Recommended option for beginners: "Guided - use entire disk"',
+                    step6Title: 'Package Installation',
+                    step6Desc: 'The installer downloads and installs base packages. Make sure you have an active Internet connection. You can also use the HTTP mirror.',
+                    step7Title: 'Boot Loader Installation (GRUB)',
+                    step7Desc: 'Install GRUB on the main disk (usually /dev/sda). Check "Yes" to install GRUB on the MBR (Master Boot Record).',
+                    step8Title: 'Restart and First Login',
+                    step8Desc: 'After installation, remove the installation media and restart. Log in with the username and password you configured.',
+                    tip1Title: 'Tip',
+                    tip1Desc: 'Use Rufus in "DD Image" mode if you have boot problems.',
+                    tip2Title: 'UEFI/BIOS Configuration',
+                    tip2Desc: 'For modern systems: Disable Secure Boot in UEFI settings and enable Legacy/CSM mode if necessary.',
+                    tip6Title: 'Recommended Packages',
+                    tip6Desc: 'Check "Graphical desktop environment" to install the GUI. For a minimal installation, uncheck all options.',
+                    tip8Title: 'Installation Complete',
+                    tip8Desc: 'Congratulations! Kali Linux is now installed. Run sudo apt update && sudo apt upgrade to update your system.',
+                    videoTitle: 'Official Video Tutorials',
+                    video1Title: 'Complete Installation',
+                    video1Desc: 'Complete video guide for installing Kali Linux on physical hard drive',
+                    video1Btn: 'Watch on YouTube',
+                    video2Title: 'Installation on VirtualBox',
+                    video2Desc: 'How to install Kali Linux in a VirtualBox virtual machine',
+                    video2Btn: 'Watch on YouTube',
+                    video3Title: 'Persistent Live USB',
+                    video3Desc: 'Create a Kali Linux USB stick with data persistence',
+                    video3Btn: 'Watch on YouTube',
+                    troubleshootingTitle: 'Troubleshooting and Common Issues',
+                    issue1Title: 'Issue: Black screen after installation',
+                    issue1Desc: 'Solution: At boot, press E in the GRUB menu, add nomodeset at the end of the linux line, then F10 to boot.',
+                    issue2Title: 'Issue: WiFi card not detected',
+                    issue2Desc: 'Solution: Connect via Ethernet and run sudo apt update && sudo apt install firmware-atheros (adapt to manufacturer).',
+                    issue3Title: 'Issue: Dual Boot with Windows not working',
+                    issue3Desc: 'Solution: Disable Fast Boot in Windows, then use sudo update-grub in Kali.',
+                    issue4Title: 'Issue: Login screen loop',
+                    issue4Desc: 'Solution: Press Ctrl+Alt+F2 to switch to console mode, log in, then reinstall the desktop environment: sudo apt install --reinstall kali-desktop-xfce',
+                    docTitle: 'Complete Official Documentation',
+                    docDesc: 'Consult the official Offensive Security documentation for all technical details, advanced guides and installation method updates.',
+                    docBtn: 'Access Official Documentation',
+                    backBtnText: 'Back to Home Page'
+                },
+                es: {
+                    breadcrumbHome: 'Inicio',
+                    breadcrumbCurrent: 'Instalar Kali Linux',
+                    mainTitle: 'Instalar Kali Linux',
+                    mainSubtitle: 'Guía completa para instalar Kali Linux en su máquina o en una máquina virtual',
+                    warningTitle: '¡Importante - Haz una copia de seguridad!',
+                    warningText: 'La instalación de Kali Linux puede borrar todos los datos de su disco duro. Haga una copia de seguridad completa de sus archivos importantes antes de comenzar. Para principiantes, recomendamos usar una máquina virtual.',
+                    method1Title: 'Instalación en Disco Duro',
+                    method1Desc: 'Instalación completa de Kali Linux como sistema operativo principal en su ordenador. Requiere particionamiento del disco.',
+                    method1Btn: 'Guía Completa',
+                    method2Title: 'Máquina Virtual',
+                    method2Desc: 'Ejecute Kali Linux en una VM (VirtualBox, VMware). Método más seguro para probar sin afectar su sistema principal.',
+                    method2Btn: 'Guía VirtualBox',
+                    method3Title: 'Live USB Persistente',
+                    method3Desc: 'Ejecute Kali desde una memoria USB con persistencia de datos. Ideal para uso portátil con respaldo de configuración.',
+                    method3Btn: 'USB Persistente',
+                    method4Title: 'En Móvil (NetHunter)',
+                    method4Desc: 'Instale Kali NetHunter en su smartphone Android compatible. Convierta su móvil en una estación de pruebas de penetración.',
+                    method4Btn: 'Guía NetHunter',
+                    guideTitle: 'Guía de Instalación Paso a Paso',
+                    step1Title: 'Preparación del Medio de Instalación',
+                    step1Desc: 'Descargue la imagen ISO de Kali Linux desde el sitio oficial y cree un medio de instalación (USB o DVD):',
+                    step2Title: 'Arranque desde el Medio de Instalación',
+                    step2Desc: 'Reinicie su ordenador y acceda al menú de arranque (generalmente F12, F2, ESC o DEL). Seleccione su USB o DVD como dispositivo de arranque.',
+                    step3Title: 'Menú de Arranque de Kali',
+                    step3Desc: 'Después del arranque, verá el menú de Kali. Opciones disponibles:',
+                    step4Title: 'Configuración de la Instalación',
+                    step4Desc: 'Siga el asistente de instalación paso a paso:',
+                    step5Title: 'Particionamiento del Disco',
+                    step5Desc: 'Opción recomendada para principiantes: "Guided - use entire disk"',
+                    step6Title: 'Instalación de Paquetes',
+                    step6Desc: 'El instalador descarga e instala los paquetes base. Asegúrese de tener una conexión a Internet activa. También puede usar el espejo HTTP.',
+                    step7Title: 'Instalación del Gestor de Arranque (GRUB)',
+                    step7Desc: 'Instale GRUB en el disco principal (generalmente /dev/sda). Marque "Yes" para instalar GRUB en el MBR (Master Boot Record).',
+                    step8Title: 'Reinicio y Primer Inicio de Sesión',
+                    step8Desc: 'Después de la instalación, retire el medio de instalación y reinicie. Inicie sesión con el nombre de usuario y contraseña que configuró.',
+                    tip1Title: 'Consejo',
+                    tip1Desc: 'Use Rufus en modo "DD Image" si tiene problemas de arranque.',
+                    tip2Title: 'Configuración UEFI/BIOS',
+                    tip2Desc: 'Para sistemas modernos: Desactive Secure Boot en la configuración UEFI y active el modo Legacy/CSM si es necesario.',
+                    tip6Title: 'Paquetes Recomendados',
+                    tip6Desc: 'Marque "Graphical desktop environment" para instalar la interfaz gráfica. Para una instalación mínima, desmarque todas las opciones.',
+                    tip8Title: 'Instalación Completa',
+                    tip8Desc: '¡Felicidades! Kali Linux está instalado. Ejecute sudo apt update && sudo apt upgrade para actualizar su sistema.',
+                    videoTitle: 'Tutoriales de Video Oficiales',
+                    video1Title: 'Instalación Completa',
+                    video1Desc: 'Guía de video completa para instalar Kali Linux en disco duro físico',
+                    video1Btn: 'Ver en YouTube',
+                    video2Title: 'Instalación en VirtualBox',
+                    video2Desc: 'Cómo instalar Kali Linux en una máquina virtual VirtualBox',
+                    video2Btn: 'Ver en YouTube',
+                    video3Title: 'Live USB Persistente',
+                    video3Desc: 'Crear una memoria USB Kali Linux con persistencia de datos',
+                    video3Btn: 'Ver en YouTube',
+                    troubleshootingTitle: 'Solución de Problemas y Problemas Comunes',
+                    issue1Title: 'Problema: Pantalla negra después de la instalación',
+                    issue1Desc: 'Solución: Al arrancar, presione E en el menú GRUB, agregue nomodeset al final de la línea linux, luego F10 para arrancar.',
+                    issue2Title: 'Problema: Tarjeta WiFi no detectada',
+                    issue2Desc: 'Solución: Conéctese por Ethernet y ejecute sudo apt update && sudo apt install firmware-atheros (adapte al fabricante).',
+                    issue3Title: 'Problema: Dual Boot con Windows no funciona',
+                    issue3Desc: 'Solución: Desactive Fast Boot en Windows, luego use sudo update-grub en Kali.',
+                    issue4Title: 'Problema: Bucle de pantalla de inicio de sesión',
+                    issue4Desc: 'Solución: Presione Ctrl+Alt+F2 para cambiar al modo consola, inicie sesión, luego reinstale el entorno de escritorio: sudo apt install --reinstall kali-desktop-xfce',
+                    docTitle: 'Documentación Oficial Completa',
+                    docDesc: 'Consulte la documentación oficial de Offensive Security para todos los detalles técnicos, guías avanzadas y actualizaciones de los métodos de instalación.',
+                    docBtn: 'Acceder a la Documentación Oficial',
+                    backBtnText: 'Volver a la Página de Inicio'
+                },
+                ar: {
+                    breadcrumbHome: 'الرئيسية',
+                    breadcrumbCurrent: 'تثبيت كالي لينكس',
+                    mainTitle: 'تثبيت كالي لينكس',
+                    mainSubtitle: 'دليل كامل لتثبيت كالي لينكس على جهازك أو في آلة افتراضية',
+                    warningTitle: 'هام - قم بنسخ بياناتك احتياطياً!',
+                    warningText: 'قد يؤدي تثبيت كالي لينكس إلى مسح جميع البيانات الموجودة على القرص الصلب. قم بعمل نسخة احتياطية كاملة لملفاتك المهمة قبل البدء. للمبتدئين، نوصي باستخدام آلة افتراضية.',
+                    method1Title: 'التثبيت على القرص الصلب',
+                    method1Desc: 'تثبيت كامل لكالي لينكس كنظام تشغيل رئيسي على جهاز الكمبيوتر الخاص بك. يتطلب تقسيم القرص.',
+                    method1Btn: 'الدليل الكامل',
+                    method2Title: 'آلة افتراضية',
+                    method2Desc: 'قم بتشغيل كالي لينكس في آلة افتراضية (VirtualBox, VMware). الطريقة الأكثر أماناً للاختبار دون التأثير على نظامك الرئيسي.',
+                    method2Btn: 'دليل VirtualBox',
+                    method3Title: 'USB مباشر مع حفظ البيانات',
+                    method3Desc: 'قم بتشغيل كالي من USB مع حفظ البيانات. مثالي للاستخدام المحمول مع نسخ احتياطي للتكوينات.',
+                    method3Btn: 'USB مع حفظ البيانات',
+                    method4Title: 'على الهاتف المحمول (NetHunter)',
+                    method4Desc: 'قم بتثبيت Kali NetHunter على هاتف Android المتوافق. حول هاتفك إلى محطة اختبار اختراق.',
+                    method4Btn: 'دليل NetHunter',
+                    guideTitle: 'دليل التثبيت خطوة بخطوة',
+                    step1Title: 'تحضير وسيلة التثبيت',
+                    step1Desc: 'قم بتنزيل صورة ISO لكالي لينكس من الموقع الرسمي وأنشئ وسيلة تثبيت (USB أو DVD):',
+                    step2Title: 'الإقلاع من وسيلة التثبيت',
+                    step2Desc: 'أعد تشغيل جهاز الكمبيوتر الخاص بك وادخل إلى قائمة الإقلاع (عادة F12 أو F2 أو ESC أو DEL). اختر USB أو DVD كجهاز الإقلاع.',
+                    step3Title: 'قائمة إقلاع كالي',
+                    step3Desc: 'بعد الإقلاع، سترى قائمة كالي. الخيارات المتاحة:',
+                    step4Title: 'تكوين التثبيت',
+                    step4Desc: 'اتبع معالج التثبيت خطوة بخطوة:',
+                    step5Title: 'تقسيم القرص',
+                    step5Desc: 'الخيار الموصى به للمبتدئين: "Guided - use entire disk"',
+                    step6Title: 'تثبيت الحزم',
+                    step6Desc: 'يقوم المثبت بتنزيل وتثبيت الحزم الأساسية. تأكد من وجود اتصال إنترنت نشط. يمكنك أيضاً استخدام مرآة HTTP.',
+                    step7Title: 'تثبيت محمل الإقلاع (GRUB)',
+                    step7Desc: 'قم بتثبيت GRUB على القرص الرئيسي (عادة /dev/sda). حدد "Yes" لتثبيت GRUB على سجل الإقلاع الرئيسي.',
+                    step8Title: 'إعادة التشغيل وتسجيل الدخول الأول',
+                    step8Desc: 'بعد التثبيت، قم بإزالة وسيلة التثبيت وأعد التشغيل. سجل الدخول باسم المستخدم وكلمة المرور التي قمت بتكوينها.',
+                    tip1Title: 'نصيحة',
+                    tip1Desc: 'استخدم Rufus في وضع "DD Image" إذا واجهت مشاكل في الإقلاع.',
+                    tip2Title: 'تكوين UEFI/BIOS',
+                    tip2Desc: 'للأنظمة الحديثة: قم بتعطيل Secure Boot في إعدادات UEFI وقم بتمكين وضع Legacy/CSM إذا لزم الأمر.',
+                    tip6Title: 'الحزم الموصى بها',
+                    tip6Desc: 'حدد "Graphical desktop environment" لتثبيت الواجهة الرسومية. للتثبيت الأدنى، قم بإلغاء تحديد جميع الخيارات.',
+                    tip8Title: 'اكتمل التثبيت',
+                    tip8Desc: 'مبروك! تم تثبيت كالي لينكس الآن. قم بتشغيل sudo apt update && sudo apt upgrade لتحديث نظامك.',
+                    videoTitle: 'دروس فيديو رسمية',
+                    video1Title: 'تثبيت كامل',
+                    video1Desc: 'دليل فيديو كامل لتثبيت كالي لينكس على قرص صلب فعلي',
+                    video1Btn: 'شاهد على YouTube',
+                    video2Title: 'التثبيت على VirtualBox',
+                    video2Desc: 'كيفية تثبيت كالي لينكس في آلة افتراضية VirtualBox',
+                    video2Btn: 'شاهد على YouTube',
+                    video3Title: 'USB مباشر مع حفظ البيانات',
+                    video3Desc: 'إنشاء USB كالي لينكس مع حفظ البيانات',
+                    video3Btn: 'شاهد على YouTube',
+                    troubleshootingTitle: 'استكشاف الأخطاء وإصلاحها والمشاكل الشائعة',
+                    issue1Title: 'مشكلة: شاشة سوداء بعد التثبيت',
+                    issue1Desc: 'الحل: عند الإقلاع، اضغط E في قائمة GRUB، أضف nomodeset في نهاية سطر linux، ثم F10 للإقلاع.',
+                    issue2Title: 'مشكلة: بطاقة WiFi غير مكتشفة',
+                    issue2Desc: 'الحل: اتصل عبر Ethernet وقم بتشغيل sudo apt update && sudo apt install firmware-atheros (قم بتكييفه حسب الشركة المصنعة).',
+                    issue3Title: 'مشكلة: الإقلاع المزدوج مع Windows لا يعمل',
+                    issue3Desc: 'الحل: قم بتعطيل Fast Boot في Windows، ثم استخدم sudo update-grub في كالي.',
+                    issue4Title: 'مشكلة: حلقة شاشة تسجيل الدخول',
+                    issue4Desc: 'الحل: اضغط Ctrl+Alt+F2 للتبديل إلى وضع وحدة التحكم، سجل الدخول، ثم أعد تثبيت بيئة سطح المكتب: sudo apt install --reinstall kali-desktop-xfce',
+                    docTitle: 'الوثائق الرسمية الكاملة',
+                    docDesc: 'استشر وثائق Offensive Security الرسمية لجميع التفاصيل الفنية والأدلة المتقدمة وتحديثات طرق التثبيت.',
+                    docBtn: 'الوصول إلى الوثائق الرسمية',
+                    backBtnText: 'العودة إلى الصفحة الرئيسية'
+                }
+            };
+
+            // Éléments du DOM
+            const translateBtn = document.getElementById('translateBtn');
+            const translateMenu = document.getElementById('translateMenu');
+            const translateOptions = document.querySelectorAll('.translate-option');
+
+            // Langue actuelle
+            let currentLang = 'fr';
+
+            // Fonction pour changer la langue
+            function changeLanguage(lang) {
+                // Mettre à jour la classe active
+                translateOptions.forEach(opt => {
+                    opt.classList.remove('active');
+                    if (opt.dataset.lang === lang) {
+                        opt.classList.add('active');
+                    }
+                });
+
+                // Mettre à jour les textes
+                document.getElementById('breadcrumbHome').textContent = translations[lang].breadcrumbHome;
+                document.getElementById('breadcrumbCurrent').textContent = translations[lang].breadcrumbCurrent;
+                document.getElementById('mainTitle').textContent = translations[lang].mainTitle;
+                document.getElementById('mainSubtitle').textContent = translations[lang].mainSubtitle;
+                
+                // Warning
+                document.getElementById('warningTitle').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${translations[lang].warningTitle}`;
+                document.getElementById('warningText').innerHTML = translations[lang].warningText;
+                
+                // Méthodes
+                document.getElementById('method1Title').textContent = translations[lang].method1Title;
+                document.getElementById('method1Desc').textContent = translations[lang].method1Desc;
+                document.getElementById('method1Btn').innerHTML = `${translations[lang].method1Btn} <i class="fas fa-external-link-alt"></i>`;
+                
+                document.getElementById('method2Title').textContent = translations[lang].method2Title;
+                document.getElementById('method2Desc').textContent = translations[lang].method2Desc;
+                document.getElementById('method2Btn').innerHTML = `${translations[lang].method2Btn} <i class="fas fa-external-link-alt"></i>`;
+                
+                document.getElementById('method3Title').textContent = translations[lang].method3Title;
+                document.getElementById('method3Desc').textContent = translations[lang].method3Desc;
+                document.getElementById('method3Btn').innerHTML = `${translations[lang].method3Btn} <i class="fas fa-external-link-alt"></i>`;
+                
+                document.getElementById('method4Title').textContent = translations[lang].method4Title;
+                document.getElementById('method4Desc').textContent = translations[lang].method4Desc;
+                document.getElementById('method4Btn').innerHTML = `${translations[lang].method4Btn} <i class="fas fa-external-link-alt"></i>`;
+                
+                // Guide
+                document.getElementById('guideTitle').textContent = translations[lang].guideTitle;
+                
+                // Step 1
+                document.getElementById('step1Title').textContent = translations[lang].step1Title;
+                document.getElementById('step1Desc').textContent = translations[lang].step1Desc;
+                document.getElementById('codeBlock1').innerHTML = translations[lang].codeBlock1 || 
+                    '# Pour créer une clé USB bootable sous Linux<br>sudo dd if=kali-linux-2023.3-amd64.iso of=/dev/sdX bs=4M status=progress<br><br># Sous Windows, utilisez Rufus ou Etcher<br># Sélectionnez l\'ISO et votre clé USB, puis cliquez sur "Start"';
+                document.getElementById('tip1Title').textContent = translations[lang].tip1Title;
+                document.getElementById('tip1Desc').innerHTML = translations[lang].tip1Desc;
+                
+                // Step 2
+                document.getElementById('step2Title').textContent = translations[lang].step2Title;
+                document.getElementById('step2Desc').textContent = translations[lang].step2Desc;
+                document.getElementById('tip2Title').textContent = translations[lang].tip2Title;
+                document.getElementById('tip2Desc').textContent = translations[lang].tip2Desc;
+                
+                // Step 3
+                document.getElementById('step3Title').textContent = translations[lang].step3Title;
+                document.getElementById('step3Desc').textContent = translations[lang].step3Desc;
+                document.getElementById('codeBlock3').innerHTML = translations[lang].codeBlock3 || 
+                    'Kali Linux Live (amd64)        - Mode live sans installation<br>Kali Linux Installer           - Installation graphique<br>Advanced options               - Options de dépannage<br>Install with speech synthesis  - Avec synthèse vocale';
+                document.getElementById('step3Note').innerHTML = translations[lang].step3Note || 
+                    'Sélectionnez <strong>"Graphical Install"</strong> pour l\'installation standard.';
+                
+                // Step 4
+                document.getElementById('step4Title').textContent = translations[lang].step4Title;
+                document.getElementById('step4Desc').textContent = translations[lang].step4Desc;
+                
+                // Step 5
+                document.getElementById('step5Title').textContent = translations[lang].step5Title;
+                document.getElementById('step5Desc').innerHTML = translations[lang].step5Desc;
+                document.getElementById('codeBlock5').innerHTML = translations[lang].codeBlock5 || 
+                    'Options de partitionnement disponibles :<br>1. Guided - use entire disk          (Recommandé)<br>2. Guided - use entire disk with LVM<br>3. Manual                           (Expert)';
+                document.getElementById('step5Note').textContent = translations[lang].step5Note || 
+                    'Si vous avez Windows déjà installé, choisissez "Guided - use the largest continuous free space".';
+                
+                // Step 6
+                document.getElementById('step6Title').textContent = translations[lang].step6Title;
+                document.getElementById('step6Desc').textContent = translations[lang].step6Desc;
+                document.getElementById('tip6Title').textContent = translations[lang].tip6Title;
+                document.getElementById('tip6Desc').innerHTML = translations[lang].tip6Desc;
+                
+                // Step 7
+                document.getElementById('step7Title').textContent = translations[lang].step7Title;
+                document.getElementById('step7Desc').textContent = translations[lang].step7Desc;
+                document.getElementById('codeBlock7').innerHTML = translations[lang].codeBlock7 || 
+                    'Installation de GRUB sur le périphérique :<br>/dev/sda (ou /dev/nvme0n1 pour les SSD NVMe)<br><br>Important : Ne pas installer GRUB si vous utilisez une VM !';
+                
+                // Step 8
+                document.getElementById('step8Title').textContent = translations[lang].step8Title;
+                document.getElementById('step8Desc').textContent = translations[lang].step8Desc;
+                document.getElementById('tip8Title').textContent = translations[lang].tip8Title;
+                document.getElementById('tip8Desc').innerHTML = translations[lang].tip8Desc;
+                
+                // Videos
+                document.getElementById('videoTitle').textContent = translations[lang].videoTitle;
+                document.getElementById('video1Title').textContent = translations[lang].video1Title;
+                document.getElementById('video1Desc').textContent = translations[lang].video1Desc;
+                document.getElementById('video1Btn').innerHTML = translations[lang].video1Btn;
+                
+                document.getElementById('video2Title').textContent = translations[lang].video2Title;
+                document.getElementById('video2Desc').textContent = translations[lang].video2Desc;
+                document.getElementById('video2Btn').innerHTML = translations[lang].video2Btn;
+                
+                document.getElementById('video3Title').textContent = translations[lang].video3Title;
+                document.getElementById('video3Desc').textContent = translations[lang].video3Desc;
+                document.getElementById('video3Btn').innerHTML = translations[lang].video3Btn;
+                
+                // Troubleshooting
+                document.getElementById('troubleshootingTitle').innerHTML = `<i class="fas fa-wrench"></i> ${translations[lang].troubleshootingTitle}`;
+                document.getElementById('issue1Title').textContent = translations[lang].issue1Title;
+                document.getElementById('issue1Desc').innerHTML = translations[lang].issue1Desc;
+                document.getElementById('issue2Title').textContent = translations[lang].issue2Title;
+                document.getElementById('issue2Desc').innerHTML = translations[lang].issue2Desc;
+                document.getElementById('issue3Title').textContent = translations[lang].issue3Title;
+                document.getElementById('issue3Desc').innerHTML = translations[lang].issue3Desc;
+                document.getElementById('issue4Title').textContent = translations[lang].issue4Title;
+                document.getElementById('issue4Desc').innerHTML = translations[lang].issue4Desc;
+                
+                // Documentation
+                document.getElementById('docTitle').textContent = translations[lang].docTitle;
+                document.getElementById('docDesc').textContent = translations[lang].docDesc;
+                document.getElementById('docBtn').innerHTML = `<i class="fas fa-external-link-alt"></i> ${translations[lang].docBtn}`;
+                
+                // Back button
+                document.getElementById('backBtnText').textContent = translations[lang].backBtnText;
+
+                // Afficher une notification
+                showNotification(translations[lang].breadcrumbHome === 'Accueil' ? 'Langue changée en Français' : 
+                                translations[lang].breadcrumbHome === 'Home' ? 'Language changed to English' :
+                                translations[lang].breadcrumbHome === 'Inicio' ? 'Idioma cambiado a Español' :
+                                'تم تغيير اللغة إلى العربية');
+
+                // Changer la direction du texte pour l'arabe
+                if (lang === 'ar') {
+                    document.body.style.direction = 'rtl';
+                    document.querySelectorAll('.breadcrumb i, .back-btn i').forEach(icon => {
+                        icon.style.transform = 'rotate(180deg)';
+                    });
+                } else {
+                    document.body.style.direction = 'ltr';
+                    document.querySelectorAll('.breadcrumb i, .back-btn i').forEach(icon => {
+                        icon.style.transform = 'rotate(0)';
+                    });
+                }
+
+                currentLang = lang;
+            }
+
+            // Ajouter les traductions manquantes pour les code blocks
+            translations.fr.codeBlock1 = '# Pour créer une clé USB bootable sous Linux<br>sudo dd if=kali-linux-2023.3-amd64.iso of=/dev/sdX bs=4M status=progress<br><br># Sous Windows, utilisez Rufus ou Etcher<br># Sélectionnez l\'ISO et votre clé USB, puis cliquez sur "Start"';
+            translations.en.codeBlock1 = '# To create a bootable USB under Linux<br>sudo dd if=kali-linux-2023.3-amd64.iso of=/dev/sdX bs=4M status=progress<br><br># On Windows, use Rufus or Etcher<br># Select the ISO and your USB drive, then click "Start"';
+            translations.es.codeBlock1 = '# Para crear un USB bootable en Linux<br>sudo dd if=kali-linux-2023.3-amd64.iso of=/dev/sdX bs=4M status=progress<br><br># En Windows, use Rufus o Etcher<br># Seleccione la ISO y su USB, luego haga clic en "Start"';
+            translations.ar.codeBlock1 = '# لإنشاء USB قابل للإقلاع في لينكس<br>sudo dd if=kali-linux-2023.3-amd64.iso of=/dev/sdX bs=4M status=progress<br><br># في ويندوز، استخدم Rufus أو Etcher<br># اختر ISO ومحرك USB الخاص بك، ثم انقر على "Start"';
+
+            translations.fr.codeBlock3 = 'Kali Linux Live (amd64)        - Mode live sans installation<br>Kali Linux Installer           - Installation graphique<br>Advanced options               - Options de dépannage<br>Install with speech synthesis  - Avec synthèse vocale';
+            translations.en.codeBlock3 = 'Kali Linux Live (amd64)        - Live mode without installation<br>Kali Linux Installer           - Graphical installation<br>Advanced options               - Troubleshooting options<br>Install with speech synthesis  - With speech synthesis';
+            translations.es.codeBlock3 = 'Kali Linux Live (amd64)        - Modo live sin instalación<br>Kali Linux Installer           - Instalación gráfica<br>Advanced options               - Opciones de solución de problemas<br>Install with speech synthesis  - Con síntesis de voz';
+            translations.ar.codeBlock3 = 'Kali Linux Live (amd64)        - وضع مباشر بدون تثبيت<br>Kali Linux Installer           - تثبيت رسومي<br>Advanced options               - خيارات استكشاف الأخطاء<br>Install with speech synthesis  - مع تركيب الكلام';
+
+            translations.fr.codeBlock5 = 'Options de partitionnement disponibles :<br>1. Guided - use entire disk          (Recommandé)<br>2. Guided - use entire disk with LVM<br>3. Manual                           (Expert)';
+            translations.en.codeBlock5 = 'Available partitioning options:<br>1. Guided - use entire disk          (Recommended)<br>2. Guided - use entire disk with LVM<br>3. Manual                           (Expert)';
+            translations.es.codeBlock5 = 'Opciones de particionamiento disponibles:<br>1. Guided - use entire disk          (Recomendado)<br>2. Guided - use entire disk with LVM<br>3. Manual                           (Experto)';
+            translations.ar.codeBlock5 = 'خيارات التقسيم المتاحة:<br>1. Guided - use entire disk          (موصى به)<br>2. Guided - use entire disk with LVM<br>3. Manual                           (خبير)';
+
+            translations.fr.codeBlock7 = 'Installation de GRUB sur le périphérique :<br>/dev/sda (ou /dev/nvme0n1 pour les SSD NVMe)<br><br>Important : Ne pas installer GRUB si vous utilisez une VM !';
+            translations.en.codeBlock7 = 'Installing GRUB on the device:<br>/dev/sda (or /dev/nvme0n1 for NVMe SSDs)<br><br>Important: Do not install GRUB if using a VM!';
+            translations.es.codeBlock7 = 'Instalación de GRUB en el dispositivo:<br>/dev/sda (o /dev/nvme0n1 para SSD NVMe)<br><br>Importante: ¡No instale GRUB si usa una VM!';
+            translations.ar.codeBlock7 = 'تثبيت GRUB على الجهاز:<br>/dev/sda (أو /dev/nvme0n1 لأقراص NVMe SSD)<br><br>هام: لا تقم بتثبيت GRUB إذا كنت تستخدم آلة افتراضية!';
+
+            translations.fr.step3Note = 'Sélectionnez <strong>"Graphical Install"</strong> pour l\'installation standard.';
+            translations.en.step3Note = 'Select <strong>"Graphical Install"</strong> for standard installation.';
+            translations.es.step3Note = 'Seleccione <strong>"Graphical Install"</strong> para la instalación estándar.';
+            translations.ar.step3Note = 'اختر <strong>"Graphical Install"</strong> للتثبيت القياسي.';
+
+            translations.fr.step5Note = 'Si vous avez Windows déjà installé, choisissez "Guided - use the largest continuous free space".';
+            translations.en.step5Note = 'If you already have Windows installed, choose "Guided - use the largest continuous free space".';
+            translations.es.step5Note = 'Si ya tiene Windows instalado, elija "Guided - use the largest continuous free space".';
+            translations.ar.step5Note = 'إذا كان لديك Windows مثبتاً بالفعل، اختر "Guided - use the largest continuous free space".';
+
+            // Fonction pour afficher les notifications
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
+            }
+
+            // Toggle du menu de traduction
+            translateBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                translateMenu.classList.toggle('active');
+            });
+
+            // Fermer le menu en cliquant ailleurs
+            document.addEventListener('click', (e) => {
+                if (!translateBtn.contains(e.target) && !translateMenu.contains(e.target)) {
+                    translateMenu.classList.remove('active');
+                }
+            });
+
+            // Changer la langue quand on clique sur une option
+            translateOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const lang = option.dataset.lang;
+                    changeLanguage(lang);
+                    translateMenu.classList.remove('active');
+                });
+            });
+
+            // Animation des éléments au défilement
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                        
+                        // Animation spéciale pour les numéros d'étape
+                        if (entry.target.querySelector('span')) {
+                            const span = entry.target.querySelector('span');
+                            span.style.transform = 'rotate(360deg) scale(1.2)';
+                            setTimeout(() => {
+                                span.style.transform = 'rotate(0) scale(1)';
+                            }, 500);
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            // Appliquer l'effet aux éléments
+            document.querySelectorAll('.animated').forEach(element => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(30px)';
+                element.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                observer.observe(element);
+            });
+
+            // Animation des boutons de méthode
+            document.querySelectorAll('.method-btn').forEach(btn => {
+                btn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px)';
+                });
+                
+                btn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+                
+                // Confirmation de redirection
+                btn.addEventListener('click', function(e) {
+                    if (this.getAttribute('href').includes('http')) {
+                        const url = this.getAttribute('href');
+                        const method = this.closest('.method-card').querySelector('h3').textContent;
+                        const confirmed = confirm(`Vous allez être redirigé vers le guide officiel d'installation:\n\n"${method}"\n\nSur: ${url}\n\nVoulez-vous continuer ?`);
+                        
+                        if (!confirmed) {
+                            e.preventDefault();
+                        } else {
+                            // Animation de sortie
+                            document.body.style.opacity = '0.7';
+                            document.body.style.transition = 'opacity 0.3s ease';
+                            
+                            setTimeout(() => {
+                                document.body.style.opacity = '1';
+                            }, 1000);
+                        }
+                    }
+                });
+            });
+
+            // Animation des boutons vidéo
+            document.querySelectorAll('.video-play').forEach(playBtn => {
+                playBtn.addEventListener('click', function() {
+                    const videoCard = this.closest('.video-card');
+                    const videoLink = videoCard.querySelector('.video-btn').getAttribute('href');
+                    window.open(videoLink, '_blank');
+                });
+            });
+
+            // Effet de clic pour le bouton retour
+            const backBtn = document.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Animation de clic
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 200);
+                    
+                    // Redirection après animation
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 300);
+                });
+            }
+
+            // Animation des étapes au survol
+            document.querySelectorAll('.guide-step').forEach(step => {
+                step.addEventListener('mouseenter', function() {
+                    const number = this.querySelector('span');
+                    if (number) {
+                        number.style.transform = 'rotate(360deg) scale(1.3)';
+                        number.style.transition = 'transform 0.5s ease';
+                    }
+                });
+                
+                step.addEventListener('mouseleave', function() {
+                    const number = this.querySelector('span');
+                    if (number) {
+                        number.style.transform = 'rotate(0) scale(1)';
+                    }
+                });
+            });
+
+            // Animation de chargement initial
+            setTimeout(() => {
+                document.querySelectorAll('.animated').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }, 300);
+
+            // Ajout d'un compteur d'étapes
+            const stepCounter = document.createElement('div');
+            stepCounter.innerHTML = `
+                <div style="text-align: center; margin: 20px 0; padding: 15px; background: rgba(255, 140, 50, 0.1); border-radius: 10px;">
+                    <p style="color: var(--light-orange); font-size: 1.1rem;" id="stepCounter">
+                        <i class="fas fa-list-ol"></i> Ce guide contient <strong>8 étapes détaillées</strong> pour une installation réussie
+                    </p>
+                </div>
+            `;
+            document.querySelector('.detailed-guide').prepend(stepCounter);
+            
+            // Ajouter la traduction pour le compteur
+            translations.fr.stepCounter = 'Ce guide contient <strong>8 étapes détaillées</strong> pour une installation réussie';
+            translations.en.stepCounter = 'This guide contains <strong>8 detailed steps</strong> for a successful installation';
+            translations.es.stepCounter = 'Esta guía contiene <strong>8 pasos detallados</strong> para una instalación exitosa';
+            translations.ar.stepCounter = 'يحتوي هذا الدليل على <strong>8 خطوات مفصلة</strong> لتثبيت ناجح';
+        });
+    </script>
+</body>
+</html>
