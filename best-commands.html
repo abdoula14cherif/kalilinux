@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meilleures Commandes | Kali Linux</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --dark-blue: #0a1931;
+            --navy-blue: #185adb;
+            --electric-blue: #2d46b9;
+            --blood-red: #b33939;
+            --orange: #ff8c32;
+            --light-orange: #ffb74d;
+            --gray: #8d93ab;
+            --light-gray: #f1f3f8;
+            --card-bg: #1a2b4a;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 15px;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-blue) 0%, #0c2461 100%);
+            color: var(--light-gray);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Bouton de traduction flottant */
+        .translate-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 2px solid transparent;
+        }
+
+        .translate-btn:hover {
+            transform: scale(1.1) rotate(360deg);
+            border-color: white;
+            box-shadow: 0 10px 30px rgba(255, 140, 50, 0.4);
+        }
+
+        .translate-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .translate-btn:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Menu de traduction */
+        .translate-menu {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 15px;
+            min-width: 200px;
+            display: none;
+            z-index: 999;
+            border: 2px solid var(--orange);
+            animation: slideUp 0.3s ease;
+        }
+
+        .translate-menu.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .translate-menu:before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 20px;
+            width: 20px;
+            height: 20px;
+            background: var(--card-bg);
+            transform: rotate(45deg);
+            border-right: 2px solid var(--orange);
+            border-bottom: 2px solid var(--orange);
+        }
+
+        .translate-option {
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .translate-option:hover {
+            background: var(--electric-blue);
+            transform: translateX(5px);
+        }
+
+        .translate-option i {
+            color: var(--orange);
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        .translate-option.active {
+            background: var(--orange);
+            color: white;
+        }
+
+        .translate-option.active i {
+            color: white;
+        }
+
+        /* Header */
+        .page-header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(90deg, var(--orange), var(--blood-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .terminal-icon {
+            font-size: 3rem;
+            color: var(--orange);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            color: var(--gray);
+        }
+
+        .breadcrumb a {
+            color: var(--light-orange);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--orange);
+            text-decoration: underline;
+        }
+
+        .breadcrumb i {
+            margin: 0 10px;
+        }
+
+        /* Command Grid */
+        .commands-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+
+        .command-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: block;
+        }
+
+        .command-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--orange);
+            box-shadow: 0 20px 40px rgba(255, 140, 50, 0.2);
+        }
+
+        .command-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--blood-red), var(--orange));
+        }
+
+        .command-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .command-card:hover .command-icon {
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        .command-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .command-desc {
+            color: var(--gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Preview Commands */
+        .preview-section {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 30px;
+            margin: 50px 0;
+            box-shadow: var(--shadow);
+        }
+
+        .preview-section h2 {
+            color: var(--light-orange);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+        }
+
+        .command-example {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            color: var(--light-orange);
+            border-left: 3px solid var(--orange);
+            overflow-x: auto;
+        }
+
+        /* Back Arrow */
+        .back-container {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--navy-blue);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            color: white;
+            padding: 18px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border: 2px solid transparent;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(255, 140, 50, 0.3);
+            border-color: white;
+        }
+
+        .back-btn i {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .back-btn:hover i {
+            transform: translateX(-5px);
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--orange);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 2000;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animated {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .commands-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .command-card {
+                padding: 20px;
+            }
+
+            .translate-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+
+            .translate-menu {
+                bottom: 80px;
+                right: 20px;
+                min-width: 180px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .page-header {
+                padding: 20px 0;
+            }
+            
+            .back-btn {
+                padding: 15px 25px;
+                font-size: 1rem;
+            }
+            
+            .commands-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Bouton de traduction flottant -->
+    <button class="translate-btn" id="translateBtn">
+        <i class="fas fa-language"></i>
+    </button>
+
+    <!-- Menu de traduction -->
+    <div class="translate-menu" id="translateMenu">
+        <div class="translate-option active" data-lang="fr">
+            <i class="fas fa-flag"></i>
+            <span>Français</span>
+        </div>
+        <div class="translate-option" data-lang="en">
+            <i class="fas fa-flag-usa"></i>
+            <span>English</span>
+        </div>
+        <div class="translate-option" data-lang="es">
+            <i class="fas fa-flag"></i>
+            <span>Español</span>
+        </div>
+        <div class="translate-option" data-lang="ar">
+            <i class="fas fa-flag"></i>
+            <span>العربية</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb animated">
+            <a href="index.html" id="breadcrumbHome">Accueil</a>
+            <i class="fas fa-chevron-right"></i>
+            <span id="breadcrumbCurrent">Meilleures Commandes</span>
+        </div>
+
+        <!-- Header -->
+        <header class="page-header animated">
+            <div class="terminal-icon">
+                <i class="fas fa-terminal"></i>
+            </div>
+            <h1 id="mainTitle">Meilleures Commandes Kali Linux</h1>
+            <p id="mainSubtitle">Découvrez les commandes essentielles classées par catégorie pour maîtriser votre système</p>
+        </header>
+
+        <!-- Commands Grid -->
+        <div class="commands-grid">
+            <!-- Système -->
+            <a href="systeme-commands.html" class="command-card animated" style="animation-delay: 0.1s">
+                <div class="command-icon">
+                    <i class="fas fa-desktop"></i>
+                </div>
+                <h3 class="command-title" id="cat1Title">Système</h3>
+                <p class="command-desc" id="cat1Desc">Commandes pour gérer et surveiller le système</p>
+            </a>
+
+            <!-- Matériel -->
+            <a href="materiel-commands.html" class="command-card animated" style="animation-delay: 0.2s">
+                <div class="command-icon">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                <h3 class="command-title" id="cat2Title">Matériel</h3>
+                <p class="command-desc" id="cat2Desc">Informations et gestion du matériel</p>
+            </a>
+
+            <!-- Utilisateurs -->
+            <a href="utilisateurs-commands.html" class="command-card animated" style="animation-delay: 0.3s">
+                <div class="command-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="command-title" id="cat3Title">Utilisateurs</h3>
+                <p class="command-desc" id="cat3Desc">Gestion des comptes et permissions</p>
+            </a>
+
+            <!-- Fichiers -->
+            <a href="fichiers-commands.html" class="command-card animated" style="animation-delay: 0.4s">
+                <div class="command-icon">
+                    <i class="fas fa-file"></i>
+                </div>
+                <h3 class="command-title" id="cat4Title">Fichiers</h3>
+                <p class="command-desc" id="cat4Desc">Manipulation et gestion des fichiers</p>
+            </a>
+
+            <!-- Processus -->
+            <a href="processus-commands.html" class="command-card animated" style="animation-delay: 0.5s">
+                <div class="command-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h3 class="command-title" id="cat5Title">Processus</h3>
+                <p class="command-desc" id="cat5Desc">Gestion des processus système</p>
+            </a>
+
+            <!-- Permission de fichiers -->
+            <a href="permissions-commands.html" class="command-card animated" style="animation-delay: 0.6s">
+                <div class="command-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3 class="command-title" id="cat6Title">Permissions</h3>
+                <p class="command-desc" id="cat6Desc">Gestion des permissions des fichiers</p>
+            </a>
+
+            <!-- Réseau -->
+            <a href="reseau-commands.html" class="command-card animated" style="animation-delay: 0.7s">
+                <div class="command-icon">
+                    <i class="fas fa-network-wired"></i>
+                </div>
+                <h3 class="command-title" id="cat7Title">Réseau</h3>
+                <p class="command-desc" id="cat7Desc">Configuration et diagnostic réseau</p>
+            </a>
+
+            <!-- Archives compressé -->
+            <a href="archives-commands.html" class="command-card animated" style="animation-delay: 0.8s">
+                <div class="command-icon">
+                    <i class="fas fa-file-archive"></i>
+                </div>
+                <h3 class="command-title" id="cat8Title">Archives</h3>
+                <p class="command-desc" id="cat8Desc">Compression et décompression</p>
+            </a>
+
+            <!-- Installer un paquet -->
+            <a href="install-paquet-commands.html" class="command-card animated" style="animation-delay: 0.9s">
+                <div class="command-icon">
+                    <i class="fas fa-download"></i>
+                </div>
+                <h3 class="command-title" id="cat9Title">Installer Paquet</h3>
+                <p class="command-desc" id="cat9Desc">Gestion des paquets APT</p>
+            </a>
+
+            <!-- Installer depuis la source -->
+            <a href="install-source-commands.html" class="command-card animated" style="animation-delay: 1.0s">
+                <div class="command-icon">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h3 class="command-title" id="cat10Title">Installer Source</h3>
+                <p class="command-desc" id="cat10Desc">Compilation depuis les sources</p>
+            </a>
+
+            <!-- Recherche -->
+            <a href="recherche-commands.html" class="command-card animated" style="animation-delay: 1.1s">
+                <div class="command-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 class="command-title" id="cat11Title">Recherche</h3>
+                <p class="command-desc" id="cat11Desc">Recherche de fichiers et contenu</p>
+            </a>
+
+            <!-- Connexion (Shell et telnet) -->
+            <a href="connexion-commands.html" class="command-card animated" style="animation-delay: 1.2s">
+                <div class="command-icon">
+                    <i class="fas fa-plug"></i>
+                </div>
+                <h3 class="command-title" id="cat12Title">Connexion</h3>
+                <p class="command-desc" id="cat12Desc">SSH, Telnet et connexions distantes</p>
+            </a>
+
+            <!-- Parcourir le répertoire -->
+            <a href="parcourir-commands.html" class="command-card animated" style="animation-delay: 1.3s">
+                <div class="command-icon">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <h3 class="command-title" id="cat13Title">Parcourir</h3>
+                <p class="command-desc" id="cat13Desc">Navigation dans les répertoires</p>
+            </a>
+
+            <!-- Transfert de fichier -->
+            <a href="transfert-commands.html" class="command-card animated" style="animation-delay: 1.4s">
+                <div class="command-icon">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <h3 class="command-title" id="cat14Title">Transfert</h3>
+                <p class="command-desc" id="cat14Desc">Transfert de fichiers réseau</p>
+            </a>
+
+            <!-- Utilisation du disque -->
+            <a href="disque-commands.html" class="command-card animated" style="animation-delay: 1.5s">
+                <div class="command-icon">
+                    <i class="fas fa-hdd"></i>
+                </div>
+                <h3 class="command-title" id="cat15Title">Disque</h3>
+                <p class="command-desc" id="cat15Desc">Analyse de l'espace disque</p>
+            </a>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="preview-section animated" style="animation-delay: 1.6s">
+            <h2 id="previewTitle">Exemples de Commandes</h2>
+            <div class="command-example" id="example1">
+                <code># Vérifier l'espace disque</code><br>
+                <code>df -h</code>
+            </div>
+            <div class="command-example" id="example2">
+                <code># Lister les processus en cours</code><br>
+                <code>ps aux</code>
+            </div>
+            <div class="command-example" id="example3">
+                <code># Rechercher un fichier</code><br>
+                <code>find / -name "fichier.txt"</code>
+            </div>
+        </div>
+
+        <!-- Back Arrow -->
+        <div class="back-container animated" style="animation-delay: 1.7s">
+            <a href="index.html" class="back-btn" id="backBtn">
+                <i class="fas fa-arrow-left"></i>
+                <span id="backBtnText">Retour à la Page d'Accueil</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Traductions
+            const translations = {
+                fr: {
+                    breadcrumbHome: 'Accueil',
+                    breadcrumbCurrent: 'Meilleures Commandes',
+                    mainTitle: 'Meilleures Commandes Kali Linux',
+                    mainSubtitle: 'Découvrez les commandes essentielles classées par catégorie pour maîtriser votre système',
+                    cat1Title: 'Système',
+                    cat1Desc: 'Commandes pour gérer et surveiller le système',
+                    cat2Title: 'Matériel',
+                    cat2Desc: 'Informations et gestion du matériel',
+                    cat3Title: 'Utilisateurs',
+                    cat3Desc: 'Gestion des comptes et permissions',
+                    cat4Title: 'Fichiers',
+                    cat4Desc: 'Manipulation et gestion des fichiers',
+                    cat5Title: 'Processus',
+                    cat5Desc: 'Gestion des processus système',
+                    cat6Title: 'Permissions',
+                    cat6Desc: 'Gestion des permissions des fichiers',
+                    cat7Title: 'Réseau',
+                    cat7Desc: 'Configuration et diagnostic réseau',
+                    cat8Title: 'Archives',
+                    cat8Desc: 'Compression et décompression',
+                    cat9Title: 'Installer Paquet',
+                    cat9Desc: 'Gestion des paquets APT',
+                    cat10Title: 'Installer Source',
+                    cat10Desc: 'Compilation depuis les sources',
+                    cat11Title: 'Recherche',
+                    cat11Desc: 'Recherche de fichiers et contenu',
+                    cat12Title: 'Connexion',
+                    cat12Desc: 'SSH, Telnet et connexions distantes',
+                    cat13Title: 'Parcourir',
+                    cat13Desc: 'Navigation dans les répertoires',
+                    cat14Title: 'Transfert',
+                    cat14Desc: 'Transfert de fichiers réseau',
+                    cat15Title: 'Disque',
+                    cat15Desc: "Analyse de l'espace disque",
+                    previewTitle: 'Exemples de Commandes',
+                    example1: '# Vérifier l\'espace disque',
+                    example2: '# Lister les processus en cours',
+                    example3: '# Rechercher un fichier',
+                    backBtnText: 'Retour à la Page d\'Accueil'
+                },
+                en: {
+                    breadcrumbHome: 'Home',
+                    breadcrumbCurrent: 'Best Commands',
+                    mainTitle: 'Kali Linux Best Commands',
+                    mainSubtitle: 'Discover essential commands categorized to master your system',
+                    cat1Title: 'System',
+                    cat1Desc: 'Commands to manage and monitor the system',
+                    cat2Title: 'Hardware',
+                    cat2Desc: 'Hardware information and management',
+                    cat3Title: 'Users',
+                    cat3Desc: 'Account and permission management',
+                    cat4Title: 'Files',
+                    cat4Desc: 'File manipulation and management',
+                    cat5Title: 'Processes',
+                    cat5Desc: 'System process management',
+                    cat6Title: 'Permissions',
+                    cat6Desc: 'File permission management',
+                    cat7Title: 'Network',
+                    cat7Desc: 'Network configuration and diagnostics',
+                    cat8Title: 'Archives',
+                    cat8Desc: 'Compression and decompression',
+                    cat9Title: 'Install Package',
+                    cat9Desc: 'APT package management',
+                    cat10Title: 'Install Source',
+                    cat10Desc: 'Compilation from sources',
+                    cat11Title: 'Search',
+                    cat11Desc: 'File and content search',
+                    cat12Title: 'Connection',
+                    cat12Desc: 'SSH, Telnet and remote connections',
+                    cat13Title: 'Browse',
+                    cat13Desc: 'Directory navigation',
+                    cat14Title: 'Transfer',
+                    cat14Desc: 'Network file transfer',
+                    cat15Title: 'Disk',
+                    cat15Desc: 'Disk space analysis',
+                    previewTitle: 'Command Examples',
+                    example1: '# Check disk space',
+                    example2: '# List running processes',
+                    example3: '# Search for a file',
+                    backBtnText: 'Back to Home Page'
+                },
+                es: {
+                    breadcrumbHome: 'Inicio',
+                    breadcrumbCurrent: 'Mejores Comandos',
+                    mainTitle: 'Mejores Comandos de Kali Linux',
+                    mainSubtitle: 'Descubre los comandos esenciales clasificados para dominar tu sistema',
+                    cat1Title: 'Sistema',
+                    cat1Desc: 'Comandos para gestionar y monitorizar el sistema',
+                    cat2Title: 'Hardware',
+                    cat2Desc: 'Información y gestión del hardware',
+                    cat3Title: 'Usuarios',
+                    cat3Desc: 'Gestión de cuentas y permisos',
+                    cat4Title: 'Archivos',
+                    cat4Desc: 'Manipulación y gestión de archivos',
+                    cat5Title: 'Procesos',
+                    cat5Desc: 'Gestión de procesos del sistema',
+                    cat6Title: 'Permisos',
+                    cat6Desc: 'Gestión de permisos de archivos',
+                    cat7Title: 'Red',
+                    cat7Desc: 'Configuración y diagnóstico de red',
+                    cat8Title: 'Archivos Comprimidos',
+                    cat8Desc: 'Compresión y descompresión',
+                    cat9Title: 'Instalar Paquete',
+                    cat9Desc: 'Gestión de paquetes APT',
+                    cat10Title: 'Instalar desde Fuente',
+                    cat10Desc: 'Compilación desde fuentes',
+                    cat11Title: 'Búsqueda',
+                    cat11Desc: 'Búsqueda de archivos y contenido',
+                    cat12Title: 'Conexión',
+                    cat12Desc: 'SSH, Telnet y conexiones remotas',
+                    cat13Title: 'Navegar',
+                    cat13Desc: 'Navegación por directorios',
+                    cat14Title: 'Transferencia',
+                    cat14Desc: 'Transferencia de archivos en red',
+                    cat15Title: 'Disco',
+                    cat15Desc: 'Análisis del espacio en disco',
+                    previewTitle: 'Ejemplos de Comandos',
+                    example1: '# Verificar espacio en disco',
+                    example2: '# Listar procesos en ejecución',
+                    example3: '# Buscar un archivo',
+                    backBtnText: 'Volver a la Página de Inicio'
+                },
+                ar: {
+                    breadcrumbHome: 'الرئيسية',
+                    breadcrumbCurrent: 'أفضل الأوامر',
+                    mainTitle: 'أفضل أوامر كالي لينكس',
+                    mainSubtitle: 'اكتشف الأوامر الأساسية مصنفة حسب الفئة لإتقان نظامك',
+                    cat1Title: 'النظام',
+                    cat1Desc: 'أوامر لإدارة ومراقبة النظام',
+                    cat2Title: 'المعدات',
+                    cat2Desc: 'معلومات وإدارة المعدات',
+                    cat3Title: 'المستخدمين',
+                    cat3Desc: 'إدارة الحسابات والصلاحيات',
+                    cat4Title: 'الملفات',
+                    cat4Desc: 'معالجة وإدارة الملفات',
+                    cat5Title: 'العمليات',
+                    cat5Desc: 'إدارة عمليات النظام',
+                    cat6Title: 'الصلاحيات',
+                    cat6Desc: 'إدارة صلاحيات الملفات',
+                    cat7Title: 'الشبكة',
+                    cat7Desc: 'تكوين وتشخيص الشبكة',
+                    cat8Title: 'الأرشيف',
+                    cat8Desc: 'الضغط وفك الضغط',
+                    cat9Title: 'تثبيت حزمة',
+                    cat9Desc: 'إدارة حزم APT',
+                    cat10Title: 'تثبيت من المصدر',
+                    cat10Desc: 'الترجمة من المصادر',
+                    cat11Title: 'بحث',
+                    cat11Desc: 'بحث عن الملفات والمحتوى',
+                    cat12Title: 'اتصال',
+                    cat12Desc: 'SSH و Telnet والاتصالات عن بعد',
+                    cat13Title: 'تصفح',
+                    cat13Desc: 'التنقل في الدلائل',
+                    cat14Title: 'نقل',
+                    cat14Desc: 'نقل الملفات عبر الشبكة',
+                    cat15Title: 'القرص',
+                    cat15Desc: 'تحليل مساحة القرص',
+                    previewTitle: 'أمثلة على الأوامر',
+                    example1: '# التحقق من مساحة القرص',
+                    example2: '# عرض العمليات الجارية',
+                    example3: '# البحث عن ملف',
+                    backBtnText: 'العودة إلى الصفحة الرئيسية'
+                }
+            };
+
+            // Éléments du DOM
+            const translateBtn = document.getElementById('translateBtn');
+            const translateMenu = document.getElementById('translateMenu');
+            const translateOptions = document.querySelectorAll('.translate-option');
+
+            // Langue actuelle
+            let currentLang = 'fr';
+
+            // Fonction pour changer la langue
+            function changeLanguage(lang) {
+                // Mettre à jour la classe active
+                translateOptions.forEach(opt => {
+                    opt.classList.remove('active');
+                    if (opt.dataset.lang === lang) {
+                        opt.classList.add('active');
+                    }
+                });
+
+                // Mettre à jour les textes
+                document.getElementById('breadcrumbHome').textContent = translations[lang].breadcrumbHome;
+                document.getElementById('breadcrumbCurrent').textContent = translations[lang].breadcrumbCurrent;
+                document.getElementById('mainTitle').textContent = translations[lang].mainTitle;
+                document.getElementById('mainSubtitle').textContent = translations[lang].mainSubtitle;
+                
+                // Catégories
+                for (let i = 1; i <= 15; i++) {
+                    if (document.getElementById(`cat${i}Title`)) {
+                        document.getElementById(`cat${i}Title`).textContent = translations[lang][`cat${i}Title`];
+                        document.getElementById(`cat${i}Desc`).textContent = translations[lang][`cat${i}Desc`];
+                    }
+                }
+                
+                // Preview
+                document.getElementById('previewTitle').textContent = translations[lang].previewTitle;
+                
+                // Mettre à jour les exemples
+                const example1 = document.getElementById('example1');
+                const example2 = document.getElementById('example2');
+                const example3 = document.getElementById('example3');
+                
+                if (example1) {
+                    example1.innerHTML = `<code>${translations[lang].example1}</code><br><code>df -h</code>`;
+                }
+                if (example2) {
+                    example2.innerHTML = `<code>${translations[lang].example2}</code><br><code>ps aux</code>`;
+                }
+                if (example3) {
+                    example3.innerHTML = `<code>${translations[lang].example3}</code><br><code>find / -name "fichier.txt"</code>`;
+                }
+                
+                // Back button
+                document.getElementById('backBtnText').textContent = translations[lang].backBtnText;
+
+                // Afficher une notification
+                showNotification(translations[lang].breadcrumbHome === 'Accueil' ? 'Langue changée en Français' : 
+                                translations[lang].breadcrumbHome === 'Home' ? 'Language changed to English' :
+                                translations[lang].breadcrumbHome === 'Inicio' ? 'Idioma cambiado a Español' :
+                                'تم تغيير اللغة إلى العربية');
+
+                // Changer la direction du texte pour l'arabe
+                if (lang === 'ar') {
+                    document.body.style.direction = 'rtl';
+                    document.querySelectorAll('.breadcrumb i, .back-btn i').forEach(icon => {
+                        icon.style.transform = 'rotate(180deg)';
+                    });
+                } else {
+                    document.body.style.direction = 'ltr';
+                    document.querySelectorAll('.breadcrumb i, .back-btn i').forEach(icon => {
+                        icon.style.transform = 'rotate(0)';
+                    });
+                }
+
+                currentLang = lang;
+            }
+
+            // Fonction pour afficher les notifications
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
+            }
+
+            // Toggle du menu de traduction
+            translateBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                translateMenu.classList.toggle('active');
+            });
+
+            // Fermer le menu en cliquant ailleurs
+            document.addEventListener('click', (e) => {
+                if (!translateBtn.contains(e.target) && !translateMenu.contains(e.target)) {
+                    translateMenu.classList.remove('active');
+                }
+            });
+
+            // Changer la langue quand on clique sur une option
+            translateOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const lang = option.dataset.lang;
+                    changeLanguage(lang);
+                    translateMenu.classList.remove('active');
+                });
+            });
+
+            // Animation des éléments au défilement
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Appliquer l'effet aux cartes
+            document.querySelectorAll('.command-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                observer.observe(card);
+            });
+
+            // Animation au survol
+            document.querySelectorAll('.command-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const icon = this.querySelector('.command-icon');
+                    if (icon) {
+                        icon.style.transform = 'rotate(360deg) scale(1.2)';
+                    }
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    const icon = this.querySelector('.command-icon');
+                    if (icon) {
+                        icon.style.transform = 'rotate(0) scale(1)';
+                    }
+                });
+            });
+
+            // Effet de clic pour le bouton retour
+            const backBtn = document.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Animation de clic
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 200);
+                    
+                    // Redirection après animation
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 300);
+                });
+            }
+
+            // Animation de chargement initial
+            setTimeout(() => {
+                document.querySelectorAll('.animated').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }, 300);
+        });
+    </script>
+</body>
+</html>
