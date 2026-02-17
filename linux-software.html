@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logiciels Linux | Applications Essentielles</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --dark-blue: #0a1931;
+            --navy-blue: #185adb;
+            --electric-blue: #2d46b9;
+            --blood-red: #b33939;
+            --orange: #ff8c32;
+            --light-orange: #ffb74d;
+            --gray: #8d93ab;
+            --light-gray: #f1f3f8;
+            --card-bg: #1a2b4a;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 15px;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-blue) 0%, #0c2461 100%);
+            color: var(--light-gray);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Bouton de traduction flottant */
+        .translate-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 2px solid transparent;
+        }
+
+        .translate-btn:hover {
+            transform: scale(1.1) rotate(360deg);
+            border-color: white;
+            box-shadow: 0 10px 30px rgba(255, 140, 50, 0.4);
+        }
+
+        .translate-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .translate-btn:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Menu de traduction */
+        .translate-menu {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 15px;
+            min-width: 200px;
+            display: none;
+            z-index: 999;
+            border: 2px solid var(--orange);
+            animation: slideUp 0.3s ease;
+        }
+
+        .translate-menu.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .translate-menu:before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 20px;
+            width: 20px;
+            height: 20px;
+            background: var(--card-bg);
+            transform: rotate(45deg);
+            border-right: 2px solid var(--orange);
+            border-bottom: 2px solid var(--orange);
+        }
+
+        .translate-option {
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .translate-option:hover {
+            background: var(--electric-blue);
+            transform: translateX(5px);
+        }
+
+        .translate-option i {
+            color: var(--orange);
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        .translate-option.active {
+            background: var(--orange);
+            color: white;
+        }
+
+        .translate-option.active i {
+            color: white;
+        }
+
+        /* Header */
+        .page-header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .page-header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(90deg, var(--orange), var(--blood-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Machine Animation */
+        .machine-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            margin: 40px 0;
+            overflow: hidden;
+            border-radius: var(--radius);
+            background: linear-gradient(135deg, rgba(10, 25, 49, 0.8), rgba(24, 90, 219, 0.4));
+            box-shadow: var(--shadow);
+            border: 2px solid var(--orange);
+        }
+
+        .machine-body {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 200px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .machine-screen {
+            width: 250px;
+            height: 150px;
+            background: #0a1931;
+            border-radius: 10px;
+            border: 2px solid var(--orange);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .code-line {
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            height: 20px;
+            background: linear-gradient(90deg, transparent, var(--orange), transparent);
+            animation: scanLine 3s linear infinite;
+        }
+
+        @keyframes scanLine {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .binary-code {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            color: #00ff00;
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.2;
+            overflow: hidden;
+        }
+
+        .binary-char {
+            position: absolute;
+            animation: floatBinary 10s linear infinite;
+        }
+
+        @keyframes floatBinary {
+            0% {
+                transform: translateY(150px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .cpu-unit {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .cpu-unit:nth-child(1) {
+            top: 50px;
+            left: 50px;
+            animation-delay: 0s;
+        }
+
+        .cpu-unit:nth-child(2) {
+            top: 50px;
+            right: 50px;
+            animation-delay: 0.5s;
+        }
+
+        .cpu-unit:nth-child(3) {
+            bottom: 50px;
+            left: 50px;
+            animation-delay: 1s;
+        }
+
+        .cpu-unit:nth-child(4) {
+            bottom: 50px;
+            right: 50px;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 10px var(--orange);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 20px var(--orange);
+            }
+        }
+
+        .data-flow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .flow-line {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, var(--orange), transparent);
+            height: 2px;
+            animation: flow 4s linear infinite;
+        }
+
+        @keyframes flow {
+            0% { width: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { width: 100px; opacity: 0; }
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            color: var(--gray);
+            z-index: 2;
+            position: relative;
+        }
+
+        .breadcrumb a {
+            color: var(--light-orange);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--orange);
+            text-decoration: underline;
+        }
+
+        .breadcrumb i {
+            margin: 0 10px;
+        }
+
+        /* Software Grid */
+        .software-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .software-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: block;
+        }
+
+        .software-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--orange);
+            box-shadow: 0 20px 40px rgba(255, 140, 50, 0.2);
+        }
+
+        .software-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--blood-red), var(--orange));
+        }
+
+        .software-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .software-card:hover .software-icon {
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        .software-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .software-desc {
+            color: var(--gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .software-examples {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .software-examples h4 {
+            color: var(--light-orange);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .software-examples ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .software-examples li {
+            color: var(--gray);
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .software-examples li:before {
+            content: '▸';
+            color: var(--orange);
+            position: absolute;
+            left: 0;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 50px 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border-top: 4px solid var(--orange);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--light-orange);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--gray);
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--orange);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 2000;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Back Arrow */
+        .back-container {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--navy-blue);
+            position: relative;
+            z-index: 2;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            color: white;
+            padding: 18px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border: 2px solid transparent;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(255, 140, 50, 0.3);
+            border-color: white;
+        }
+
+        .back-btn i {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .back-btn:hover i {
+            transform: translateX(-5px);
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animated {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .software-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .machine-container {
+                height: 300px;
+            }
+            
+            .machine-body {
+                width: 250px;
+                height: 150px;
+            }
+            
+            .machine-screen {
+                width: 200px;
+                height: 100px;
+            }
+            
+            .cpu-unit {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .translate-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+
+            .translate-menu {
+                bottom: 80px;
+                right: 20px;
+                min-width: 180px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .page-header {
+                padding: 20px 0;
+            }
+            
+            .back-btn {
+                padding: 15px 25px;
+                font-size: 1rem;
+            }
+            
+            .stats-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .machine-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Bouton de traduction flottant -->
+    <button class="translate-btn" id="translateBtn">
+        <i class="fas fa-language"></i>
+    </button>
+
+    <!-- Menu de traduction -->
+    <div class="translate-menu" id="translateMenu">
+        <div class="translate-option active" data-lang="fr">
+            <i class="fas fa-flag"></i>
+            <span>Français</span>
+        </div>
+        <div class="translate-option" data-lang="en">
+            <i class="fas fa-flag-usa"></i>
+            <span>English</span>
+        </div>
+        <div class="translate-option" data-lang="es">
+            <i class="fas fa-flag"></i>
+            <span>Español</span>
+        </div>
+        <div class="translate-option" data-lang="ar">
+            <i class="fas fa-flag"></i>
+            <span>العربية</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb animated">
+            <a href="index.html" id="breadcrumbHome">Accueil</a>
+            <i class="fas fa-chevron-right"></i>
+            <span id="breadcrumbCurrent">Logiciels Linux</span>
+        </div>
+
+        <!-- Header -->
+        <header class="page-header animated">
+            <h1 id="mainTitle">Logiciels Linux Essentiels</h1>
+            <p id="mainSubtitle">Découvrez les meilleures applications open-source pour chaque besoin sur votre système Kali Linux</p>
+        </header>
+
+        <!-- Machine Animation -->
+        <div class="machine-container animated">
+            <div class="machine-body">
+                <div class="machine-screen">
+                    <div class="code-line"></div>
+                    <div class="binary-code" id="binaryCode"></div>
+                </div>
+            </div>
+            
+            <div class="cpu-unit">
+                <i class="fas fa-microchip"></i>
+            </div>
+            <div class="cpu-unit">
+                <i class="fas fa-memory"></i>
+            </div>
+            <div class="cpu-unit">
+                <i class="fas fa-hdd"></i>
+            </div>
+            <div class="cpu-unit">
+                <i class="fas fa-network-wired"></i>
+            </div>
+            
+            <div class="data-flow" id="dataFlow"></div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-section animated" style="animation-delay: 0.2s">
+            <div class="stat-card">
+                <div class="stat-number" id="stat1Number">5000+</div>
+                <div class="stat-label" id="stat1Label">Paquets disponibles</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat2Number">100%</div>
+                <div class="stat-label" id="stat2Label">Open Source</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat3Number">0$</div>
+                <div class="stat-label" id="stat3Label">Gratuité totale</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat4Number">24/7</div>
+                <div class="stat-label" id="stat4Label">Support communautaire</div>
+            </div>
+        </div>
+
+        <!-- Software Grid -->
+        <div class="software-grid">
+            <!-- Beauté et Productivité -->
+            <a href="beaute-productivite.html" class="software-card animated" style="animation-delay: 0.3s">
+                <div class="software-icon">
+                    <i class="fas fa-paint-brush"></i>
+                </div>
+                <h3 class="software-title" id="cat1Title">Beauté et Productivité</h3>
+                <p class="software-desc" id="cat1Desc">Applications pour améliorer votre interface et optimiser votre workflow</p>
+                <div class="software-examples">
+                    <h4><i class="fas fa-star"></i> <span id="cat1ExamplesTitle">Exemples populaires :</span></h4>
+                    <ul>
+                        <li id="cat1Example1">GNOME Tweaks - Personnalisation avancée</li>
+                        <li id="cat1Example2">Albert - Lanceur d'applications</li>
+                        <li id="cat1Example3">Plank - Dock léger et élégant</li>
+                        <li id="cat1Example4">Conky - Moniteur système personnalisable</li>
+                    </ul>
+                </div>
+            </a>
+
+            <!-- Publications Assistée par -->
+            <a href="publications.html" class="software-card animated" style="animation-delay: 0.4s">
+                <div class="software-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3 class="software-title" id="cat2Title">Publications Assistée</h3>
+                <p class="software-desc" id="cat2Desc">Logiciels de publication, bureautique et création de documents</p>
+                <div class="software-examples">
+                    <h4><i class="fas fa-star"></i> <span id="cat2ExamplesTitle">Exemples populaires :</span></h4>
+                    <ul>
+                        <li id="cat2Example1">LibreOffice - Suite bureautique complète</li>
+                        <li id="cat2Example2">Scribus - Publication assistée par ordinateur</li>
+                        <li id="cat2Example3">GIMP - Édition d'images avancée</li>
+                        <li id="cat2Example4">Inkscape - Graphismes vectoriels</li>
+                    </ul>
+                </div>
+            </a>
+
+            <!-- Réseautage -->
+            <a href="reseautage.html" class="software-card animated" style="animation-delay: 0.5s">
+                <div class="software-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3 class="software-title" id="cat3Title">Réseautage</h3>
+                <p class="software-desc" id="cat3Desc">Applications de communication et réseaux sociaux</p>
+                <div class="software-examples">
+                    <h4><i class="fas fa-star"></i> <span id="cat3ExamplesTitle">Exemples populaires :</span></h4>
+                    <ul>
+                        <li id="cat3Example1">Discord - Communication en équipe</li>
+                        <li id="cat3Example2">Telegram - Messagerie sécurisée</li>
+                        <li id="cat3Example3">Thunderbird - Client email complet</li>
+                        <li id="cat3Example4">HexChat - Client IRC moderne</li>
+                    </ul>
+                </div>
+            </a>
+
+            <!-- Serveur -->
+            <a href="serveur.html" class="software-card animated" style="animation-delay: 0.6s">
+                <div class="software-icon">
+                    <i class="fas fa-server"></i>
+                </div>
+                <h3 class="software-title" id="cat4Title">Serveur</h3>
+                <p class="software-desc" id="cat4Desc">Outils pour configurer et administrer des serveurs</p>
+                <div class="software-examples">
+                    <h4><i class="fas fa-star"></i> <span id="cat4ExamplesTitle">Exemples populaires :</span></h4>
+                    <ul>
+                        <li id="cat4Example1">Apache - Serveur web populaire</li>
+                        <li id="cat4Example2">Nginx - Serveur web haute performance</li>
+                        <li id="cat4Example3">MySQL/PostgreSQL - Bases de données</li>
+                        <li id="cat4Example4">OpenSSH - Connexion sécurisée</li>
+                    </ul>
+                </div>
+            </a>
+
+            <!-- Multimédia -->
+            <a href="multimedia.html" class="software-card animated" style="animation-delay: 0.7s">
+                <div class="software-icon">
+                    <i class="fas fa-film"></i>
+                </div>
+                <h3 class="software-title" id="cat5Title">Multimédia</h3>
+                <p class="software-desc" id="cat5Desc">Lecteurs, éditeurs et créateurs de contenu multimédia</p>
+                <div class="software-examples">
+                    <h4><i class="fas fa-star"></i> <span id="cat5ExamplesTitle">Exemples populaires :</span></h4>
+                    <ul>
+                        <li id="cat5Example1">VLC - Lecteur vidéo universel</li>
+                        <li id="cat5Example2">Audacity - Édition audio</li>
+                        <li id="cat5Example3">OBS Studio - Streaming et enregistrement</li>
+                        <li id="cat5Example4">Kdenlive - Montage vidéo</li>
+                    </ul>
+                </div>
+            </a>
+
+            <!-- Éducation -->
+            <a href="education.html" class="software-card animated" style="animation-delay: 0.8s">
+                <div class="software-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h3 class="software-title" id="cat6Title">Éducation</h3>
+                <p class="software-desc" id="cat6Desc">Logiciels éducatifs et d'apprentissage</p>
+                <div class="software-examples">
+                    <h4><i class="fas fa-star"></i> <span id="cat6ExamplesTitle">Exemples populaires :</span></h4>
+                    <ul>
+                        <li id="cat6Example1">Stellarium - Planétarium 3D</li>
+                        <li id="cat6Example2">GCompris - Jeux éducatifs enfants</li>
+                        <li id="cat6Example3">Moodle - Plateforme d'apprentissage</li>
+                        <li id="cat6Example4">Anki - Cartes mémoire numériques</li>
+                    </ul>
+                </div>
+            </a>
+        </div>
+
+        <!-- Back Arrow -->
+        <div class="back-container animated" style="animation-delay: 0.9s">
+            <a href="index.html" class="back-btn" id="backBtn">
+                <i class="fas fa-arrow-left"></i>
+                <span id="backBtnText">Retour à la Page d'Accueil</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Traductions
+            const translations = {
+                fr: {
+                    breadcrumbHome: 'Accueil',
+                    breadcrumbCurrent: 'Logiciels Linux',
+                    mainTitle: 'Logiciels Linux Essentiels',
+                    mainSubtitle: 'Découvrez les meilleures applications open-source pour chaque besoin sur votre système Kali Linux',
+                    stat1Label: 'Paquets disponibles',
+                    stat2Label: 'Open Source',
+                    stat3Label: 'Gratuité totale',
+                    stat4Label: 'Support communautaire',
+                    cat1Title: 'Beauté et Productivité',
+                    cat1Desc: 'Applications pour améliorer votre interface et optimiser votre workflow',
+                    cat1ExamplesTitle: 'Exemples populaires :',
+                    cat1Example1: 'GNOME Tweaks - Personnalisation avancée',
+                    cat1Example2: 'Albert - Lanceur d\'applications',
+                    cat1Example3: 'Plank - Dock léger et élégant',
+                    cat1Example4: 'Conky - Moniteur système personnalisable',
+                    cat2Title: 'Publications Assistée',
+                    cat2Desc: 'Logiciels de publication, bureautique et création de documents',
+                    cat2ExamplesTitle: 'Exemples populaires :',
+                    cat2Example1: 'LibreOffice - Suite bureautique complète',
+                    cat2Example2: 'Scribus - Publication assistée par ordinateur',
+                    cat2Example3: 'GIMP - Édition d\'images avancée',
+                    cat2Example4: 'Inkscape - Graphismes vectoriels',
+                    cat3Title: 'Réseautage',
+                    cat3Desc: 'Applications de communication et réseaux sociaux',
+                    cat3ExamplesTitle: 'Exemples populaires :',
+                    cat3Example1: 'Discord - Communication en équipe',
+                    cat3Example2: 'Telegram - Messagerie sécurisée',
+                    cat3Example3: 'Thunderbird - Client email complet',
+                    cat3Example4: 'HexChat - Client IRC moderne',
+                    cat4Title: 'Serveur',
+                    cat4Desc: 'Outils pour configurer et administrer des serveurs',
+                    cat4ExamplesTitle: 'Exemples populaires :',
+                    cat4Example1: 'Apache - Serveur web populaire',
+                    cat4Example2: 'Nginx - Serveur web haute performance',
+                    cat4Example3: 'MySQL/PostgreSQL - Bases de données',
+                    cat4Example4: 'OpenSSH - Connexion sécurisée',
+                    cat5Title: 'Multimédia',
+                    cat5Desc: 'Lecteurs, éditeurs et créateurs de contenu multimédia',
+                    cat5ExamplesTitle: 'Exemples populaires :',
+                    cat5Example1: 'VLC - Lecteur vidéo universel',
+                    cat5Example2: 'Audacity - Édition audio',
+                    cat5Example3: 'OBS Studio - Streaming et enregistrement',
+                    cat5Example4: 'Kdenlive - Montage vidéo',
+                    cat6Title: 'Éducation',
+                    cat6Desc: 'Logiciels éducatifs et d\'apprentissage',
+                    cat6ExamplesTitle: 'Exemples populaires :',
+                    cat6Example1: 'Stellarium - Planétarium 3D',
+                    cat6Example2: 'GCompris - Jeux éducatifs enfants',
+                    cat6Example3: 'Moodle - Plateforme d\'apprentissage',
+                    cat6Example4: 'Anki - Cartes mémoire numériques',
+                    backBtnText: 'Retour à la Page d\'Accueil'
+                },
+                en: {
+                    breadcrumbHome: 'Home',
+                    breadcrumbCurrent: 'Linux Software',
+                    mainTitle: 'Essential Linux Software',
+                    mainSubtitle: 'Discover the best open-source applications for every need on your Kali Linux system',
+                    stat1Label: 'Available Packages',
+                    stat2Label: 'Open Source',
+                    stat3Label: 'Completely Free',
+                    stat4Label: 'Community Support',
+                    cat1Title: 'Beauty & Productivity',
+                    cat1Desc: 'Applications to improve your interface and optimize your workflow',
+                    cat1ExamplesTitle: 'Popular examples:',
+                    cat1Example1: 'GNOME Tweaks - Advanced customization',
+                    cat1Example2: 'Albert - Application launcher',
+                    cat1Example3: 'Plank - Lightweight elegant dock',
+                    cat1Example4: 'Conky - Customizable system monitor',
+                    cat2Title: 'Desktop Publishing',
+                    cat2Desc: 'Publishing software, office suite and document creation',
+                    cat2ExamplesTitle: 'Popular examples:',
+                    cat2Example1: 'LibreOffice - Complete office suite',
+                    cat2Example2: 'Scribus - Desktop publishing',
+                    cat2Example3: 'GIMP - Advanced image editing',
+                    cat2Example4: 'Inkscape - Vector graphics',
+                    cat3Title: 'Networking',
+                    cat3Desc: 'Communication applications and social networks',
+                    cat3ExamplesTitle: 'Popular examples:',
+                    cat3Example1: 'Discord - Team communication',
+                    cat3Example2: 'Telegram - Secure messaging',
+                    cat3Example3: 'Thunderbird - Complete email client',
+                    cat3Example4: 'HexChat - Modern IRC client',
+                    cat4Title: 'Server',
+                    cat4Desc: 'Tools to configure and administer servers',
+                    cat4ExamplesTitle: 'Popular examples:',
+                    cat4Example1: 'Apache - Popular web server',
+                    cat4Example2: 'Nginx - High-performance web server',
+                    cat4Example3: 'MySQL/PostgreSQL - Databases',
+                    cat4Example4: 'OpenSSH - Secure connection',
+                    cat5Title: 'Multimedia',
+                    cat5Desc: 'Players, editors and multimedia content creators',
+                    cat5ExamplesTitle: 'Popular examples:',
+                    cat5Example1: 'VLC - Universal video player',
+                    cat5Example2: 'Audacity - Audio editing',
+                    cat5Example3: 'OBS Studio - Streaming and recording',
+                    cat5Example4: 'Kdenlive - Video editing',
+                    cat6Title: 'Education',
+                    cat6Desc: 'Educational and learning software',
+                    cat6ExamplesTitle: 'Popular examples:',
+                    cat6Example1: 'Stellarium - 3D planetarium',
+                    cat6Example2: 'GCompris - Children educational games',
+                    cat6Example3: 'Moodle - Learning platform',
+                    cat6Example4: 'Anki - Digital flashcards',
+                    backBtnText: 'Back to Home Page'
+                },
+                es: {
+                    breadcrumbHome: 'Inicio',
+                    breadcrumbCurrent: 'Software Linux',
+                    mainTitle: 'Software Esencial de Linux',
+                    mainSubtitle: 'Descubre las mejores aplicaciones de código abierto para cada necesidad en tu sistema Kali Linux',
+                    stat1Label: 'Paquetes disponibles',
+                    stat2Label: 'Código Abierto',
+                    stat3Label: 'Totalmente Gratis',
+                    stat4Label: 'Soporte Comunitario',
+                    cat1Title: 'Belleza y Productividad',
+                    cat1Desc: 'Aplicaciones para mejorar tu interfaz y optimizar tu flujo de trabajo',
+                    cat1ExamplesTitle: 'Ejemplos populares:',
+                    cat1Example1: 'GNOME Tweaks - Personalización avanzada',
+                    cat1Example2: 'Albert - Lanzador de aplicaciones',
+                    cat1Example3: 'Plank - Dock ligero y elegante',
+                    cat1Example4: 'Conky - Monitor de sistema personalizable',
+                    cat2Title: 'Publicación Asistida',
+                    cat2Desc: 'Software de publicación, ofimática y creación de documentos',
+                    cat2ExamplesTitle: 'Ejemplos populares:',
+                    cat2Example1: 'LibreOffice - Suite ofimática completa',
+                    cat2Example2: 'Scribus - Publicación asistida por ordenador',
+                    cat2Example3: 'GIMP - Edición avanzada de imágenes',
+                    cat2Example4: 'Inkscape - Gráficos vectoriales',
+                    cat3Title: 'Redes',
+                    cat3Desc: 'Aplicaciones de comunicación y redes sociales',
+                    cat3ExamplesTitle: 'Ejemplos populares:',
+                    cat3Example1: 'Discord - Comunicación en equipo',
+                    cat3Example2: 'Telegram - Mensajería segura',
+                    cat3Example3: 'Thunderbird - Cliente de correo completo',
+                    cat3Example4: 'HexChat - Cliente IRC moderno',
+                    cat4Title: 'Servidor',
+                    cat4Desc: 'Herramientas para configurar y administrar servidores',
+                    cat4ExamplesTitle: 'Ejemplos populares:',
+                    cat4Example1: 'Apache - Servidor web popular',
+                    cat4Example2: 'Nginx - Servidor web de alto rendimiento',
+                    cat4Example3: 'MySQL/PostgreSQL - Bases de datos',
+                    cat4Example4: 'OpenSSH - Conexión segura',
+                    cat5Title: 'Multimedia',
+                    cat5Desc: 'Reproductores, editores y creadores de contenido multimedia',
+                    cat5ExamplesTitle: 'Ejemplos populares:',
+                    cat5Example1: 'VLC - Reproductor de video universal',
+                    cat5Example2: 'Audacity - Edición de audio',
+                    cat5Example3: 'OBS Studio - Streaming y grabación',
+                    cat5Example4: 'Kdenlive - Edición de video',
+                    cat6Title: 'Educación',
+                    cat6Desc: 'Software educativo y de aprendizaje',
+                    cat6ExamplesTitle: 'Ejemplos populares:',
+                    cat6Example1: 'Stellarium - Planetario 3D',
+                    cat6Example2: 'GCompris - Juegos educativos infantiles',
+                    cat6Example3: 'Moodle - Plataforma de aprendizaje',
+                    cat6Example4: 'Anki - Tarjetas de memoria digitales',
+                    backBtnText: 'Volver a la Página de Inicio'
+                },
+                ar: {
+                    breadcrumbHome: 'الرئيسية',
+                    breadcrumbCurrent: 'برامج لينكس',
+                    mainTitle: 'برامج لينكس الأساسية',
+                    mainSubtitle: 'اكتشف أفضل تطبيقات المصادر المفتوحة لكل احتياج على نظام كالي لينكس الخاص بك',
+                    stat1Label: 'الحزم المتاحة',
+                    stat2Label: 'مصادر مفتوحة',
+                    stat3Label: 'مجاني تماماً',
+                    stat4Label: 'دعم المجتمع',
+                    cat1Title: 'الجمال والإنتاجية',
+                    cat1Desc: 'تطبيقات لتحسين واجهتك وتحسين سير عملك',
+                    cat1ExamplesTitle: 'أمثلة شائعة:',
+                    cat1Example1: 'GNOME Tweaks - تخصيص متقدم',
+                    cat1Example2: 'Albert - مشغل التطبيقات',
+                    cat1Example3: 'Plank - شريط تطبيقات خفيف وأنيق',
+                    cat1Example4: 'Conky - مراقب نظام قابل للتخصيص',
+                    cat2Title: 'النشر المكتبي',
+                    cat2Desc: 'برامج النشر والمكتب وإنشاء المستندات',
+                    cat2ExamplesTitle: 'أمثلة شائعة:',
+                    cat2Example1: 'LibreOffice - حزمة مكتبية كاملة',
+                    cat2Example2: 'Scribus - النشر المكتبي',
+                    cat2Example3: 'GIMP - تحرير الصور المتقدم',
+                    cat2Example4: 'Inkscape - رسومات متجهة',
+                    cat3Title: 'الشبكات',
+                    cat3Desc: 'تطبيقات الاتصال والشبكات الاجتماعية',
+                    cat3ExamplesTitle: 'أمثلة شائعة:',
+                    cat3Example1: 'Discord - التواصل الجماعي',
+                    cat3Example2: 'Telegram - مراسلة آمنة',
+                    cat3Example3: 'Thunderbird - عميل بريد إلكتروني كامل',
+                    cat3Example4: 'HexChat - عميل IRC حديث',
+                    cat4Title: 'خادم',
+                    cat4Desc: 'أدوات لتكوين وإدارة الخوادم',
+                    cat4ExamplesTitle: 'أمثلة شائعة:',
+                    cat4Example1: 'Apache - خادم ويب شائع',
+                    cat4Example2: 'Nginx - خادم ويب عالي الأداء',
+                    cat4Example3: 'MySQL/PostgreSQL - قواعد بيانات',
+                    cat4Example4: 'OpenSSH - اتصال آمن',
+                    cat5Title: 'وسائط متعددة',
+                    cat5Desc: 'مشغلات ومحررات ومنشئي محتوى الوسائط المتعددة',
+                    cat5ExamplesTitle: 'أمثلة شائعة:',
+                    cat5Example1: 'VLC - مشغل فيديو عالمي',
+                    cat5Example2: 'Audacity - تحرير الصوت',
+                    cat5Example3: 'OBS Studio - بث وتسجيل',
+                    cat5Example4: 'Kdenlive - تحرير الفيديو',
+                    cat6Title: 'تعليم',
+                    cat6Desc: 'برامج تعليمية وتعلمية',
+                    cat6ExamplesTitle: 'أمثلة شائعة:',
+                    cat6Example1: 'Stellarium - قبة فلكية ثلاثية الأبعاد',
+                    cat6Example2: 'GCompris - ألعاب تعليمية للأطفال',
+                    cat6Example3: 'Moodle - منصة تعلم',
+                    cat6Example4: 'Anki - بطاقات ذاكرة رقمية',
+                    backBtnText: 'العودة إلى الصفحة الرئيسية'
+                }
+            };
+
+            // Éléments du DOM
+            const translateBtn = document.getElementById('translateBtn');
+            const translateMenu = document.getElementById('translateMenu');
+            const translateOptions = document.querySelectorAll('.translate-option');
+
+            // Langue actuelle
+            let currentLang = 'fr';
+
+            // Fonction pour changer la langue
+            function changeLanguage(lang) {
+                // Mettre à jour la classe active
+                translateOptions.forEach(opt => {
+                    opt.classList.remove('active');
+                    if (opt.dataset.lang === lang) {
+                        opt.classList.add('active');
+                    }
+                });
+
+                // Mettre à jour les textes
+                document.getElementById('breadcrumbHome').textContent = translations[lang].breadcrumbHome;
+                document.getElementById('breadcrumbCurrent').textContent = translations[lang].breadcrumbCurrent;
+                document.getElementById('mainTitle').textContent = translations[lang].mainTitle;
+                document.getElementById('mainSubtitle').textContent = translations[lang].mainSubtitle;
+                
+                // Stats
+                document.getElementById('stat1Label').textContent = translations[lang].stat1Label;
+                document.getElementById('stat2Label').textContent = translations[lang].stat2Label;
+                document.getElementById('stat3Label').textContent = translations[lang].stat3Label;
+                document.getElementById('stat4Label').textContent = translations[lang].stat4Label;
+                
+                // Catégories
+                for (let i = 1; i <= 6; i++) {
+                    if (document.getElementById(`cat${i}Title`)) {
+                        document.getElementById(`cat${i}Title`).textContent = translations[lang][`cat${i}Title`];
+                        document.getElementById(`cat${i}Desc`).textContent = translations[lang][`cat${i}Desc`];
+                        
+                        // Titre des exemples
+                        const examplesTitle = document.getElementById(`cat${i}ExamplesTitle`);
+                        if (examplesTitle) {
+                            examplesTitle.textContent = translations[lang][`cat${i}ExamplesTitle`];
+                        }
+                        
+                        // Exemples
+                        for (let j = 1; j <= 4; j++) {
+                            const example = document.getElementById(`cat${i}Example${j}`);
+                            if (example) {
+                                example.textContent = translations[lang][`cat${i}Example${j}`];
+                            }
+                        }
+                    }
+                }
+                
+                // Back button
+                document.getElementById('backBtnText').textContent = translations[lang].backBtnText;
+
+                // Afficher une notification
+                showNotification(translations[lang].breadcrumbHome === 'Accueil' ? 'Langue changée en Français' : 
+                                translations[lang].breadcrumbHome === 'Home' ? 'Language changed to English' :
+                                translations[lang].breadcrumbHome === 'Inicio' ? 'Idioma cambiado a Español' :
+                                'تم تغيير اللغة إلى العربية');
+
+                // Changer la direction du texte pour l'arabe
+                if (lang === 'ar') {
+                    document.body.style.direction = 'rtl';
+                    document.querySelectorAll('.breadcrumb i, .back-btn i').forEach(icon => {
+                        icon.style.transform = 'rotate(180deg)';
+                    });
+                } else {
+                    document.body.style.direction = 'ltr';
+                    document.querySelectorAll('.breadcrumb i, .back-btn i').forEach(icon => {
+                        icon.style.transform = 'rotate(0)';
+                    });
+                }
+
+                currentLang = lang;
+            }
+
+            // Fonction pour afficher les notifications
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
+            }
+
+            // Toggle du menu de traduction
+            translateBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                translateMenu.classList.toggle('active');
+            });
+
+            // Fermer le menu en cliquant ailleurs
+            document.addEventListener('click', (e) => {
+                if (!translateBtn.contains(e.target) && !translateMenu.contains(e.target)) {
+                    translateMenu.classList.remove('active');
+                }
+            });
+
+            // Changer la langue quand on clique sur une option
+            translateOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const lang = option.dataset.lang;
+                    changeLanguage(lang);
+                    translateMenu.classList.remove('active');
+                });
+            });
+
+            // Générer du code binaire animé
+            const binaryCode = document.getElementById('binaryCode');
+            const binaryChars = ['0', '1'];
+            
+            for (let i = 0; i < 100; i++) {
+                const char = document.createElement('span');
+                char.className = 'binary-char';
+                char.textContent = binaryChars[Math.floor(Math.random() * binaryChars.length)];
+                char.style.left = `${Math.random() * 100}%`;
+                char.style.animationDelay = `${Math.random() * 10}s`;
+                binaryCode.appendChild(char);
+            }
+
+            // Générer des lignes de flux de données
+            const dataFlow = document.getElementById('dataFlow');
+            for (let i = 0; i < 8; i++) {
+                const line = document.createElement('div');
+                line.className = 'flow-line';
+                
+                // Position aléatoire
+                const startX = Math.random() * 100;
+                const startY = Math.random() * 100;
+                const angle = Math.random() * 360;
+                
+                line.style.left = `${startX}%`;
+                line.style.top = `${startY}%`;
+                line.style.transform = `rotate(${angle}deg)`;
+                line.style.animationDelay = `${Math.random() * 4}s`;
+                
+                dataFlow.appendChild(line);
+            }
+
+            // Animation des éléments au défilement
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Appliquer l'effet aux cartes
+            document.querySelectorAll('.software-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                observer.observe(card);
+            });
+
+            // Animation au survol
+            document.querySelectorAll('.software-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const icon = this.querySelector('.software-icon');
+                    if (icon) {
+                        icon.style.transform = 'rotate(360deg) scale(1.2)';
+                    }
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    const icon = this.querySelector('.software-icon');
+                    if (icon) {
+                        icon.style.transform = 'rotate(0) scale(1)';
+                    }
+                });
+            });
+
+            // Animation des statistiques
+            const statNumbers = document.querySelectorAll('.stat-number');
+            statNumbers.forEach(stat => {
+                if (stat.textContent.includes('+') || stat.textContent.includes('%') || stat.textContent.includes('$')) {
+                    const finalValue = stat.textContent;
+                    let currentValue = 0;
+                    const increment = 1;
+                    const timer = setInterval(() => {
+                        currentValue += increment;
+                        if (stat.textContent.includes('+')) {
+                            if (currentValue >= 5000) {
+                                stat.textContent = finalValue;
+                                clearInterval(timer);
+                            } else {
+                                stat.textContent = currentValue + '+';
+                            }
+                        } else if (stat.textContent.includes('%')) {
+                            if (currentValue >= 100) {
+                                stat.textContent = finalValue;
+                                clearInterval(timer);
+                            } else {
+                                stat.textContent = currentValue + '%';
+                            }
+                        } else if (stat.textContent.includes('$')) {
+                            if (currentValue >= 0) {
+                                stat.textContent = finalValue;
+                                clearInterval(timer);
+                            }
+                        }
+                    }, 10);
+                }
+            });
+
+            // Effet de clic pour le bouton retour
+            const backBtn = document.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Animation de clic
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 200);
+                    
+                    // Redirection après animation
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 300);
+                });
+            }
+
+            // Animation de chargement initial
+            setTimeout(() => {
+                document.querySelectorAll('.animated').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }, 300);
+
+            // Animation continue des unités CPU
+            setInterval(() => {
+                const cpuUnits = document.querySelectorAll('.cpu-unit');
+                cpuUnits.forEach(unit => {
+                    unit.style.animation = 'none';
+                    setTimeout(() => {
+                        unit.style.animation = 'pulse 2s infinite';
+                    }, 10);
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
