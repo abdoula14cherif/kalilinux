@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Désinstaller un Logiciel | Kali Linux</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --dark-blue: #0a1931;
+            --navy-blue: #185adb;
+            --electric-blue: #2d46b9;
+            --blood-red: #b33939;
+            --orange: #ff8c32;
+            --light-orange: #ffb74d;
+            --gray: #8d93ab;
+            --light-gray: #f1f3f8;
+            --card-bg: #1a2b4a;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 15px;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-blue) 0%, #0c2461 100%);
+            color: var(--light-gray);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .page-header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(90deg, var(--orange), var(--blood-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Main Card */
+        .main-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 40px;
+            margin: 30px auto;
+            max-width: 800px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--orange);
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .step-number {
+            background: var(--orange);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .step-content p {
+            color: var(--gray);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .command-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            color: var(--light-orange);
+            border-left: 3px solid var(--blood-red);
+        }
+
+        .command {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .note {
+            background: rgba(255, 140, 50, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 3px solid var(--orange);
+        }
+
+        .note h4 {
+            color: var(--light-orange);
+            margin-bottom: 5px;
+        }
+
+        /* Quick Examples */
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .example-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: var(--radius);
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .example-card h3 {
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .example-card p {
+            color: var(--gray);
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        /* Back Button */
+        .back-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--orange);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--blood-red);
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .main-card {
+                padding: 25px;
+            }
+            
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .step {
+                flex-direction: column;
+            }
+            
+            .step-number {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1>Désinstaller un Logiciel</h1>
+            <p>Guide pour supprimer proprement des applications de Kali Linux</p>
+        </header>
+
+        <div class="main-card">
+            <!-- Étape 1 -->
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Ouvrir le Terminal</h3>
+                    <p>Pressez <strong>Ctrl + Alt + T</strong> pour ouvrir le terminal.</p>
+                </div>
+            </div>
+
+            <!-- Étape 2 -->
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Tapez la Commande</h3>
+                    <p>Désinstaller un logiciel tout en conservant ses fichiers de configuration :</p>
+                    <div class="command-box">
+                        <span class="command">apt-get remove nom-du-logiciel</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Étape 3 -->
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Supprimer avec Dépendances</h3>
+                    <p>Désinstaller le logiciel et ses dépendances inutiles :</p>
+                    <div class="command-box">
+                        <span class="command">apt-get remove --auto-remove nom-du-logiciel</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Étape 4 -->
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Supprimer Configuration et Données</h3>
+                    <p>Pour supprimer complètement le logiciel avec sa configuration :</p>
+                    <div class="command-box">
+                        <span class="command">apt-get purge nom-du-logiciel</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Étape 5 -->
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h3>Purge Complète</h3>
+                    <p>Supprimer le logiciel, sa configuration et ses dépendances :</p>
+                    <div class="command-box">
+                        <span class="command">apt-get purge --auto-remove nom-du-logiciel</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="note">
+                <h4>📝 Note importante</h4>
+                <p>Utilisez <strong>apt</strong> à la place de <strong>apt-get</strong> pour des commandes plus modernes et colorées.</p>
+            </div>
+        </div>
+
+        <div class="examples">
+            <div class="example-card">
+                <h3>Exemple 1</h3>
+                <p>Supprimer Firefox en gardant les paramètres</p>
+                <div class="command-box">
+                    sudo apt remove firefox-esr
+                </div>
+            </div>
+
+            <div class="example-card">
+                <h3>Exemple 2</h3>
+                <p>Supprimer complètement VLC</p>
+                <div class="command-box">
+                    sudo apt purge vlc
+                </div>
+            </div>
+
+            <div class="example-card">
+                <h3>Exemple 3</h3>
+                <p>Nettoyer les dépendances inutiles</p>
+                <div class="command-box">
+                    sudo apt autoremove
+                </div>
+            </div>
+        </div>
+
+        <div class="back-container">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Retour à l'Accueil
+            </a>
+        </div>
+    </div>
+</body>
+</html>
