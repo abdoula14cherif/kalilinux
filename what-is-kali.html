@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qu'est-ce que Kali Linux ? | Histoire & Caractéristiques</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --dark-blue: #0a1931;
+            --navy-blue: #185adb;
+            --electric-blue: #2d46b9;
+            --blood-red: #b33939;
+            --orange: #ff8c32;
+            --light-orange: #ffb74d;
+            --gray: #8d93ab;
+            --light-gray: #f1f3f8;
+            --card-bg: #1a2b4a;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 15px;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-blue) 0%, #0c2461 100%);
+            color: var(--light-gray);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Bouton de traduction flottant */
+        .translate-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 2px solid transparent;
+        }
+
+        .translate-btn:hover {
+            transform: scale(1.1) rotate(360deg);
+            border-color: white;
+            box-shadow: 0 10px 30px rgba(255, 140, 50, 0.4);
+        }
+
+        .translate-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .translate-btn:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Menu de traduction */
+        .translate-menu {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 15px;
+            min-width: 200px;
+            display: none;
+            z-index: 999;
+            border: 2px solid var(--orange);
+            animation: slideUp 0.3s ease;
+        }
+
+        .translate-menu.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .translate-menu:before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 20px;
+            width: 20px;
+            height: 20px;
+            background: var(--card-bg);
+            transform: rotate(45deg);
+            border-right: 2px solid var(--orange);
+            border-bottom: 2px solid var(--orange);
+        }
+
+        .translate-option {
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .translate-option:hover {
+            background: var(--electric-blue);
+            transform: translateX(5px);
+        }
+
+        .translate-option i {
+            color: var(--orange);
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        .translate-option.active {
+            background: var(--orange);
+            color: white;
+        }
+
+        .translate-option.active i {
+            color: white;
+        }
+
+        /* Header */
+        .page-header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .page-header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(90deg, var(--orange), var(--blood-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .kali-logo {
+            font-size: 3rem;
+            color: var(--orange);
+            margin-bottom: 20px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            color: var(--gray);
+        }
+
+        .breadcrumb a {
+            color: var(--light-orange);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--orange);
+            text-decoration: underline;
+        }
+
+        .breadcrumb i {
+            margin: 0 10px;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            max-width: 1000px;
+            margin: 40px auto 60px;
+            padding: 20px 0;
+        }
+
+        .timeline:before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--blood-red), var(--orange));
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 50px;
+            width: 50%;
+            padding: 20px;
+        }
+
+        .timeline-item:nth-child(odd) {
+            left: 0;
+        }
+
+        .timeline-item:nth-child(even) {
+            left: 50%;
+        }
+
+        .timeline-content {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            position: relative;
+            border-left: 4px solid var(--orange);
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            border-left: none;
+            border-right: 4px solid var(--blood-red);
+        }
+
+        .timeline-content:before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--orange);
+            border-radius: 50%;
+            top: 30px;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content:before {
+            right: -52px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content:before {
+            left: -52px;
+        }
+
+        .timeline-year {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--light-orange);
+            margin-bottom: 10px;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .kali-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 35px;
+            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kali-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--orange);
+            box-shadow: 0 20px 40px rgba(255, 140, 50, 0.2);
+        }
+
+        .kali-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--blood-red), var(--orange));
+        }
+
+        .card-number {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1;
+            transition: transform 0.5s ease;
+        }
+
+        .kali-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: white;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--navy-blue);
+        }
+
+        .kali-card p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--light-gray);
+            text-align: justify;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            color: var(--orange);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Back Arrow */
+        .back-container {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--navy-blue);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            color: white;
+            padding: 18px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border: 2px solid transparent;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(255, 140, 50, 0.3);
+            border-color: white;
+        }
+
+        .back-btn i {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .back-btn:hover i {
+            transform: translateX(-5px);
+        }
+
+        /* Stats */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin: 50px 0;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border-top: 5px solid var(--orange);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--light-orange);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: var(--gray);
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--orange);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 2000;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animated {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .kali-card {
+                padding: 25px;
+            }
+            
+            .timeline:before {
+                left: 20px;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                left: 0 !important;
+                padding-left: 60px;
+            }
+            
+            .timeline-content:before {
+                left: -40px !important;
+            }
+            
+            .timeline-item:nth-child(even) .timeline-content {
+                border-left: 4px solid var(--orange);
+                border-right: none;
+            }
+            
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .translate-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+
+            .translate-menu {
+                bottom: 80px;
+                right: 20px;
+                min-width: 180px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .page-header {
+                padding: 20px 0;
+            }
+            
+            .back-btn {
+                padding: 15px 25px;
+                font-size: 1rem;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Bouton de traduction flottant -->
+    <button class="translate-btn" id="translateBtn">
+        <i class="fas fa-language"></i>
+    </button>
+
+    <!-- Menu de traduction -->
+    <div class="translate-menu" id="translateMenu">
+        <div class="translate-option active" data-lang="fr">
+            <i class="fas fa-flag"></i>
+            <span>Français</span>
+        </div>
+        <div class="translate-option" data-lang="en">
+            <i class="fas fa-flag-usa"></i>
+            <span>English</span>
+        </div>
+        <div class="translate-option" data-lang="es">
+            <i class="fas fa-flag"></i>
+            <span>Español</span>
+        </div>
+        <div class="translate-option" data-lang="ar">
+            <i class="fas fa-flag"></i>
+            <span>العربية</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb animated">
+            <a href="index.html" id="breadcrumbHome">Accueil</a>
+            <i class="fas fa-chevron-right"></i>
+            <span id="breadcrumbCurrent">Qu'est-ce que Kali Linux ?</span>
+        </div>
+
+        <!-- Header -->
+        <header class="page-header animated">
+            <div class="kali-logo">
+                <i class="fab fa-linux"></i>
+            </div>
+            <h1 id="mainTitle">Qu'est-ce que Kali Linux ?</h1>
+            <p id="mainSubtitle">Découvrez la distribution Linux ultime pour les tests de sécurité et l'audit de pénétration</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-container animated">
+            <div class="stat-card">
+                <div class="stat-number" id="stat1Number">600+</div>
+                <div class="stat-label" id="stat1Label">Outils de sécurité</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat2Number">2013</div>
+                <div class="stat-label" id="stat2Label">Année de création</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat3Number">Gratuit</div>
+                <div class="stat-label" id="stat3Label">Toujours et à jamais</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat4Number">Debian</div>
+                <div class="stat-label" id="stat4Label">Base du système</div>
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="cards-grid">
+            <!-- Carte 1 -->
+            <div class="kali-card animated" style="animation-delay: 0.1s">
+                <div class="card-number">1</div>
+                <div class="card-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2 id="card1Title">Distribution Sécurité</h2>
+                <p id="card1Text">
+                    Kali Linux est une distribution Linux basée sur Debian destinée au test de pénétration avancée 
+                    et aux audits de sécurité. Kali contient plusieurs centaines d'outils orientés vers diverses 
+                    tâches de sécurité informatique tels que les tests de pénétration, la recherche en sécurité, 
+                    la criminalistique informatique et l'ingénierie inverse. Kali Linux est développé, financé et 
+                    maintenue par Offensive Security, une entreprise leader en formation en sécurité informatique.
+                </p>
+            </div>
+
+            <!-- Carte 2 -->
+            <div class="kali-card animated" style="animation-delay: 0.2s">
+                <div class="card-number">2</div>
+                <div class="card-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h2 id="card2Title">Date de Publication</h2>
+                <p id="card2Text">
+                    Kali Linux a été publiée le 13 mars 2013 en tant que reconstruction de BackTrack Linux 
+                    respectant entièrement les normes de Debian. Cette refonte complète a permis d'améliorer 
+                    la stabilité, la sécurité et la facilité d'utilisation par rapport à son prédécesseur. 
+                    La migration vers Debian a également facilité la maintenance et les mises à jour régulières.
+                </p>
+            </div>
+
+            <!-- Carte 3 -->
+            <div class="kali-card animated" style="animation-delay: 0.3s">
+                <div class="card-number">3</div>
+                <div class="card-icon">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <h2 id="card3Title">Arsenal d'Outils</h2>
+                <p id="card3Text">
+                    Plus de 600 outils de tests de pénétration sont inclus. Après avoir examiné chaque outil 
+                    inclus dans BackTrack, nous avons éliminé un grand nombre d'outils qui ne fonctionnaient 
+                    tout simplement pas ou qui dupliquaient d'autres outils offrant la même fonctionnalité ou 
+                    des fonctionnalités similaires. Les détails sur ce qui est inclus se trouve sur le site 
+                    de Kali Tools.
+                </p>
+            </div>
+
+            <!-- Carte 4 -->
+            <div class="kali-card animated" style="animation-delay: 0.4s">
+                <div class="card-number">4</div>
+                <div class="card-icon">
+                    <i class="fas fa-beer"></i>
+                </div>
+                <h2 id="card4Title">Gratuit Comme une Bière</h2>
+                <p id="card4Text">
+                    Gratuit (comme une bière) et le restera toujours ! Kali Linux, comme BackTrack, est 
+                    entièrement gratuit et le restera toujours. Vous n'aurez jamais à payer pour Kali Linux. 
+                    Le modèle économique repose sur les formations certifiantes Offensive Security, permettant 
+                    ainsi à la communauté de bénéficier d'un outil professionnel sans frais.
+                </p>
+            </div>
+
+            <!-- Carte 5 -->
+            <div class="kali-card animated" style="animation-delay: 0.5s">
+                <div class="card-number">5</div>
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h2 id="card5Title">Support & Communauté</h2>
+                <p id="card5Text">
+                    Kali Linux bénéficie d'une communauté active et d'un support professionnel. Avec des 
+                    forums dédiés, une documentation complète et des canaux IRC, les utilisateurs peuvent 
+                    obtenir de l'aide rapidement. Offensive Security fournit également un support commercial 
+                    pour les entreprises et propose des formations certifiées pour les professionnels.
+                </p>
+            </div>
+
+            <!-- Carte 6 -->
+            <div class="kali-card animated" style="animation-delay: 0.6s">
+                <div class="card-number">6</div>
+                <div class="card-icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <h2 id="card6Title">Mises à Jour Régulières</h2>
+                <p id="card6Text">
+                    Kali suit le modèle de publication "Rolling Release" de Debian Testing. Cela signifie 
+                    que les mises à jour sont continues et que vous obtenez toujours les dernières versions 
+                    des outils de sécurité. Le dépôt est mis à jour plusieurs fois par jour, garantissant 
+                    que votre système dispose toujours des derniers outils et correctifs de sécurité.
+                </p>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline animated" style="animation-delay: 0.7s">
+            <h2 style="text-align: center; margin-bottom: 40px; color: var(--light-orange);" id="timelineTitle">Histoire Évolutive</h2>
+            
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2004</div>
+                    <h3 id="timeline1Title">WHOPPIX</h3>
+                    <p id="timeline1Text">Première distribution de sécurité basée sur Knoppix, posant les bases des futures distributions.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2005</div>
+                    <h3 id="timeline2Title">WHAX</h3>
+                    <p id="timeline2Text">Évolution de WHOPPIX avec plus d'outils et une meilleure organisation.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2006</div>
+                    <h3 id="timeline3Title">BackTrack 1.0</h3>
+                    <p id="timeline3Text">Fusion de Auditor Security Collection et WHAX, première version stable.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2013</div>
+                    <h3 id="timeline4Title">Kali Linux 1.0</h3>
+                    <p id="timeline4Text">Refonte complète basée sur Debian, remplaçant BackTrack avec une base plus stable.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2020</div>
+                    <h3 id="timeline5Title">Kali 2020.x</h3>
+                    <p id="timeline5Text">Introduction du thème dark, nouvelles fonctionnalités et améliorations majeures.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Arrow -->
+        <div class="back-container animated" style="animation-delay: 0.9s">
+            <a href="index.html" class="back-btn" id="backBtn">
+                <i class="fas fa-arrow-left"></i>
+                <span id="backBtnText">Retour à la Page d'Accueil</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Traductions
+            const translations = {
+                fr: {
+                    breadcrumbHome: 'Accueil',
+                    breadcrumbCurrent: 'Qu\'est-ce que Kali Linux ?',
+                    mainTitle: 'Qu\'est-ce que Kali Linux ?',
+                    mainSubtitle: 'Découvrez la distribution Linux ultime pour les tests de sécurité et l\'audit de pénétration',
+                    stat1Label: 'Outils de sécurité',
+                    stat2Label: 'Année de création',
+                    stat3Label: 'Toujours et à jamais',
+                    stat4Label: 'Base du système',
+                    card1Title: 'Distribution Sécurité',
+                    card1Text: 'Kali Linux est une distribution Linux basée sur Debian destinée au test de pénétration avancée et aux audits de sécurité. Kali contient plusieurs centaines d\'outils orientés vers diverses tâches de sécurité informatique tels que les tests de pénétration, la recherche en sécurité, la criminalistique informatique et l\'ingénierie inverse. Kali Linux est développé, financé et maintenue par Offensive Security, une entreprise leader en formation en sécurité informatique.',
+                    card2Title: 'Date de Publication',
+                    card2Text: 'Kali Linux a été publiée le 13 mars 2013 en tant que reconstruction de BackTrack Linux respectant entièrement les normes de Debian. Cette refonte complète a permis d\'améliorer la stabilité, la sécurité et la facilité d\'utilisation par rapport à son prédécesseur. La migration vers Debian a également facilité la maintenance et les mises à jour régulières.',
+                    card3Title: 'Arsenal d\'Outils',
+                    card3Text: 'Plus de 600 outils de tests de pénétration sont inclus. Après avoir examiné chaque outil inclus dans BackTrack, nous avons éliminé un grand nombre d\'outils qui ne fonctionnaient tout simplement pas ou qui dupliquaient d\'autres outils offrant la même fonctionnalité ou des fonctionnalités similaires. Les détails sur ce qui est inclus se trouve sur le site de Kali Tools.',
+                    card4Title: 'Gratuit Comme une Bière',
+                    card4Text: 'Gratuit (comme une bière) et le restera toujours ! Kali Linux, comme BackTrack, est entièrement gratuit et le restera toujours. Vous n\'aurez jamais à payer pour Kali Linux. Le modèle économique repose sur les formations certifiantes Offensive Security, permettant ainsi à la communauté de bénéficier d\'un outil professionnel sans frais.',
+                    card5Title: 'Support & Communauté',
+                    card5Text: 'Kali Linux bénéficie d\'une communauté active et d\'un support professionnel. Avec des forums dédiés, une documentation complète et des canaux IRC, les utilisateurs peuvent obtenir de l\'aide rapidement. Offensive Security fournit également un support commercial pour les entreprises et propose des formations certifiées pour les professionnels.',
+                    card6Title: 'Mises à Jour Régulières',
+                    card6Text: 'Kali suit le modèle de publication "Rolling Release" de Debian Testing. Cela signifie que les mises à jour sont continues et que vous obtenez toujours les dernières versions des outils de sécurité. Le dépôt est mis à jour plusieurs fois par jour, garantissant que votre système dispose toujours des derniers outils et correctifs de sécurité.',
+                    timelineTitle: 'Histoire Évolutive',
+                    timeline1Title: 'WHOPPIX',
+                    timeline1Text: 'Première distribution de sécurité basée sur Knoppix, posant les bases des futures distributions.',
+                    timeline2Title: 'WHAX',
+                    timeline2Text: 'Évolution de WHOPPIX avec plus d\'outils et une meilleure organisation.',
+                    timeline3Title: 'BackTrack 1.0',
+                    timeline3Text: 'Fusion de Auditor Security Collection et WHAX, première version stable.',
+                    timeline4Title: 'Kali Linux 1.0',
+                    timeline4Text: 'Refonte complète basée sur Debian, remplaçant BackTrack avec une base plus stable.',
+                    timeline5Title: 'Kali 2020.x',
+                    timeline5Text: 'Introduction du thème dark, nouvelles fonctionnalités et améliorations majeures.',
+                    backBtnText: 'Retour à la Page d\'Accueil'
+                },
+                en: {
+                    breadcrumbHome: 'Home',
+                    breadcrumbCurrent: 'What is Kali Linux?',
+                    mainTitle: 'What is Kali Linux?',
+                    mainSubtitle: 'Discover the ultimate Linux distribution for security testing and penetration auditing',
+                    stat1Label: 'Security Tools',
+                    stat2Label: 'Creation Year',
+                    stat3Label: 'Always Free',
+                    stat4Label: 'System Base',
+                    card1Title: 'Security Distribution',
+                    card1Text: 'Kali Linux is a Debian-based Linux distribution designed for advanced penetration testing and security audits. Kali contains several hundred tools oriented towards various information security tasks such as penetration testing, security research, computer forensics, and reverse engineering. Kali Linux is developed, funded, and maintained by Offensive Security, a leading information security training company.',
+                    card2Title: 'Release Date',
+                    card2Text: 'Kali Linux was released on March 13, 2013 as a complete rebuild of BackTrack Linux, fully adhering to Debian development standards. This complete overhaul improved stability, security, and usability compared to its predecessor. The migration to Debian also facilitated maintenance and regular updates.',
+                    card3Title: 'Tool Arsenal',
+                    card3Text: 'More than 600 penetration testing tools are included. After reviewing every tool that was included in BackTrack, we eliminated a great number of tools that just simply did not work or that duplicated other tools that provided the same or similar functionality. Details on what is included can be found on the Kali Tools site.',
+                    card4Title: 'Free as in Beer',
+                    card4Text: 'Free (as in beer) and always will be! Kali Linux, like BackTrack, is completely free and always will be. You will never have to pay for Kali Linux. The business model relies on Offensive Security\'s certified training, allowing the community to benefit from a professional tool at no cost.',
+                    card5Title: 'Support & Community',
+                    card5Text: 'Kali Linux benefits from an active community and professional support. With dedicated forums, comprehensive documentation, and IRC channels, users can get help quickly. Offensive Security also provides commercial support for businesses and offers certified training for professionals.',
+                    card6Title: 'Regular Updates',
+                    card6Text: 'Kali follows the "Rolling Release" model based on Debian Testing. This means updates are continuous and you always get the latest versions of security tools. The repository is updated multiple times a day, ensuring your system always has the latest tools and security patches.',
+                    timelineTitle: 'Evolutionary History',
+                    timeline1Title: 'WHOPPIX',
+                    timeline1Text: 'First security distribution based on Knoppix, laying the foundation for future distributions.',
+                    timeline2Title: 'WHAX',
+                    timeline2Text: 'Evolution of WHOPPIX with more tools and better organization.',
+                    timeline3Title: 'BackTrack 1.0',
+                    timeline3Text: 'Merge of Auditor Security Collection and WHAX, first stable version.',
+                    timeline4Title: 'Kali Linux 1.0',
+                    timeline4Text: 'Complete rebuild based on Debian, replacing BackTrack with a more stable base.',
+                    timeline5Title: 'Kali 2020.x',
+                    timeline5Text: 'Introduction of dark theme, new features and major improvements.',
+                    backBtnText: 'Back to Home Page'
+                },
+                es: {
+                    breadcrumbHome: 'Inicio',
+                    breadcrumbCurrent: '¿Qué es Kali Linux?',
+                    mainTitle: '¿Qué es Kali Linux?',
+                    mainSubtitle: 'Descubre la distribución Linux definitiva para pruebas de seguridad y auditoría de penetración',
+                    stat1Label: 'Herramientas de Seguridad',
+                    stat2Label: 'Año de Creación',
+                    stat3Label: 'Siempre Gratis',
+                    stat4Label: 'Base del Sistema',
+                    card1Title: 'Distribución de Seguridad',
+                    card1Text: 'Kali Linux es una distribución Linux basada en Debian diseñada para pruebas de penetración avanzadas y auditorías de seguridad. Kali contiene varios cientos de herramientas orientadas a diversas tareas de seguridad informática como pruebas de penetración, investigación en seguridad, informática forense e ingeniería inversa. Kali Linux es desarrollado, financiado y mantenido por Offensive Security, una empresa líder en formación en seguridad informática.',
+                    card2Title: 'Fecha de Publicación',
+                    card2Text: 'Kali Linux fue publicado el 13 de marzo de 2013 como una reconstrucción completa de BackTrack Linux, cumpliendo completamente con los estándares de Debian. Esta renovación completa mejoró la estabilidad, seguridad y usabilidad en comparación con su predecesor. La migración a Debian también facilitó el mantenimiento y las actualizaciones regulares.',
+                    card3Title: 'Arsenal de Herramientas',
+                    card3Text: 'Se incluyen más de 600 herramientas de pruebas de penetración. Después de revisar cada herramienta incluida en BackTrack, eliminamos una gran cantidad de herramientas que simplemente no funcionaban o que duplicaban otras herramientas que proporcionaban la misma o similar funcionalidad. Los detalles sobre lo que se incluye se pueden encontrar en el sitio de Kali Tools.',
+                    card4Title: 'Gratis Como una Cerveza',
+                    card4Text: '¡Gratis (como una cerveza) y siempre lo será! Kali Linux, como BackTrack, es completamente gratis y siempre lo será. Nunca tendrás que pagar por Kali Linux. El modelo de negocio se basa en las formaciones certificadas de Offensive Security, permitiendo así a la comunidad beneficiarse de una herramienta profesional sin costo.',
+                    card5Title: 'Soporte y Comunidad',
+                    card5Text: 'Kali Linux se beneficia de una comunidad activa y soporte profesional. Con foros dedicados, documentación completa y canales de IRC, los usuarios pueden obtener ayuda rápidamente. Offensive Security también proporciona soporte comercial para empresas y ofrece formaciones certificadas para profesionales.',
+                    card6Title: 'Actualizaciones Regulares',
+                    card6Text: 'Kali sigue el modelo de publicación "Rolling Release" de Debian Testing. Esto significa que las actualizaciones son continuas y siempre obtienes las últimas versiones de las herramientas de seguridad. El repositorio se actualiza varias veces al día, garantizando que tu sistema siempre tenga las últimas herramientas y parches de seguridad.',
+                    timelineTitle: 'Historia Evolutiva',
+                    timeline1Title: 'WHOPPIX',
+                    timeline1Text: 'Primera distribución de seguridad basada en Knoppix, sentando las bases para futuras distribuciones.',
+                    timeline2Title: 'WHAX',
+                    timeline2Text: 'Evolución de WHOPPIX con más herramientas y mejor organización.',
+                    timeline3Title: 'BackTrack 1.0',
+                    timeline3Text: 'Fusión de Auditor Security Collection y WHAX, primera versión estable.',
+                    timeline4Title: 'Kali Linux 1.0',
+                    timeline4Text: 'Reconstrucción completa basada en Debian, reemplazando BackTrack con una base más estable.',
+                    timeline5Title: 'Kali 2020.x',
+                    timeline5Text: 'Introducción del tema oscuro, nuevas características y mejoras importantes.',
+                    backBtnText: 'Volver a la Página de Inicio'
+                },
+                ar: {
+                    breadcrumbHome: 'الرئيسية',
+                    breadcrumbCurrent: 'ما هو كالي لينكس؟',
+                    mainTitle: 'ما هو كالي لينكس؟',
+                    mainSubtitle: 'اكتشف توزيعة لينكس النهائية لاختبار الأمن واختبار الاختراق',
+                    stat1Label: 'أدوات أمنية',
+                    stat2Label: 'سنة الإنشاء',
+                    stat3Label: 'دائماً مجاني',
+                    stat4Label: 'قاعدة النظام',
+                    card1Title: 'توزيعة أمنية',
+                    card1Text: 'كالي لينكس هي توزيعة لينكس مبنية على دبيان مصممة لاختبار الاختراق المتقدم وتدقيقات الأمن. يحتوي كالي على مئات الأدوات الموجهة لمهام أمن المعلومات المختلفة مثل اختبار الاختراق، البحث الأمني، الطب الشرعي للحاسوب، والهندسة العكسية. يتم تطوير وتمويل وصيانة كالي لينكس بواسطة Offensive Security، وهي شركة رائدة في تدريب أمن المعلومات.',
+                    card2Title: 'تاريخ الإصدار',
+                    card2Text: 'تم إصدار كالي لينكس في 13 مارس 2013 كإعادة بناء كاملة لـ BackTrack Linux، مع الالتزام الكامل بمعايير دبيان. هذا الإصلاح الشامل حسن الاستقرار والأمان وسهولة الاستخدام مقارنة بسابقه. كما سهل الانتقال إلى دبيان الصيانة والتحديثات المنتظمة.',
+                    card3Title: 'ترسانة الأدوات',
+                    card3Text: 'تم تضمين أكثر من 600 أداة لاختبار الاختراق. بعد مراجعة كل أداة كانت مضمنة في BackTrack، قمنا بإزالة عدد كبير من الأدوات التي لم تكن تعمل ببساطة أو التي كانت تكرر أدوات أخرى تقدم نفس الوظيفة أو وظائف مشابهة. يمكن العثور على تفاصيل ما هو مدرج على موقع Kali Tools.',
+                    card4Title: 'مجاني مثل البيرة',
+                    card4Text: 'مجاني (مثل البيرة) وسيبقى دائماً! كالي لينكس، مثل BackTrack، هو مجاني تماماً وسيبقى دائماً. لن تضطر أبداً للدفع مقابل كالي لينكس. يعتمد نموذج العمل على التدريبات المعتمدة من Offensive Security، مما يسمح للمجتمع بالاستفادة من أداة احترافية دون تكلفة.',
+                    card5Title: 'الدعم والمجتمع',
+                    card5Text: 'يستفيد كالي لينكس من مجتمع نشط ودعم احترافي. مع منتديات مخصصة، وثائق شاملة، وقنوات IRC، يمكن للمستخدمين الحصول على المساعدة بسرعة. توفر Offensive Security أيضاً دعماً تجارياً للشركات وتقدم تدريبات معتمدة للمحترفين.',
+                    card6Title: 'تحديثات منتظمة',
+                    card6Text: 'يتبع كالي نموذج الإصدار "المستمر" المستند إلى Debian Testing. هذا يعني أن التحديثات مستمرة وتحصل دائماً على أحدث إصدارات أدوات الأمن. يتم تحديث المستودع عدة مرات في اليوم، مما يضمن أن نظامك لديه دائماً أحدث الأدوات وتصحيحات الأمان.',
+                    timelineTitle: 'التاريخ التطوري',
+                    timeline1Title: 'WHOPPIX',
+                    timeline1Text: 'أول توزيعة أمنية مبنية على Knoppix، واضعة الأساس للتوزيعات المستقبلية.',
+                    timeline2Title: 'WHAX',
+                    timeline2Text: 'تطور WHOPPIX مع المزيد من الأدوات وتنظيم أفضل.',
+                    timeline3Title: 'BackTrack 1.0',
+                    timeline3Text: 'دمج Auditor Security Collection و WHAX، أول إصدار مستقر.',
+                    timeline4Title: 'كالي لينكس 1.0',
+                    timeline4Text: 'إعادة بناء كاملة مبنية على دبيان، لتحل محل BackTrack بقاعدة أكثر استقراراً.',
+                    timeline5Title: 'كالي 2020.x',
+                    timeline5Text: 'إدخال المظهر الداكن، ميزات جديدة وتحسينات رئيسية.',
+                    backBtnText: 'العودة إلى الصفحة الرئيسية'
+                }
+            };
+
+            // Éléments du DOM
+            const translateBtn = document.getElementById('translateBtn');
+            const translateMenu = document.getElementById('translateMenu');
+            const translateOptions = document.querySelectorAll('.translate-option');
+
+            // Langue actuelle
+            let currentLang = 'fr';
+
+            // Fonction pour changer la langue
+            function changeLanguage(lang) {
+                // Mettre à jour la classe active
+                translateOptions.forEach(opt => {
+                    opt.classList.remove('active');
+                    if (opt.dataset.lang === lang) {
+                        opt.classList.add('active');
+                    }
+                });
+
+                // Mettre à jour les textes
+                document.getElementById('breadcrumbHome').textContent = translations[lang].breadcrumbHome;
+                document.getElementById('breadcrumbCurrent').textContent = translations[lang].breadcrumbCurrent;
+                document.getElementById('mainTitle').textContent = translations[lang].mainTitle;
+                document.getElementById('mainSubtitle').textContent = translations[lang].mainSubtitle;
+                
+                // Stats
+                document.getElementById('stat1Label').textContent = translations[lang].stat1Label;
+                document.getElementById('stat2Label').textContent = translations[lang].stat2Label;
+                document.getElementById('stat3Label').textContent = translations[lang].stat3Label;
+                document.getElementById('stat4Label').textContent = translations[lang].stat4Label;
+                
+                // Cartes
+                document.getElementById('card1Title').textContent = translations[lang].card1Title;
+                document.getElementById('card1Text').textContent = translations[lang].card1Text;
+                document.getElementById('card2Title').textContent = translations[lang].card2Title;
+                document.getElementById('card2Text').textContent = translations[lang].card2Text;
+                document.getElementById('card3Title').textContent = translations[lang].card3Title;
+                document.getElementById('card3Text').textContent = translations[lang].card3Text;
+                document.getElementById('card4Title').textContent = translations[lang].card4Title;
+                document.getElementById('card4Text').textContent = translations[lang].card4Text;
+                document.getElementById('card5Title').textContent = translations[lang].card5Title;
+                document.getElementById('card5Text').textContent = translations[lang].card5Text;
+                document.getElementById('card6Title').textContent = translations[lang].card6Title;
+                document.getElementById('card6Text').textContent = translations[lang].card6Text;
+                
+                // Timeline
+                document.getElementById('timelineTitle').textContent = translations[lang].timelineTitle;
+                document.getElementById('timeline1Title').textContent = translations[lang].timeline1Title;
+                document.getElementById('timeline1Text').textContent = translations[lang].timeline1Text;
+                document.getElementById('timeline2Title').textContent = translations[lang].timeline2Title;
+                document.getElementById('timeline2Text').textContent = translations[lang].timeline2Text;
+                document.getElementById('timeline3Title').textContent = translations[lang].timeline3Title;
+                document.getElementById('timeline3Text').textContent = translations[lang].timeline3Text;
+                document.getElementById('timeline4Title').textContent = translations[lang].timeline4Title;
+                document.getElementById('timeline4Text').textContent = translations[lang].timeline4Text;
+                document.getElementById('timeline5Title').textContent = translations[lang].timeline5Title;
+                document.getElementById('timeline5Text').textContent = translations[lang].timeline5Text;
+                
+                // Bouton retour
+                document.getElementById('backBtnText').textContent = translations[lang].backBtnText;
+
+                // Afficher une notification
+                showNotification(translations[lang].breadcrumbHome === 'Accueil' ? 'Langue changée en Français' : 
+                                translations[lang].breadcrumbHome === 'Home' ? 'Language changed to English' :
+                                translations[lang].breadcrumbHome === 'Inicio' ? 'Idioma cambiado a Español' :
+                                'تم تغيير اللغة إلى العربية');
+
+                // Changer la direction du texte pour l'arabe
+                if (lang === 'ar') {
+                    document.body.style.direction = 'rtl';
+                    document.querySelectorAll('.breadcrumb i, .back-btn i').forEach(icon => {
+                        icon.style.transform = 'rotate(180deg)';
+                    });
+                } else {
+                    document.body.style.direction = 'ltr';
+                    document.querySelectorAll('.breadcrumb i, .back-btn i').forEach(icon => {
+                        icon.style.transform = 'rotate(0)';
+                    });
+                }
+
+                currentLang = lang;
+            }
+
+            // Fonction pour afficher les notifications
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
+            }
+
+            // Toggle du menu de traduction
+            translateBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                translateMenu.classList.toggle('active');
+            });
+
+            // Fermer le menu en cliquant ailleurs
+            document.addEventListener('click', (e) => {
+                if (!translateBtn.contains(e.target) && !translateMenu.contains(e.target)) {
+                    translateMenu.classList.remove('active');
+                }
+            });
+
+            // Changer la langue quand on clique sur une option
+            translateOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const lang = option.dataset.lang;
+                    changeLanguage(lang);
+                    translateMenu.classList.remove('active');
+                });
+            });
+
+            // Animation des cartes au défilement
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                        
+                        // Animation spéciale pour les numéros de carte
+                        if (entry.target.querySelector('.card-number')) {
+                            setTimeout(() => {
+                                entry.target.querySelector('.card-number').style.transform = 'rotate(360deg)';
+                            }, 300);
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            // Appliquer l'effet aux éléments
+            document.querySelectorAll('.kali-card, .stat-card, .timeline-item').forEach(element => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(30px)';
+                element.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                observer.observe(element);
+            });
+
+            // Effet de survol amélioré pour les cartes
+            document.querySelectorAll('.kali-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const number = this.querySelector('.card-number');
+                    number.style.transform = 'rotate(360deg) scale(1.2)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    const number = this.querySelector('.card-number');
+                    number.style.transform = 'rotate(0) scale(1)';
+                });
+            });
+
+            // Effet de clic pour le bouton retour
+            const backBtn = document.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Animation de clic
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 200);
+                    
+                    // Redirection après animation
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 300);
+                });
+            }
+
+            // Animation des stats
+            document.querySelectorAll('.stat-number').forEach(stat => {
+                if (stat.textContent.match(/^\d+/)) {
+                    const finalValue = parseInt(stat.textContent);
+                    let currentValue = 0;
+                    const increment = finalValue / 50;
+                    const timer = setInterval(() => {
+                        currentValue += increment;
+                        if (currentValue >= finalValue) {
+                            stat.textContent = finalValue + (stat.textContent.includes('+') ? '+' : '');
+                            clearInterval(timer);
+                        } else {
+                            stat.textContent = Math.floor(currentValue) + (stat.textContent.includes('+') ? '+' : '');
+                        }
+                    }, 30);
+                }
+            });
+
+            // Ajouter une animation de chargement
+            setTimeout(() => {
+                document.querySelectorAll('.animated').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }, 300);
+        });
+    </script>
+</body>
+</html>
