@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Après Installation | Kali Linux - Optimisation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --dark-blue: #0a1931;
+            --navy-blue: #185adb;
+            --electric-blue: #2d46b9;
+            --blood-red: #b33939;
+            --orange: #ff8c32;
+            --light-orange: #ffb74d;
+            --gray: #8d93ab;
+            --light-gray: #f1f3f8;
+            --card-bg: #1a2b4a;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --radius: 15px;
+            --success: #4CAF50;
+            --warning: #ff9800;
+            --info: #2196F3;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-blue) 0%, #0c2461 100%);
+            color: var(--light-gray);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Bouton de traduction flottant */
+        .translate-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 2px solid transparent;
+        }
+
+        .translate-btn:hover {
+            transform: scale(1.1) rotate(360deg);
+            border-color: white;
+            box-shadow: 0 10px 30px rgba(255, 140, 50, 0.4);
+        }
+
+        .translate-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .translate-btn:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Menu de traduction */
+        .translate-menu {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 15px;
+            min-width: 200px;
+            display: none;
+            z-index: 999;
+            border: 2px solid var(--orange);
+            animation: slideUp 0.3s ease;
+        }
+
+        .translate-menu.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .translate-menu:before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 20px;
+            width: 20px;
+            height: 20px;
+            background: var(--card-bg);
+            transform: rotate(45deg);
+            border-right: 2px solid var(--orange);
+            border-bottom: 2px solid var(--orange);
+        }
+
+        .translate-option {
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .translate-option:hover {
+            background: var(--electric-blue);
+            transform: translateX(5px);
+        }
+
+        .translate-option i {
+            color: var(--orange);
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        .translate-option.active {
+            background: var(--orange);
+            color: white;
+        }
+
+        .translate-option.active i {
+            color: white;
+        }
+
+        /* Header */
+        .page-header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .page-header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(90deg, var(--orange), var(--blood-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .hero-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .hero-content {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            color: var(--light-orange);
+            margin-bottom: 20px;
+        }
+
+        .hero-description {
+            font-size: 1.1rem;
+            color: var(--gray);
+            line-height: 1.7;
+            margin-bottom: 30px;
+        }
+
+        .hero-image {
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        .coding-man {
+            max-width: 100%;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            animation: float 6s ease-in-out infinite;
+            border: 3px solid var(--orange);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-10px) rotate(1deg); }
+            50% { transform: translateY(-20px) rotate(0deg); }
+            75% { transform: translateY(-10px) rotate(-1deg); }
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            color: var(--gray);
+        }
+
+        .breadcrumb a {
+            color: var(--light-orange);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--orange);
+            text-decoration: underline;
+        }
+
+        .breadcrumb i {
+            margin: 0 10px;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .action-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 35px;
+            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--orange);
+            box-shadow: 0 20px 40px rgba(255, 140, 50, 0.2);
+        }
+
+        .action-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--blood-red), var(--orange));
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            gap: 15px;
+        }
+
+        .card-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            flex-shrink: 0;
+            transition: transform 0.5s ease;
+        }
+
+        .action-card:hover .card-icon {
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        .card-title {
+            font-size: 1.6rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        .command-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid var(--orange);
+            font-family: 'Courier New', monospace;
+            color: var(--light-orange);
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .command {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .explanation {
+            color: var(--gray);
+            line-height: 1.7;
+            margin: 15px 0;
+            font-size: 1.05rem;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--navy-blue);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: var(--orange);
+            transform: scale(1.05);
+        }
+
+        /* Additional Actions */
+        .additional-actions {
+            margin: 50px 0;
+        }
+
+        .additional-actions h2 {
+            text-align: center;
+            color: var(--light-orange);
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+        }
+
+        .actions-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .action-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid var(--info);
+        }
+
+        .action-item h4 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-item p {
+            color: var(--gray);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .action-item .command {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            font-family: monospace;
+            color: var(--light-orange);
+            font-size: 0.95rem;
+        }
+
+        /* Warning Section */
+        .warning-section {
+            background: linear-gradient(135deg, rgba(179, 57, 57, 0.1), rgba(255, 152, 0, 0.1));
+            border-radius: var(--radius);
+            padding: 30px;
+            margin: 40px 0;
+            border-left: 5px solid var(--warning);
+        }
+
+        .warning-section h3 {
+            color: var(--warning);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .warning-section ul {
+            color: var(--gray);
+            line-height: 1.7;
+            margin-left: 20px;
+        }
+
+        .warning-section li {
+            margin-bottom: 10px;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--orange);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 2000;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Back Arrow */
+        .back-container {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--navy-blue);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(135deg, var(--blood-red), var(--orange));
+            color: white;
+            padding: 18px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border: 2px solid transparent;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(255, 140, 50, 0.3);
+            border-color: white;
+        }
+
+        .back-btn i {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .back-btn:hover i {
+            transform: translateX(-5px);
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animated {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Terminal Animation */
+        .terminal-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .terminal-prompt {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .terminal-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 20px;
+            background: var(--orange);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hero-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .action-card {
+                padding: 25px;
+            }
+            
+            .actions-list {
+                grid-template-columns: 1fr;
+            }
+
+            .translate-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+
+            .translate-menu {
+                bottom: 80px;
+                right: 20px;
+                min-width: 180px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .page-header {
+                padding: 20px 0;
+            }
+            
+            .back-btn {
+                padding: 15px 25px;
+                font-size: 1rem;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .card-icon {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Bouton de traduction flottant -->
+    <button class="translate-btn" id="translateBtn">
+        <i class="fas fa-language"></i>
+    </button>
+
+    <!-- Menu de traduction -->
+    <div class="translate-menu" id="translateMenu">
+        <div class="translate-option active" data-lang="fr">
+            <i class="fas fa-flag"></i>
+            <span>Français</span>
+        </div>
+        <div class="translate-option" data-lang="en">
+            <i class="fas fa-flag-usa"></i>
+            <span>English</span>
+        </div>
+        <div class="translate-option" data-lang="es">
+            <i class="fas fa-flag"></i>
+            <span>Español</span>
+        </div>
+        <div class="translate-option" data-lang="ar">
+            <i class="fas fa-flag"></i>
+            <span>العربية</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb animated">
+            <a href="index.html" id="breadcrumbHome">Accueil</a>
+            <i class="fas fa-chevron-right"></i>
+            <span id="breadcrumbCurrent">Après Installation</span>
+        </div>
+
+        <!-- Header -->
+        <header class="page-header animated">
+            <h1 id="mainTitle">Choses à Faire Après Installation</h1>
+            <p id="mainSubtitle">Optimisez et sécurisez votre Kali Linux fraîchement installé avec ces étapes essentielles</p>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero-section animated">
+            <div class="hero-content">
+                <h2 class="hero-title" id="heroTitle">Optimisez Votre Kali Linux</h2>
+                <p class="hero-description" id="heroDesc">
+                    Après avoir installé Kali Linux, il est crucial de mettre à jour le système, 
+                    installer les outils manquants et configurer votre environnement pour une expérience 
+                    optimale. Suivez ces étapes pour avoir un système propre, rapide et sécurisé.
+                </p>
+                <div class="terminal-animation">
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">root@kali:~#</span>
+                        <span>apt update && apt upgrade -y</span>
+                        <span class="terminal-cursor"></span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">root@kali:~#</span>
+                        <span>apt full-upgrade -y</span>
+                        <span class="terminal-cursor"></span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="terminal-prompt">root@kali:~#</span>
+                        <span>apt autoremove -y</span>
+                        <span class="terminal-cursor"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="https://images.unsplash.com/photo-1593642532842-98d0fd5ebc1a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                     alt="Bonhomme qui code sur Kali Linux" 
+                     class="coding-man"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iIzBhMTkzMSIvPjx0ZXh0IHg9IjQwMCIgeT0iMjUwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDgiIGZpbGw9IiNmZjhjMzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiPktBTEkgTElOVVg8L3RleHQ+PHRleHQgeD0iNDAwIiB5PSIzNTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzhkOTNhYiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Q29kaW5nIG9uIEthbGkgTGludXg8L3RleHQ+PC9zdmc+'">
+            </div>
+        </section>
+
+        <!-- Cards Grid -->
+        <div class="cards-grid">
+            <!-- Carte 1 -->
+            <div class="action-card animated" style="animation-delay: 0.1s">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title" id="card1Title">Mettre à Jour le Système</h3>
+                        <p class="explanation" id="card1Subtitle">Première étape essentielle</p>
+                    </div>
+                </div>
+                
+                <div class="command-box">
+                    <code class="command">apt update && apt upgrade -y</code>
+                    <button class="copy-btn" onclick="copyToClipboard('apt update && apt upgrade -y')">
+                        <i class="fas fa-copy"></i> <span id="copyBtnText">Copier</span>
+                    </button>
+                </div>
+                
+                <p class="explanation" id="card1Desc">
+                    Cette commande met à jour la liste des paquets disponibles et installe les mises à jour 
+                    de sécurité et de stabilité. <strong>APT-GET UPGRADE</strong> installe les nouvelles versions 
+                    des paquets existants sans supprimer les anciens paquets.
+                </p>
+                
+                <div class="note" style="background: rgba(33, 150, 243, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--info); margin-top: 15px;">
+                    <h4 id="card1NoteTitle"><i class="fas fa-info-circle"></i> Pourquoi faire ça ?</h4>
+                    <p id="card1Note">Assure que votre système a les derniers correctifs de sécurité et évite les vulnérabilités connues.</p>
+                </div>
+            </div>
+
+            <!-- Carte 2 -->
+            <div class="action-card animated" style="animation-delay: 0.2s">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title" id="card2Title">Mise à Niveau Complète</h3>
+                        <p class="explanation" id="card2Subtitle">Optimisation avancée du système</p>
+                    </div>
+                </div>
+                
+                <div class="command-box">
+                    <code class="command">apt update && apt full-upgrade -y</code>
+                    <button class="copy-btn" onclick="copyToClipboard('apt update && apt full-upgrade -y')">
+                        <i class="fas fa-copy"></i> <span id="copyBtnText">Copier</span>
+                    </button>
+                </div>
+                
+                <p class="explanation" id="card2Desc">
+                    <strong>APT-GET DIST-UPGRADE -Y</strong> est plus agressif que upgrade. Il gère intelligemment 
+                    les dépendances et peut installer de nouveaux paquets ou en supprimer d'anciens si nécessaire 
+                    pour résoudre les conflits de dépendances.
+                </p>
+                
+                <div class="note" style="background: rgba(76, 175, 80, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--success); margin-top: 15px;">
+                    <h4 id="card2NoteTitle"><i class="fas fa-check-circle"></i> Meilleure pratique</h4>
+                    <p id="card2Note">Utilisez <code>full-upgrade</code> (nouveau nom de <code>dist-upgrade</code>) pour les mises à jour majeures.</p>
+                </div>
+            </div>
+
+            <!-- Carte 3 -->
+            <div class="action-card animated" style="animation-delay: 0.3s">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-broom"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title" id="card3Title">Kali Linux Propre et Rapide</h3>
+                        <p class="explanation" id="card3Subtitle">Nettoyage et optimisation</p>
+                    </div>
+                </div>
+                
+                <div class="command-box">
+                    <code class="command">apt autoremove -y && apt clean && apt autoclean</code>
+                    <button class="copy-btn" onclick="copyToClipboard('apt autoremove -y && apt clean && apt autoclean')">
+                        <i class="fas fa-copy"></i> <span id="copyBtnText">Copier</span>
+                    </button>
+                </div>
+                
+                <p class="explanation" id="card3Desc">
+                    <strong>APT-GET CLEAN</strong> supprime les fichiers .deb téléchargés du cache. 
+                    <strong>APT-GET AUTOCLEAN</strong> ne supprime que les paquets qui ne peuvent plus être téléchargés. 
+                    Combiné avec <code>autoremove</code>, cela libère de l'espace disque et optimise les performances.
+                </p>
+                
+                <div class="note" style="background: rgba(255, 152, 0, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--warning); margin-top: 15px;">
+                    <h4 id="card3NoteTitle"><i class="fas fa-exclamation-triangle"></i> Attention</h4>
+                    <p id="card3Note"><code>autoremove</code> peut supprimer des paquets dont vous avez besoin. Vérifiez la liste avant confirmation.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Actions -->
+        <div class="additional-actions animated" style="animation-delay: 0.4s">
+            <h2 id="additionalTitle">Autres Actions Importantes</h2>
+            <div class="actions-list">
+                <div class="action-item">
+                    <h4><i class="fas fa-user-shield"></i> <span id="action1Title">Changer le Mot de passe Root</span></h4>
+                    <p id="action1Desc">Changez le mot de passe par défaut pour sécuriser votre système.</p>
+                    <div class="command">passwd</div>
+                </div>
+                
+                <div class="action-item">
+                    <h4><i class="fas fa-user-plus"></i> <span id="action2Title">Créer un Utilisateur Standard</span></h4>
+                    <p id="action2Desc">Évitez d'utiliser root pour les tâches quotidiennes.</p>
+                    <div class="command">adduser votrenom</div>
+                </div>
+                
+                <div class="action-item">
+                    <h4><i class="fas fa-network-wired"></i> <span id="action3Title">Configurer le Réseau</span></h4>
+                    <p id="action3Desc">Vérifiez et configurez vos interfaces réseau.</p>
+                    <div class="command">ip a<br>nano /etc/network/interfaces</div>
+                </div>
+                
+                <div class="action-item">
+                    <h4><i class="fas fa-download"></i> <span id="action4Title">Installer Outils Supplémentaires</span></h4>
+                    <p id="action4Desc">Installez des outils de sécurité supplémentaires.</p>
+                    <div class="command">apt install metasploit-framework wireshark john</div>
+                </div>
+                
+                <div class="action-item">
+                    <h4><i class="fas fa-cog"></i> <span id="action5Title">Configurer le Pare-feu</span></h4>
+                    <p id="action5Desc">Activez et configurez UFW (Uncomplicated Firewall).</p>
+                    <div class="command">ufw enable<br>ufw default deny incoming</div>
+                </div>
+                
+                <div class="action-item">
+                    <h4><i class="fas fa-clock"></i> <span id="action6Title">Vérifier l'Heure Système</span></h4>
+                    <p id="action6Desc">Assurez-vous que l'heure système est correcte.</p>
+                    <div class="command">timedatectl set-ntp true<br>timedatectl status</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warning Section -->
+        <div class="warning-section animated" style="animation-delay: 0.5s">
+            <h3 id="warningTitle"><i class="fas fa-exclamation-triangle"></i> Précautions Importantes</h3>
+            <ul id="warningList">
+                <li id="warning1"><strong>Toujours faire un backup</strong> avant les mises à jour majeures</li>
+                <li id="warning2"><strong>Ne pas utiliser root</strong> pour les tâches quotidiennes - créez un utilisateur standard</li>
+                <li id="warning3"><strong>Vérifier les paquets</strong> que <code>autoremove</code> va supprimer avant de confirmer</li>
+                <li id="warning4"><strong>Tester dans une VM</strong> avant d'appliquer des changements majeurs sur votre système principal</li>
+                <li id="warning5"><strong>Documenter vos configurations</strong> pour pouvoir les restaurer si nécessaire</li>
+            </ul>
+        </div>
+
+        <!-- Script Section -->
+        <div class="action-card animated" style="animation-delay: 0.6s; text-align: center;">
+            <div class="card-header" style="justify-content: center;">
+                <div class="card-icon">
+                    <i class="fas fa-file-code"></i>
+                </div>
+                <div>
+                    <h3 class="card-title" id="scriptTitle">Script d'Automatisation</h3>
+                    <p class="explanation" id="scriptSubtitle">Exécutez toutes les étapes en une commande</p>
+                </div>
+            </div>
+            
+            <div class="command-box" style="text-align: left;">
+                <code style="color: var(--light-orange);" id="scriptCode">
+#!/bin/bash<br>
+echo "Mise à jour du système..."<br>
+apt update && apt upgrade -y<br>
+echo "Mise à niveau complète..."<br>
+apt full-upgrade -y<br>
+echo "Nettoyage du système..."<br>
+apt autoremove -y && apt clean && apt autoclean<br>
+echo "Installation d'outils supplémentaires..."<br>
+apt install -y htop neofetch git curl wget<br>
+echo "Optimisation terminée !"<br>
+                </code>
+                <button class="copy-btn" onclick="copyToClipboard(document.querySelector('#scriptCode').textContent)">
+                    <i class="fas fa-copy"></i> <span id="copyBtnText">Copier</span>
+                </button>
+            </div>
+            
+            <p class="explanation" id="scriptDesc">
+                Enregistrez ce script dans un fichier <code>post-install.sh</code>, rendez-le exécutable avec 
+                <code>chmod +x post-install.sh</code> et exécutez-le avec <code>sudo ./post-install.sh</code>
+            </p>
+        </div>
+
+        <!-- Back Arrow -->
+        <div class="back-container animated" style="animation-delay: 0.7s">
+            <a href="index.html" class="back-btn" id="backBtn">
+                <i class="fas fa-arrow-left"></i>
+                <span id="backBtnText">Retour à la Page d'Accueil</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Traductions
+            const translations = {
+                fr: {
+                    breadcrumbHome: 'Accueil',
+                    breadcrumbCurrent: 'Après Installation',
+                    mainTitle: 'Choses à Faire Après Installation',
+                    mainSubtitle: 'Optimisez et sécurisez votre Kali Linux fraîchement installé avec ces étapes essentielles',
+                    heroTitle: 'Optimisez Votre Kali Linux',
+                    heroDesc: 'Après avoir installé Kali Linux, il est crucial de mettre à jour le système, installer les outils manquants et configurer votre environnement pour une expérience optimale. Suivez ces étapes pour avoir un système propre, rapide et sécurisé.',
+                    card1Title: 'Mettre à Jour le Système',
+                    card1Subtitle: 'Première étape essentielle',
+                    card1Desc: 'Cette commande met à jour la liste des paquets disponibles et installe les mises à jour de sécurité et de stabilité. APT-GET UPGRADE installe les nouvelles versions des paquets existants sans supprimer les anciens paquets.',
+                    card1NoteTitle: 'Pourquoi faire ça ?',
+                    card1Note: 'Assure que votre système a les derniers correctifs de sécurité et évite les vulnérabilités connues.',
+                    card2Title: 'Mise à Niveau Complète',
+                    card2Subtitle: 'Optimisation avancée du système',
+                    card2Desc: 'APT-GET DIST-UPGRADE -Y est plus agressif que upgrade. Il gère intelligemment les dépendances et peut installer de nouveaux paquets ou en supprimer d\'anciens si nécessaire pour résoudre les conflits de dépendances.',
+                    card2NoteTitle: 'Meilleure pratique',
+                    card2Note: 'Utilisez full-upgrade (nouveau nom de dist-upgrade) pour les mises à jour majeures.',
+                    card3Title: 'Kali Linux Propre et Rapide',
+                    card3Subtitle: 'Nettoyage et optimisation',
+                    card3Desc: 'APT-GET CLEAN supprime les fichiers .deb téléchargés du cache. APT-GET AUTOCLEAN ne supprime que les paquets qui ne peuvent plus être téléchargés. Combiné avec autoremove, cela libère de l\'espace disque et optimise les performances.',
+                    card3NoteTitle: 'Attention',
+                    card3Note: 'autoremove peut supprimer des paquets dont vous avez besoin. Vérifiez la liste avant confirmation.',
+                    additionalTitle: 'Autres Actions Importantes',
+                    action1Title: 'Changer le Mot de passe Root',
+                    action1Desc: 'Changez le mot de passe par défaut pour sécuriser votre système.',
+                    action2Title: 'Créer un Utilisateur Standard',
+                    action2Desc: 'Évitez d\'utiliser root pour les tâches quotidiennes.',
+                    action3Title: 'Configurer le Réseau',
+                    action3Desc: 'Vérifiez et configurez vos interfaces réseau.',
+                    action4Title: 'Installer Outils Supplémentaires',
+                    action4Desc: 'Installez des outils de sécurité supplémentaires.',
+                    action5Title: 'Configurer le Pare-feu',
+                    action5Desc: 'Activez et configurez UFW (Uncomplicated Firewall).',
+                    action6Title: 'Vérifier l\'Heure Système',
+                    action6Desc: 'Assurez-vous que l\'heure système est correcte.',
+                    warningTitle: 'Précautions Importantes',
+                    warning1: 'Toujours faire un backup avant les mises à jour majeures',
+                    warning2: 'Ne pas utiliser root pour les tâches quotidiennes - créez un utilisateur standard',
+                    warning3: 'Vérifier les paquets que autoremove va supprimer avant de confirmer',
+                    warning4: 'Tester dans une VM avant d\'appliquer des changements majeurs sur votre système principal',
+                    warning5: 'Documenter vos configurations pour pouvoir les restaurer si nécessaire',
+                    scriptTitle: 'Script d\'Automatisation',
+                    scriptSubtitle: 'Exécutez toutes les étapes en une commande',
+                    scriptDesc: 'Enregistrez ce script dans un fichier post-install.sh, rendez-le exécutable avec chmod +x post-install.sh et exécutez-le avec sudo ./post-install.sh',
+                    copyBtnText: 'Copier',
+                    backBtnText: 'Retour à la Page d\'Accueil'
+                },
+                en: {
+                    breadcrumbHome: 'Home',
+                    breadcrumbCurrent: 'After Installation',
+                    mainTitle: 'Things to Do After Installation',
+                    mainSubtitle: 'Optimize and secure your freshly installed Kali Linux with these essential steps',
+                    heroTitle: 'Optimize Your Kali Linux',
+                    heroDesc: 'After installing Kali Linux, it is crucial to update the system, install missing tools and configure your environment for an optimal experience. Follow these steps for a clean, fast and secure system.',
+                    card1Title: 'Update the System',
+                    card1Subtitle: 'First essential step',
+                    card1Desc: 'This command updates the list of available packages and installs security and stability updates. APT-GET UPGRADE installs new versions of existing packages without removing old packages.',
+                    card1NoteTitle: 'Why do this?',
+                    card1Note: 'Ensures your system has the latest security patches and avoids known vulnerabilities.',
+                    card2Title: 'Full Upgrade',
+                    card2Subtitle: 'Advanced system optimization',
+                    card2Desc: 'APT-GET DIST-UPGRADE -Y is more aggressive than upgrade. It intelligently handles dependencies and may install new packages or remove old ones if necessary to resolve dependency conflicts.',
+                    card2NoteTitle: 'Best practice',
+                    card2Note: 'Use full-upgrade (new name of dist-upgrade) for major updates.',
+                    card3Title: 'Clean and Fast Kali Linux',
+                    card3Subtitle: 'Cleaning and optimization',
+                    card3Desc: 'APT-GET CLEAN removes downloaded .deb files from cache. APT-GET AUTOCLEAN only removes packages that can no longer be downloaded. Combined with autoremove, this frees up disk space and optimizes performance.',
+                    card3NoteTitle: 'Caution',
+                    card3Note: 'autoremove may remove packages you need. Check the list before confirming.',
+                    additionalTitle: 'Other Important Actions',
+                    action1Title: 'Change Root Password',
+                    action1Desc: 'Change the default password to secure your system.',
+                    action2Title: 'Create Standard User',
+                    action2Desc: 'Avoid using root for daily tasks.',
+                    action3Title: 'Configure Network',
+                    action3Desc: 'Check and configure your network interfaces.',
+                    action4Title: 'Install Additional Tools',
+                    action4Desc: 'Install additional security tools.',
+                    action5Title: 'Configure Firewall',
+                    action5Desc: 'Enable and configure UFW (Uncomplicated Firewall).',
+                    action6Title: 'Check System Time',
+                    action6Desc: 'Ensure the system time is correct.',
+                    warningTitle: 'Important Precautions',
+                    warning1: 'Always backup before major updates',
+                    warning2: 'Do not use root for daily tasks - create a standard user',
+                    warning3: 'Check packages that autoremove will delete before confirming',
+                    warning4: 'Test in a VM before applying major changes to your main system',
+                    warning5: 'Document your configurations to be able to restore them if necessary',
+                    scriptTitle: 'Automation Script',
+                    scriptSubtitle: 'Run all steps in one command',
+                    scriptDesc: 'Save this script in a file post-install.sh, make it executable with chmod +x post-install.sh and run it with sudo ./post-install.sh',
+                    copyBtnText: 'Copy',
+                    backBtnText: 'Back to Home Page'
+                },
+                es: {
+                    breadcrumbHome: 'Inicio',
+                    breadcrumbCurrent: 'Después de la Instalación',
+                    mainTitle: 'Cosas que Hacer Después de la Instalación',
+                    mainSubtitle: 'Optimiza y asegura tu Kali Linux recién instalado con estos pasos esenciales',
+                    heroTitle: 'Optimiza tu Kali Linux',
+                    heroDesc: 'Después de instalar Kali Linux, es crucial actualizar el sistema, instalar las herramientas faltantes y configurar tu entorno para una experiencia óptima. Sigue estos pasos para tener un sistema limpio, rápido y seguro.',
+                    card1Title: 'Actualizar el Sistema',
+                    card1Subtitle: 'Primer paso esencial',
+                    card1Desc: 'Este comando actualiza la lista de paquetes disponibles e instala las actualizaciones de seguridad y estabilidad. APT-GET UPGRADE instala nuevas versiones de paquetes existentes sin eliminar paquetes antiguos.',
+                    card1NoteTitle: '¿Por qué hacer esto?',
+                    card1Note: 'Asegura que tu sistema tenga los últimos parches de seguridad y evita vulnerabilidades conocidas.',
+                    card2Title: 'Actualización Completa',
+                    card2Subtitle: 'Optimización avanzada del sistema',
+                    card2Desc: 'APT-GET DIST-UPGRADE -Y es más agresivo que upgrade. Maneja inteligentemente las dependencias y puede instalar nuevos paquetes o eliminar antiguos si es necesario para resolver conflictos de dependencias.',
+                    card2NoteTitle: 'Mejor práctica',
+                    card2Note: 'Use full-upgrade (nuevo nombre de dist-upgrade) para actualizaciones importantes.',
+                    card3Title: 'Kali Linux Limpio y Rápido',
+                    card3Subtitle: 'Limpieza y optimización',
+                    card3Desc: 'APT-GET CLEAN elimina los archivos .deb descargados del caché. APT-GET AUTOCLEAN solo elimina paquetes que ya no se pueden descargar. Combinado con autoremove, esto libera espacio en disco y optimiza el rendimiento.',
+                    card3NoteTitle: 'Precaución',
+                    card3Note: 'autoremove puede eliminar paquetes que necesitas. Verifica la lista antes de confirmar.',
+                    additionalTitle: 'Otras Acciones Importantes',
+                    action1Title: 'Cambiar Contraseña Root',
+                    action1Desc: 'Cambia la contraseña predeterminada para asegurar tu sistema.',
+                    action2Title: 'Crear Usuario Estándar',
+                    action2Desc: 'Evita usar root para tareas cotidianas.',
+                    action3Title: 'Configurar Red',
+                    action3Desc: 'Verifica y configura tus interfaces de red.',
+                    action4Title: 'Instalar Herramientas Adicionales',
+                    action4Desc: 'Instala herramientas de seguridad adicionales.',
+                    action5Title: 'Configurar Cortafuegos',
+                    action5Desc: 'Habilita y configura UFW (Uncomplicated Firewall).',
+                    action6Title: 'Verificar Hora del Sistema',
+                    action6Desc: 'Asegúrate de que la hora del sistema sea correcta.',
+                    warningTitle: 'Precauciones Importantes',
+                    warning1: 'Siempre haz una copia de seguridad antes de actualizaciones importantes',
+                    warning2: 'No uses root para tareas cotidianas - crea un usuario estándar',
+                    warning3: 'Verifica los paquetes que autoremove eliminará antes de confirmar',
+                    warning4: 'Prueba en una VM antes de aplicar cambios importantes en tu sistema principal',
+                    warning5: 'Documenta tus configuraciones para poder restaurarlas si es necesario',
+                    scriptTitle: 'Script de Automatización',
+                    scriptSubtitle: 'Ejecuta todos los pasos en un comando',
+                    scriptDesc: 'Guarda este script en un archivo post-install.sh, hazlo ejecutable con chmod +x post-install.sh y ejecútalo con sudo ./post-install.sh',
+                    copyBtnText: 'Copiar',
+                    backBtnText: 'Volver a la Página de Inicio'
+                },
+                ar: {
+                    breadcrumbHome: 'الرئيسية',
+                    breadcrumbCurrent: 'بعد التثبيت',
+                    mainTitle: 'أشياء يجب القيام بها بعد التثبيت',
+                    mainSubtitle: 'قم بتحسين وتأمين كالي لينكس المثبت حديثاً باستخدام هذه الخطوات الأساسية',
+                    heroTitle: 'قم بتحسين كالي لينكس الخاص بك',
+                    heroDesc: 'بعد تثبيت كالي لينكس، من الضروري تحديث النظام، وتثبيت الأدوات المفقودة وتكوين بيئتك للحصول على تجربة مثالية. اتبع هذه الخطوات للحصول على نظام نظيف وسريع وآمن.',
+                    card1Title: 'تحديث النظام',
+                    card1Subtitle: 'الخطوة الأساسية الأولى',
+                    card1Desc: 'يقوم هذا الأمر بتحديث قائمة الحزم المتاحة وتثبيت تحديثات الأمان والاستقرار. يقوم APT-GET UPGRADE بتثبيت إصدارات جديدة من الحزم الموجودة دون إزالة الحزم القديمة.',
+                    card1NoteTitle: 'لماذا تفعل هذا؟',
+                    card1Note: 'يضمن أن نظامك لديه أحدث تصحيحات الأمان ويتجنب الثغرات المعروفة.',
+                    card2Title: 'الترقية الكاملة',
+                    card2Subtitle: 'تحسين متقدم للنظام',
+                    card2Desc: 'APT-GET DIST-UPGRADE -Y أكثر قوة من upgrade. يدير التبعيات بذكاء وقد يقوم بتثبيت حزم جديدة أو إزالة حزم قديمة إذا لزم الأمر لحل تعارضات التبعيات.',
+                    card2NoteTitle: 'أفضل ممارسة',
+                    card2Note: 'استخدم full-upgrade (الاسم الجديد لـ dist-upgrade) للتحديثات الرئيسية.',
+                    card3Title: 'كالي لينكس نظيف وسريع',
+                    card3Subtitle: 'التنظيف والتحسين',
+                    card3Desc: 'يقوم APT-GET CLEAN بإزالة ملفات .deb التي تم تنزيلها من ذاكرة التخزين المؤقت. يقوم APT-GET AUTOCLEAN بإزالة الحزم التي لم يعد يمكن تنزيلها فقط. مع autoremove، هذا يحرر مساحة القرص ويحسن الأداء.',
+                    card3NoteTitle: 'تنبيه',
+                    card3Note: 'قد يقوم autoremove بإزالة حزم تحتاجها. تحقق من القائمة قبل التأكيد.',
+                    additionalTitle: 'إجراءات مهمة أخرى',
+                    action1Title: 'تغيير كلمة مرور الجذر',
+                    action1Desc: 'قم بتغيير كلمة المرور الافتراضية لتأمين نظامك.',
+                    action2Title: 'إنشاء مستخدم عادي',
+                    action2Desc: 'تجنب استخدام الجذر للمهام اليومية.',
+                    action3Title: 'تكوين الشبكة',
+                    action3Desc: 'تحقق من واجهات الشبكة الخاصة بك وقم بتكوينها.',
+                    action4Title: 'تثبيت أدوات إضافية',
+                    action4Desc: 'قم بتثبيت أدوات أمان إضافية.',
+                    action5Title: 'تكوين جدار الحماية',
+                    action5Desc: 'قم بتمكين وتكوين UFW (جدار الحماية غير المعقد).',
+                    action6Title: 'التحقق من وقت النظام',
+                    action6Desc: 'تأكد من أن وقت النظام صحيح.',
+                    warningTitle: 'احتياطات مهمة',
+                    warning1: 'قم دائماً بعمل نسخة احتياطية قبل التحديثات الرئيسية',
+                    warning2: 'لا تستخدم الجذر للمهام اليومية - قم بإنشاء مستخدم عادي',
+                    warning3: 'تحقق من الحزم التي سيزيلها autoremove قبل التأكيد',
+                    warning4: 'اختبر في جهاز افتراضي قبل تطبيق تغييرات رئيسية على نظامك الرئيسي',
+                    warning5: 'وثق تكويناتك لتتمكن من استعادتها إذا لزم الأمر',
+                    scriptTitle: 'سكريبت الأتمتة',
+                    scriptSubtitle: 'قم بتشغيل جميع الخطوات بأمر واحد',
+                    scriptDesc: 'احفظ هذا السكريبت في ملف post-install.sh، اجعله قابلاً للتنفيذ باستخدام chmod +x post-install.sh وقم بتشغيله باستخدام sudo ./post-install.sh',
+                    copyBtnText: 'نسخ',
+                    backBtnText: 'العودة إلى الصفحة الرئيسية'
+                }
+            };
+
+            // Éléments du DOM
+            const translateBtn = document.getElementById('translateBtn');
+            const translateMenu = document.getElementById('translateMenu');
+            const translateOptions = document.querySelectorAll('.translate-option');
+
+            // Langue actuelle
+            let currentLang = 'fr';
+
+            // Fonction pour changer la langue
+            function changeLanguage(lang) {
+                // Mettre à jour la classe active
+                translateOptions.forEach(opt => {
+                    opt.classList.remove('active');
+                    if (opt.dataset.lang === lang) {
+                        opt.classList.add('active');
+                    }
+                });
+
+                // Mettre à jour les textes
+                document.getElementById('breadcrumbHome').textContent = translations[lang].breadcrumbHome;
+                document.getElementById('breadcrumbCurrent').textContent = translations[lang].breadcrumbCurrent;
+                document.getElementById('mainTitle').textContent = translations[lang].mainTitle;
+                document.getElementById('mainSubtitle').textContent = translations[lang].mainSubtitle;
+                document.getElementById('heroTitle').textContent = translations[lang].heroTitle;
+                document.getElementById('heroDesc').textContent = translations[lang].heroDesc;
+                
+                // Cartes
+                document.getElementById('card1Title').textContent = translations[lang].card1Title;
+                document.getElementById('card1Subtitle').textContent = translations[lang].card1Subtitle;
+                document.getElementById('card1Desc').innerHTML = translations[lang].card1Desc;
+                document.getElementById('card1NoteTitle').innerHTML = `<i class="fas fa-info-circle"></i> ${translations[lang].card1NoteTitle}`;
+                document.getElementById('card1Note').textContent = translations[lang].card1Note;
+                
+                document.getElementById('card2Title').textContent = translations[lang].card2Title;
+                document.getElementById('card2Subtitle').textContent = translations[lang].card2Subtitle;
+                document.getElementById('card2Desc').innerHTML = translations[lang].card2Desc;
+                document.getElementById('card2NoteTitle').innerHTML = `<i class="fas fa-check-circle"></i> ${translations[lang].card2NoteTitle}`;
+                document.getElementById('card2Note').innerHTML = translations[lang].card2Note;
+                
+                document.getElementById('card3Title').textContent = translations[lang].card3Title;
+                document.getElementById('card3Subtitle').textContent = translations[lang].card3Subtitle;
+                document.getElementById('card3Desc').innerHTML = translations[lang].card3Desc;
+                document.getElementById('card3NoteTitle').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${translations[lang].card3NoteTitle}`;
+                document.getElementById('card3Note').innerHTML = translations[lang].card3Note;
+                
+                // Additional actions
+                document.getElementById('additionalTitle').textContent = translations[lang].additionalTitle;
+                document.getElementById('action1Title').textContent = translations[lang].action1Title;
+                document.getElementById('action1Desc').textContent = translations[lang].action1Desc;
+                document.getElementById('action2Title').textContent = translations[lang].action2Title;
+                document.getElementById('action2Desc').textContent = translations[lang].action2Desc;
+                document.getElementById('action3Title').textContent = translations[lang].action3Title;
+                document.getElementById('action3Desc').textContent = translations[lang].action3Desc;
+                document.getElementById('action4Title').textContent = translations[lang].action4Title;
+                document.getElementById('action4Desc').textContent = translations[lang].action4Desc;
+                document.getElementById('action5Title').textContent = translations[lang].action5Title;
+                document.getElementById('action5Desc').textContent = translations[lang].action5Desc;
+                document.getElementById('action6Title').textContent = translations[lang].action6Title;
+                document.getElementById('action6Desc').textContent = translations[lang].action6Desc;
+                
+                // Warning
+                document.getElementById('warningTitle').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${translations[lang].warningTitle}`;
+                document.getElementById('warning1').innerHTML = translations[lang].warning1;
+                document.getElementById('warning2').innerHTML = translations[lang].warning2;
+                document.getElementById('warning3').innerHTML = translations[lang].warning3;
+                document.getElementById('warning4').innerHTML = translations[lang].warning4;
+                document.getElementById('warning5').innerHTML = translations[lang].warning5;
+                
+                // Script
+                document.getElementById('scriptTitle').textContent = translations[lang].scriptTitle;
+                document.getElementById('scriptSubtitle').textContent = translations[lang].scriptSubtitle;
+                document.getElementById('scriptDesc').innerHTML = translations[lang].scriptDesc;
+                
+                // Copy button text
+                document.querySelectorAll('#copyBtnText').forEach(el => {
+                    el.textContent = translations[lang].copyBtnText;
+                });
+                
+                // Back button
+                document.getElementById('backBtnText').textContent = translations[lang].backBtnText;
+
+                // Afficher une notification
+                showNotification(translations[lang].breadcrumbHome === 'Accueil' ? 'Langue changée en Français' : 
+                                translations[lang].breadcrumbHome === 'Home' ? 'Language changed to English' :
+                                translations[lang].breadcrumbHome === 'Inicio' ? 'Idioma cambiado a Español' :
+                                'تم تغيير اللغة إلى العربية');
+
+                // Changer la direction du texte pour l'arabe
+                if (lang === 'ar') {
+                    document.body.style.direction = 'rtl';
+                    document.querySelectorAll('.breadcrumb i, .back-btn i').forEach(icon => {
+                        icon.style.transform = 'rotate(180deg)';
+                    });
+                } else {
+                    document.body.style.direction = 'ltr';
+                    document.querySelectorAll('.breadcrumb i, .back-btn i').forEach(icon => {
+                        icon.style.transform = 'rotate(0)';
+                    });
+                }
+
+                currentLang = lang;
+            }
+
+            // Fonction pour afficher les notifications
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
+            }
+
+            // Toggle du menu de traduction
+            translateBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                translateMenu.classList.toggle('active');
+            });
+
+            // Fermer le menu en cliquant ailleurs
+            document.addEventListener('click', (e) => {
+                if (!translateBtn.contains(e.target) && !translateMenu.contains(e.target)) {
+                    translateMenu.classList.remove('active');
+                }
+            });
+
+            // Changer la langue quand on clique sur une option
+            translateOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const lang = option.dataset.lang;
+                    changeLanguage(lang);
+                    translateMenu.classList.remove('active');
+                });
+            });
+
+            // Fonction pour copier dans le presse-papier
+            window.copyToClipboard = function(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    // Afficher une notification
+                    const notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 100px;
+                        right: 20px;
+                        background: var(--success);
+                        color: white;
+                        padding: 15px 25px;
+                        border-radius: 10px;
+                        z-index: 1000;
+                        animation: slideIn 0.3s ease;
+                        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                    `;
+                    notification.innerHTML = `<i class="fas fa-check"></i> Commande copiée !`;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.style.animation = 'slideOut 0.3s ease forwards';
+                        setTimeout(() => notification.remove(), 300);
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Erreur de copie:', err);
+                });
+            };
+
+            // Animation des éléments au défilement
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                        
+                        // Animation spéciale pour les icônes
+                        if (entry.target.querySelector('.card-icon')) {
+                            const icon = entry.target.querySelector('.card-icon');
+                            icon.style.transform = 'rotate(360deg) scale(1.1)';
+                            setTimeout(() => {
+                                icon.style.transform = 'rotate(0) scale(1)';
+                            }, 500);
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            // Appliquer l'effet aux éléments
+            document.querySelectorAll('.animated').forEach(element => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(30px)';
+                element.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                observer.observe(element);
+            });
+
+            // Animation des cartes au survol
+            document.querySelectorAll('.action-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const icon = this.querySelector('.card-icon');
+                    if (icon) {
+                        icon.style.transform = 'rotate(360deg) scale(1.2)';
+                    }
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    const icon = this.querySelector('.card-icon');
+                    if (icon) {
+                        icon.style.transform = 'rotate(0) scale(1)';
+                    }
+                });
+            });
+
+            // Animation des boutons de copie
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.1)';
+                });
+                
+                btn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+
+            // Effet de clic pour le bouton retour
+            const backBtn = document.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Animation de clic
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 200);
+                    
+                    // Redirection après animation
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 300);
+                });
+            }
+
+            // Animation du terminal
+            const terminalLines = document.querySelectorAll('.terminal-line');
+            terminalLines.forEach((line, index) => {
+                line.style.opacity = '0';
+                line.style.transform = 'translateX(-20px)';
+                
+                setTimeout(() => {
+                    line.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    line.style.opacity = '1';
+                    line.style.transform = 'translateX(0)';
+                }, index * 500);
+            });
+
+            // Animation de chargement initial
+            setTimeout(() => {
+                document.querySelectorAll('.animated').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }, 300);
+
+            // Ajouter les styles d'animation pour les notifications
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Animation de l'image du bonhomme qui code
+            const codingMan = document.querySelector('.coding-man');
+            if (codingMan) {
+                codingMan.addEventListener('mouseenter', function() {
+                    this.style.animation = 'float 2s ease-in-out infinite';
+                });
+                
+                codingMan.addEventListener('mouseleave', function() {
+                    this.style.animation = 'float 6s ease-in-out infinite';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
