@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#7C3AED">
+<title>{% block title %}Boost Reseller{% endblock %}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--violet:#7C3AED;--violet-d:#4C1D95;--dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;--white:#fff}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--off);color:var(--mid);min-height:100vh}
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+{% block content %}{% endblock %}
+{% block extra_js %}{% endblock %}
+</body>
+</html>
