@@ -1,0 +1,222 @@
+{% extends "dashboard/layout.html" %}
+
+{% block title %}Publier ma boutique — Boost Reseller{% endblock %}
+{% block page_title %}Publier ma boutique{% endblock %}
+{% block page_subtitle %}Rendez votre boutique visible au public{% endblock %}
+
+{% block extra_css %}
+.publier-card{background:#fff;border-radius:16px;padding:22px;border:1px solid #E2E8F0;box-shadow:0 2px 8px rgba(0,0,0,.03);margin-bottom:18px}
+.card-title{font-size:1rem;font-weight:800;color:#0F172A;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.card-title i{color:#00BFFF}
+.card-subtitle{font-size:.82rem;color:#64748B;margin-bottom:18px;line-height:1.5}
+
+/* Checklist */
+.check-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #E2E8F0}
+.check-item:last-child{border-bottom:none;padding-bottom:0}
+.check-item:first-child{padding-top:0}
+.check-ico{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;font-weight:900}
+.check-ico.ok{background:#EDFFF5;color:#059669}
+.check-ico.ko{background:#FEF3C7;color:#D97706}
+.check-text{flex:1;font-size:.85rem;font-weight:600;color:#0F172A}
+.check-action{font-size:.75rem;color:#00BFFF;font-weight:700;text-decoration:none}
+
+/* Formulaire */
+.fg{margin-bottom:18px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.inp{width:100%;padding:13px 14px;border:2px solid #E2E8F0;border-radius:11px;font-size:.92rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus{border-color:#00BFFF}
+.hint{font-size:.74rem;color:#94A3B8;margin-top:6px;line-height:1.5}
+.slug-preview{font-family:monospace;font-size:.78rem;color:#00BFFF;font-weight:700;margin-top:6px}
+
+/* Mode grid */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.mode-grid{grid-template-columns:1fr}}
+.mode-item{border:2px solid #E2E8F0;border-radius:14px;padding:18px;cursor:pointer;transition:all .22s;position:relative}
+.mode-item:hover{border-color:#00BFFF}
+.mode-item.sel{border-color:#00BFFF;background:#F0FAFF}
+.mode-item input{position:absolute;opacity:0}
+.mode-ico{font-size:1.5rem;margin-bottom:10px}
+.mode-title{font-size:.92rem;font-weight:800;color:#0F172A;margin-bottom:6px}
+.mode-desc{font-size:.78rem;color:#64748B;line-height:1.5}
+
+/* Prix card */
+.prix-card{background:linear-gradient(135deg,#0F172A,#1E293B);color:#fff;border-radius:16px;padding:24px;margin-bottom:18px;text-align:center;position:relative;overflow:hidden}
+.prix-card::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(0,191,255,.15) 0%,transparent 65%);pointer-events:none}
+.prix-val{font-size:2.4rem;font-weight:900;color:#fff;position:relative;z-index:1;line-height:1}
+.prix-lbl{font-size:.82rem;color:rgba(255,255,255,.7);margin-top:6px;position:relative;z-index:1}
+.prix-info{background:rgba(255,255,255,.08);border-radius:10px;padding:10px 14px;margin-top:14px;font-size:.78rem;color:rgba(255,255,255,.85);position:relative;z-index:1}
+
+/* Bouton */
+.btn-activer{width:100%;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,#FF6600,#E65C00);color:#fff;font-size:1rem;font-weight:900;cursor:pointer;box-shadow:0 8px 22px rgba(255,102,0,.35);transition:transform .2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-activer:hover:not(:disabled){transform:translateY(-2px)}
+.btn-activer:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* Success */
+.success-card{background:linear-gradient(135deg,#10B981,#059669);color:#fff;border-radius:16px;padding:30px 24px;text-align:center;margin-bottom:18px}
+.success-card .emoji{font-size:3rem;margin-bottom:14px}
+.success-card h2{color:#fff;font-size:1.3rem;font-weight:900;margin-bottom:10px}
+.success-card p{font-size:.9rem;opacity:.92;line-height:1.6;margin-bottom:18px}
+.success-slug{background:rgba(255,255,255,.2);border-radius:12px;padding:14px 16px;font-family:monospace;font-size:.85rem;font-weight:700;margin-bottom:16px;word-break:break-all}
+.btn-white{background:#fff;color:#059669;padding:13px 24px;border-radius:12px;text-decoration:none;font-weight:800;font-size:.9rem;display:inline-flex;align-items:center;gap:8px}
+{% endblock %}
+
+{% block dashboard_content %}
+
+{% if profile.est_revendeur %}
+<!-- DEJA PUBLIE -->
+<div class="success-card">
+  <div class="emoji">🎉</div>
+  <h2>Votre boutique est en ligne !</h2>
+  <p>Partagez ce lien pour attirer des clients :</p>
+  <div class="success-slug">{{ request.host_url.rstrip('/') }}/r/{{ profile.revendeur_slug }}</div>
+  <a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn-white">
+    <i class="fas fa-external-link-alt"></i> Voir ma boutique
+  </a>
+</div>
+
+<div class="publier-card">
+  <div class="card-title"><i class="fas fa-share-alt"></i> Partagez votre boutique</div>
+  <div class="card-subtitle">Copiez votre lien et partagez-le sur WhatsApp, Facebook, TikTok.</div>
+
+  <div style="background:#F8FAFC;border-radius:12px;padding:14px;font-family:monospace;font-size:.8rem;word-break:break-all;margin-bottom:12px">
+    {{ request.host_url.rstrip('/') }}/r/{{ profile.revendeur_slug }}
+  </div>
+
+  <button type="button" onclick="copierLien()" style="width:100%;padding:12px;border:none;border-radius:11px;background:#00BFFF;color:#fff;font-weight:800;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+    <i class="fas fa-copy"></i> Copier le lien
+  </button>
+</div>
+
+<script>
+function copierLien(){
+  var url = "{{ request.host_url.rstrip('/') }}/r/{{ profile.revendeur_slug }}";
+  navigator.clipboard.writeText(url).then(function(){
+    alert('Lien copie !');
+  });
+}
+</script>
+
+{% else %}
+<!-- PAS ENCORE PUBLIE -->
+
+<!-- CHECKLIST -->
+<div class="publier-card">
+  <div class="card-title"><i class="fas fa-list-check"></i> Avant de publier</div>
+  <div class="card-subtitle">Verifiez que votre boutique est prete.</div>
+
+  <div class="check-item">
+    <div class="check-ico {% if etapes_ok.nom %}ok{% else %}ko{% endif %}">
+      <i class="fas {% if etapes_ok.nom %}fa-check{% else %}fa-exclamation{% endif %}"></i>
+    </div>
+    <div class="check-text">Nom de la boutique defini</div>
+    {% if not etapes_ok.nom %}
+    <a href="{{ url_for('dashboard.boutique') }}" class="check-action">Configurer →</a>
+    {% endif %}
+  </div>
+
+  <div class="check-item">
+    <div class="check-ico {% if etapes_ok.whatsapp %}ok{% else %}ko{% endif %}">
+      <i class="fas {% if etapes_ok.whatsapp %}fa-check{% else %}fa-exclamation{% endif %}"></i>
+    </div>
+    <div class="check-text">Numero WhatsApp renseigne</div>
+    {% if not etapes_ok.whatsapp %}
+    <a href="{{ url_for('dashboard.boutique') }}" class="check-action">Configurer →</a>
+    {% endif %}
+  </div>
+
+  <div class="check-item">
+    <div class="check-ico {% if etapes_ok.logo_ou_slogan %}ok{% else %}ko{% endif %}">
+      <i class="fas {% if etapes_ok.logo_ou_slogan %}fa-check{% else %}fa-exclamation{% endif %}"></i>
+    </div>
+    <div class="check-text">Logo ou slogan defini</div>
+    {% if not etapes_ok.logo_ou_slogan %}
+    <a href="{{ url_for('dashboard.boutique') }}" class="check-action">Configurer →</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- PRIX -->
+<div class="prix-card">
+  <div style="font-size:1.8rem;margin-bottom:6px">🚀</div>
+  <div class="prix-lbl">Frais d'activation</div>
+  <div class="prix-val">{{ "{:,.0f}".format(prix_activation) }} FCFA</div>
+  <div class="prix-info">
+    <i class="fas fa-wallet"></i> Solde actuel : <strong>{{ "{:,.0f}".format(profile.balance or 0) }} FCFA</strong>
+    {% if (profile.balance or 0) < prix_activation %}
+    <br><span style="color:#FBBF24">⚠️ Solde insuffisant. Rechargez votre compte Boost Central.</span>
+    {% endif %}
+  </div>
+</div>
+
+<form method="POST" action="{{ url_for('dashboard.publier_activer') }}">
+
+  <!-- SLUG -->
+  <div class="publier-card">
+    <div class="card-title"><i class="fas fa-link"></i> Identifiant de votre boutique</div>
+    <div class="card-subtitle">Choisissez l'adresse unique de votre boutique.</div>
+
+    <div class="fg" style="margin-bottom:0">
+      <label>Identifiant</label>
+      <input class="inp" type="text" name="slug" id="slugInp" placeholder="ex: boost-douala" required pattern="[a-z0-9][a-z0-9-]{1,28}[a-z0-9]" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'');majSlug();">
+      <div class="slug-preview" id="slugPreview">
+        {{ request.host_url.rstrip('/') }}/r/...
+      </div>
+      <div class="hint">Lettres minuscules, chiffres et tirets uniquement (3-30 caracteres).</div>
+    </div>
+  </div>
+
+  <!-- MODE -->
+  <div class="publier-card">
+    <div class="card-title"><i class="fas fa-coins"></i> Comment voulez-vous gagner ?</div>
+    <div class="card-subtitle">Choisissez le mode qui vous convient. Vous pourrez le changer plus tard.</div>
+
+    <div class="mode-grid">
+      <label class="mode-item" id="cardMarge" onclick="choisirModele('marge')">
+        <input type="radio" name="modele" value="marge">
+        <div class="mode-ico">💰</div>
+        <div class="mode-title">Mes propres prix</div>
+        <div class="mode-desc">Vous fixez le prix de vente a vos clients et gardez toute la difference avec le tarif Boost Central.</div>
+      </label>
+
+      <label class="mode-item" id="cardCommission" onclick="choisirModele('commission')">
+        <input type="radio" name="modele" value="commission">
+        <div class="mode-ico">📊</div>
+        <div class="mode-title">Commission fixe</div>
+        <div class="mode-desc">Vous vendez au tarif Boost Central et touchez automatiquement 10% de commission sur chaque vente.</div>
+      </label>
+    </div>
+  </div>
+
+  <!-- BOUTON -->
+  {% if (profile.balance or 0) >= prix_activation and etapes_ok.nom and etapes_ok.whatsapp %}
+  <button type="submit" class="btn-activer" id="btnPublier" onclick="return confirm('Payer {{ prix_activation }} FCFA et publier votre boutique ?')">
+    <i class="fas fa-rocket"></i> Publier ma boutique ({{ "{:,.0f}".format(prix_activation) }} FCFA)
+  </button>
+  {% else %}
+  <button type="button" class="btn-activer" disabled>
+    <i class="fas fa-lock"></i>
+    {% if (profile.balance or 0) < prix_activation %}
+      Solde insuffisant
+    {% else %}
+      Completez votre boutique
+    {% endif %}
+  </button>
+  {% endif %}
+
+</form>
+
+<script>
+function majSlug(){
+  var v = document.getElementById('slugInp').value || '...';
+  document.getElementById('slugPreview').textContent = "{{ request.host_url.rstrip('/') }}/r/" + v;
+}
+
+function choisirModele(m){
+  document.querySelectorAll('.mode-item').forEach(c => c.classList.remove('sel'));
+  document.querySelector('input[value="'+m+'"]').checked = true;
+  document.getElementById(m === 'marge' ? 'cardMarge' : 'cardCommission').classList.add('sel');
+}
+</script>
+
+{% endif %}
+{% endblock %}
