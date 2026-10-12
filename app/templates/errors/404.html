@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}404 — Boost Reseller{% endblock %}
+{% block extra_css %}
+.centered{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+.centered h1{font-size:5rem;font-weight:900;color:#7C3AED;margin-bottom:10px}
+.centered p{font-size:1.1rem;color:#475569;margin-bottom:24px}
+.centered a{background:#7C3AED;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700}
+{% endblock %}
+{% block content %}
+<div class="centered">
+  <h1>404</h1>
+  <p>Cette page n'existe pas.</p>
+  <a href="/">Retour à l'accueil</a>
+</div>
+{% endblock %}
