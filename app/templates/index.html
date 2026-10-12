@@ -1,17 +1,151 @@
 {% extends "base.html" %}
-{% block title %}Boost Reseller — Site mère{% endblock %}
+{% block title %}Boost Reseller — Devenez revendeur Boost Central{% endblock %}
+
 {% block extra_css %}
-.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;background:linear-gradient(135deg,#7C3AED,#4C1D95);color:#fff}
-.hero h1{font-size:2.4rem;font-weight:900;margin-bottom:16px;line-height:1.2}
-.hero .badge{background:rgba(255,255,255,.2);padding:8px 20px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:24px;display:inline-block;letter-spacing:.5px}
-.hero p{font-size:1rem;opacity:.9;max-width:520px;line-height:1.7;margin-bottom:30px}
-.status{position:absolute;bottom:20px;font-size:.75rem;opacity:.6}
+.hero{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 20px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;right:-20%;width:80%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15) 0%,transparent 65%);pointer-events:none}
+.hero-badge{position:relative;background:rgba(255,255,255,.2);padding:8px 18px;border-radius:20px;font-size:.78rem;font-weight:700;margin-bottom:22px;display:inline-block;letter-spacing:.5px;backdrop-filter:blur(10px)}
+.hero h1{position:relative;font-size:2.4rem;font-weight:900;margin-bottom:16px;line-height:1.15;color:#fff;max-width:720px}
+.hero h1 span{color:var(--accent)}
+.hero p{position:relative;font-size:1rem;opacity:.95;max-width:560px;line-height:1.7;margin-bottom:32px;color:#fff}
+.hero-cta{position:relative;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.hero-cta .btn{min-width:200px}
+
+/* Avantages */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;max-width:1000px;margin:0 auto}
+.feat-card{background:var(--white);border-radius:16px;padding:24px;border:1px solid var(--gray);transition:transform .25s,box-shadow .25s}
+.feat-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.08)}
+.feat-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--primary-l),#fff);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--primary);margin-bottom:16px}
+.feat-card h3{font-size:1rem;font-weight:800;margin-bottom:8px;color:var(--dark)}
+.feat-card p{font-size:.85rem;color:var(--mid);line-height:1.6}
+
+/* Etape */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;max-width:1000px;margin:0 auto}
+.step{text-align:center;position:relative}
+.step-num{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;font-size:1.3rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 20px rgba(0,191,255,.3)}
+.step h3{font-size:.98rem;font-weight:800;margin-bottom:6px;color:var(--dark)}
+.step p{font-size:.82rem;color:var(--mid);line-height:1.6}
+
+/* CTA final */
+.cta-final{background:linear-gradient(135deg,var(--dark),#1E293B);border-radius:24px;padding:50px 30px;text-align:center;color:#fff;max-width:900px;margin:0 auto}
+.cta-final h2{font-size:1.7rem;font-weight:900;margin-bottom:14px;color:#fff}
+.cta-final p{font-size:.95rem;opacity:.85;margin-bottom:28px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.6}
+
+/* Section titres */
+.section-title{text-align:center;font-size:1.6rem;font-weight:900;color:var(--dark);margin-bottom:12px}
+.section-sub{text-align:center;font-size:.92rem;color:var(--mid);max-width:520px;margin:0 auto 40px;line-height:1.6}
+
+.footer{text-align:center;padding:30px 20px;font-size:.8rem;color:var(--light);border-top:1px solid var(--gray);margin-top:40px}
 {% endblock %}
+
+{% block nav %}
+<header class="pub-header">
+  <div class="pub-logo">BOOST RESELLER</div>
+  <div class="pub-nav">
+    <a href="#" class="btn btn-outline" style="padding:8px 16px;font-size:.82rem">Connexion</a>
+    <a href="#" class="btn btn-primary" style="padding:8px 18px;font-size:.82rem">Devenir revendeur</a>
+  </div>
+</header>
+{% endblock %}
+
 {% block content %}
-<div class="hero">
-  <div class="badge"><i class="fas fa-rocket"></i> BIENTÔT DISPONIBLE</div>
-  <h1>Boost Reseller</h1>
-  <p>La plateforme pour devenir revendeur Boost Central. Créez votre propre boutique, fixez vos prix, gagnez votre argent.</p>
-  <div class="status">✅ Site opérationnel — V1.0</div>
-</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🚀 PLATEFORME REVENDEUR</div>
+  <h1>Créez votre <span>propre boutique</span> en quelques minutes</h1>
+  <p>Vendez des services digitaux sous votre marque, fixez vos prix, encaissez vos gains. Boost Reseller est la plateforme qui vous propulse.</p>
+  <div class="hero-cta">
+    <a href="#" class="btn btn-accent"><i class="fas fa-rocket"></i> Commencer maintenant</a>
+    <a href="#" class="btn btn-outline" style="background:rgba(255,255,255,.15);border-color:#fff;color:#fff"><i class="fas fa-play"></i> Voir la démo</a>
+  </div>
+</section>
+
+<!-- AVANTAGES -->
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">Pourquoi devenir revendeur ?</h2>
+    <p class="section-sub">Une plateforme complète pour lancer votre business digital dès aujourd'hui.</p>
+
+    <div class="features">
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-store"></i></div>
+        <h3>Votre propre boutique</h3>
+        <p>Personnalisez votre nom, logo, couleurs et vendez sous votre propre marque.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-tags"></i></div>
+        <h3>Vos propres prix</h3>
+        <p>Fixez librement vos tarifs. Vous gardez toute la marge que vous ajoutez.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-bolt"></i></div>
+        <h3>Automatique</h3>
+        <p>Vos clients paient, vous recevez, tout est automatisé sans intervention.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-chart-line"></i></div>
+        <h3>Statistiques en temps réel</h3>
+        <p>Suivez vos ventes, vos gains et la progression de vos clients.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-mobile-alt"></i></div>
+        <h3>Mobile Money</h3>
+        <p>Vos clients paient en Orange Money, MTN Money ou carte bancaire.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><i class="fas fa-headset"></i></div>
+        <h3>Support dédié</h3>
+        <p>Une équipe disponible 7j/7 pour vous accompagner.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMMENT CA MARCHE -->
+<section class="section" style="background:var(--white)">
+  <div class="container">
+    <h2 class="section-title">Comment ça marche ?</h2>
+    <p class="section-sub">4 étapes simples pour lancer votre activité.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Inscrivez-vous</h3>
+        <p>Créez votre compte revendeur en 2 minutes.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Personnalisez</h3>
+        <p>Ajoutez votre logo, vos couleurs, votre nom.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Partagez</h3>
+        <p>Diffusez votre lien sur WhatsApp et les réseaux.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Encaissez</h3>
+        <p>Recevez vos gains automatiquement.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="section">
+  <div class="container">
+    <div class="cta-final">
+      <h2>Prêt à lancer votre business ?</h2>
+      <p>Rejoignez des dizaines de revendeurs qui développent leur activité avec Boost Reseller.</p>
+      <a href="#" class="btn btn-accent" style="padding:16px 32px;font-size:1rem"><i class="fas fa-rocket"></i> Créer mon compte revendeur</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <p>Boost Reseller — © 2026 — Propulsé par Boost Central</p>
+</footer>
+
 {% endblock %}
