@@ -8,13 +8,49 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{--violet:#7C3AED;--violet-d:#4C1D95;--dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;--white:#fff}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--off);color:var(--mid);min-height:100vh}
-</style>
+
+:root{
+  --violet:#7C3AED;
+  --violet-d:#4C1D95;
+  --dark:#0F172A;
+  --mid:#475569;
+  --light:#94A3B8;
+  --off:#F8FAFC;
+  --white:#ffffff;
+  --gray:#E2E8F0;
+  --green:#059669;
+  --red:#DC2626;
+  --orange:#FF6600;
+  --blue:#0066FF;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  background:var(--off);
+  color:var(--mid);
+  min-height:100vh;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+
+a{color:inherit;text-decoration:none}
+
+img{max-width:100%;height:auto;display:block}
+
+button{font-family:inherit;cursor:pointer}
+
+input,textarea,select{font-family:inherit}
+
 {% block extra_css %}{% endblock %}
+</style>
 </head>
 <body>
+
 {% block content %}{% endblock %}
+
 {% block extra_js %}{% endblock %}
+
 </body>
 </html>
