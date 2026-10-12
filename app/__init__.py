@@ -21,9 +21,14 @@ def create_app(config_name="production"):
     limiter.init_app(app)
     csrf.init_app(app)
 
+    # Enregistrer les blueprints
     from app.routes.home import home_bp
-    app.register_blueprint(home_bp)
+    from app.routes.auth import auth_bp
 
+    app.register_blueprint(home_bp)
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+
+    # Fichiers statiques
     @app.route("/sw.js")
     def sw():
         return send_from_directory("static", "sw.js", mimetype="application/javascript")
@@ -32,6 +37,7 @@ def create_app(config_name="production"):
     def manifest():
         return send_from_directory("static", "manifest.json", mimetype="application/manifest+json")
 
+    # Gestion des erreurs
     @app.errorhandler(404)
     def not_found(e):
         return render_template("errors/404.html"), 404
