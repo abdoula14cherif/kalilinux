@@ -1,0 +1,143 @@
+{% extends "dashboard/layout.html" %}
+
+{% block title %}Mes clients — Boost Reseller{% endblock %}
+{% block page_title %}Mes clients{% endblock %}
+{% block page_subtitle %}Tous les utilisateurs rattaches a votre boutique{% endblock %}
+
+{% block extra_css %}
+.clients-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat-mini{background:#fff;border-radius:14px;padding:16px;border:1px solid #E2E8F0;display:flex;align-items:center;gap:12px}
+.stat-mini-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0}
+.stat-mini-val{font-size:1.25rem;font-weight:900;color:#0F172A;line-height:1.1}
+.stat-mini-lbl{font-size:.72rem;color:#64748B;font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+
+.share-box{background:linear-gradient(135deg,#F0FAFF,#E0F7FF);border:2px dashed #00BFFF;border-radius:16px;padding:18px;margin-bottom:20px}
+.share-box-title{font-size:.9rem;font-weight:900;color:#0F172A;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.share-box-title i{color:#00BFFF}
+.share-box-text{font-size:.8rem;color:#475569;margin-bottom:12px;line-height:1.5}
+.share-link{background:#fff;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;border:1px solid #E2E8F0;margin-bottom:10px}
+.share-link-text{flex:1;font-family:monospace;font-size:.78rem;color:#0F172A;font-weight:700;word-break:break-all;min-width:0}
+.btn-copy{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;border:none;padding:9px 14px;border-radius:9px;font-weight:800;font-size:.76rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;gap:5px}
+.btn-wa{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;padding:11px 16px;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+
+.client-item{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;transition:all .2s}
+.client-item:hover{border-color:#CBD5E1;box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.client-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1rem;flex-shrink:0;text-transform:uppercase}
+.client-info{flex:1;min-width:0}
+.client-email{font-size:.87rem;font-weight:800;color:#0F172A;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.client-name{font-size:.74rem;color:#64748B;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.client-meta{font-size:.7rem;color:#94A3B8;margin-top:3px}
+.client-balance{text-align:right;flex-shrink:0}
+.client-balance-val{font-size:.92rem;font-weight:900;color:#059669}
+.client-balance-lbl{font-size:.68rem;color:#64748B;font-weight:700}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:1px solid #E2E8F0}
+.empty-state-ico{width:70px;height:70px;border-radius:50%;background:#F0FAFF;color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto}
+{% endblock %}
+
+{% block topbar_actions %}
+{% if profile.est_revendeur %}
+<a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-external-link-alt"></i> Voir ma boutique
+</a>
+{% endif %}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<!-- STATS -->
+<div class="clients-stats">
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#E0F7FF;color:#00BFFF"><i class="fas fa-users"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ mes_clients|length }}</div>
+      <div class="stat-mini-lbl">Clients total</div>
+    </div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#EDFFF5;color:#059669"><i class="fas fa-wallet"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ "{:,.0f}".format(mes_clients|map(attribute='balance')|sum) }} F</div>
+      <div class="stat-mini-lbl">Solde cumule</div>
+    </div>
+  </div>
+</div>
+
+<!-- BLOC DE PARTAGE -->
+{% if profile.est_revendeur %}
+<div class="share-box">
+  <div class="share-box-title"><i class="fas fa-link"></i> Invitez de nouveaux clients</div>
+  <div class="share-box-text">Partagez ce lien pour que les nouveaux inscrits soient automatiquement rattaches a votre boutique.</div>
+
+  <div class="share-link">
+    <div class="share-link-text" id="lienInvitation">
+      {{ request.host_url.rstrip('/') }}/r/{{ profile.revendeur_slug }}
+    </div>
+    <button type="button" class="btn-copy" onclick="copierInvitation()">
+      <i class="fas fa-copy"></i> Copier
+    </button>
+  </div>
+
+  <a href="https://wa.me/?text={{ 'Decouvre ma boutique Boost : '|urlencode }}{{ request.host_url.rstrip('/')|urlencode }}/r/{{ profile.revendeur_slug|urlencode }}"
+     target="_blank" class="btn-wa">
+    <i class="fab fa-whatsapp"></i> Partager sur WhatsApp
+  </a>
+</div>
+{% endif %}
+
+<!-- LISTE DES CLIENTS -->
+{% if mes_clients %}
+  {% for c in mes_clients %}
+  <div class="client-item">
+    <div class="client-avatar">
+      {{ (c.full_name or c.email or '?')[0] }}
+    </div>
+    <div class="client-info">
+      <div class="client-email">{{ c.email }}</div>
+      {% if c.full_name %}<div class="client-name">{{ c.full_name }}</div>{% endif %}
+      <div class="client-meta">
+        {% if c.country %}{{ c.country }} · {% endif %}
+        Rattache le {{ c.rattache_le[:10] if c.rattache_le else '' }}
+      </div>
+    </div>
+    <div class="client-balance">
+      <div class="client-balance-val">{{ "{:,.0f}".format(c.balance or 0) }}</div>
+      <div class="client-balance-lbl">FCFA</div>
+    </div>
+  </div>
+  {% endfor %}
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-state-ico"><i class="fas fa-user-plus"></i></div>
+  <h3>Aucun client pour l'instant</h3>
+  <p>Partagez votre lien de boutique pour que les nouveaux utilisateurs soient automatiquement rattaches a vous.</p>
+  {% if profile.est_revendeur %}
+  <a href="https://wa.me/?text={{ 'Decouvre ma boutique Boost : '|urlencode }}{{ request.host_url.rstrip('/')|urlencode }}/r/{{ profile.revendeur_slug|urlencode }}"
+     target="_blank" class="btn btn-accent" style="display:inline-flex;padding:12px 22px;font-size:.85rem">
+    <i class="fab fa-whatsapp"></i> Partager maintenant
+  </a>
+  {% endif %}
+</div>
+{% endif %}
+
+<script>
+function copierInvitation(){
+  var url = document.getElementById('lienInvitation').textContent.trim();
+  navigator.clipboard.writeText(url).then(function(){
+    alert('Lien copie !');
+  }).catch(function(){
+    var ta = document.createElement('textarea');
+    ta.value = url;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('Lien copie !');
+  });
+}
+</script>
+
+{% endblock %}
