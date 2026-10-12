@@ -1,0 +1,177 @@
+{% extends "dashboard/layout.html" %}
+
+{% block title %}Commandes — Boost Reseller{% endblock %}
+{% block page_title %}Commandes{% endblock %}
+{% block page_subtitle %}Commandes passees par vos clients{% endblock %}
+
+{% block extra_css %}
+.orders-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat-mini{background:#fff;border-radius:14px;padding:16px;border:1px solid #E2E8F0;display:flex;align-items:center;gap:12px}
+.stat-mini-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0}
+.stat-mini-val{font-size:1.25rem;font-weight:900;color:#0F172A;line-height:1.1}
+.stat-mini-lbl{font-size:.72rem;color:#64748B;font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+
+.filter-tabs{display:flex;gap:6px;margin-bottom:18px;overflow-x:auto;padding-bottom:4px}
+.filter-tab{padding:9px 16px;border-radius:10px;border:2px solid #E2E8F0;background:#fff;color:#64748B;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s;text-decoration:none}
+.filter-tab:hover{border-color:#CBD5E1}
+.filter-tab.active{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;border-color:transparent}
+
+.order-item{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:16px;margin-bottom:10px;transition:all .2s}
+.order-item:hover{border-color:#CBD5E1;box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.order-service{font-size:.92rem;font-weight:800;color:#0F172A;line-height:1.3}
+.order-reseau{font-size:.74rem;color:#64748B;margin-top:2px;display:flex;align-items:center;gap:5px}
+.order-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:.7rem;font-weight:800;letter-spacing:.3px;white-space:nowrap}
+.badge-wait{background:#FEF3C7;color:#92400E}
+.badge-run{background:#E0F7FF;color:#0096C7}
+.badge-done{background:#EDFFF5;color:#059669}
+.badge-ref{background:#FEE2E2;color:#991B1B}
+
+.order-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:.76rem;color:#64748B;padding-top:10px;border-top:1px dashed #E2E8F0}
+.order-meta-item{display:flex;align-items:center;gap:6px}
+.order-meta-item i{color:#94A3B8;font-size:.72rem}
+.order-meta-item strong{color:#0F172A;font-weight:700}
+.order-link{color:#00BFFF;text-decoration:none;font-weight:700;font-size:.74rem;word-break:break-all}
+.order-link:hover{text-decoration:underline}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:1px solid #E2E8F0}
+.empty-state-ico{width:70px;height:70px;border-radius:50%;background:#F0FAFF;color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto}
+
+.info-banner{background:#F0FAFF;border-left:4px solid #00BFFF;border-radius:14px;padding:14px 18px;margin-bottom:18px;font-size:.82rem;color:#0F172A;line-height:1.6}
+.info-banner i{color:#00BFFF;margin-right:6px}
+{% endblock %}
+
+{% block topbar_actions %}
+{% if profile.est_revendeur %}
+<a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-external-link-alt"></i> Voir ma boutique
+</a>
+{% endif %}
+{% endblock %}
+
+{% block dashboard_content %}
+
+{% set orders_en_attente = orders|selectattr('statut', 'equalto', 'en_attente')|list %}
+{% set orders_en_cours = orders|selectattr('statut', 'equalto', 'en_cours')|list %}
+{% set orders_termines = orders|selectattr('statut', 'equalto', 'termine')|list %}
+{% set revenus = orders|selectattr('statut', 'equalto', 'termine')|map(attribute='prix_total')|sum %}
+
+<!-- STATS -->
+<div class="orders-stats">
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#F5F3FF;color:#7C3AED"><i class="fas fa-box"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ orders|length }}</div>
+      <div class="stat-mini-lbl">Total commandes</div>
+    </div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#FEF3C7;color:#D97706"><i class="fas fa-hourglass-half"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ orders_en_attente|length + orders_en_cours|length }}</div>
+      <div class="stat-mini-lbl">En cours</div>
+    </div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#EDFFF5;color:#059669"><i class="fas fa-check-circle"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ orders_termines|length }}</div>
+      <div class="stat-mini-lbl">Terminees</div>
+    </div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#FFF3E6;color:#FF6600"><i class="fas fa-coins"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ "{:,.0f}".format(revenus) }} F</div>
+      <div class="stat-mini-lbl">Revenus</div>
+    </div>
+  </div>
+</div>
+
+{% if orders %}
+<div class="info-banner">
+  <i class="fas fa-info-circle"></i>
+  Ces commandes ont ete passees par <strong>vos clients</strong> sur votre boutique. Vous n'avez rien a faire — elles sont traitees automatiquement par Boost Central.
+</div>
+
+<!-- FILTRES -->
+<div class="filter-tabs">
+  <a href="{{ url_for('dashboard.commandes') }}" class="filter-tab {% if not request.args.get('statut') %}active{% endif %}">
+    Toutes ({{ orders|length }})
+  </a>
+  <a href="{{ url_for('dashboard.commandes') }}?statut=en_attente" class="filter-tab {% if request.args.get('statut') == 'en_attente' %}active{% endif %}">
+    En attente ({{ orders_en_attente|length }})
+  </a>
+  <a href="{{ url_for('dashboard.commandes') }}?statut=en_cours" class="filter-tab {% if request.args.get('statut') == 'en_cours' %}active{% endif %}">
+    En cours ({{ orders_en_cours|length }})
+  </a>
+  <a href="{{ url_for('dashboard.commandes') }}?statut=termine" class="filter-tab {% if request.args.get('statut') == 'termine' %}active{% endif %}">
+    Terminees ({{ orders_termines|length }})
+  </a>
+</div>
+
+{% set icons = {
+  'facebook': 'fab fa-facebook', 'instagram': 'fab fa-instagram', 'tiktok': 'fab fa-tiktok',
+  'youtube': 'fab fa-youtube', 'twitter': 'fab fa-twitter', 'telegram': 'fab fa-telegram',
+  'whatsapp': 'fab fa-whatsapp', 'spotify': 'fab fa-spotify', 'snapchat': 'fab fa-snapchat'
+} %}
+
+{% set smap = {
+  'en_attente': ('badge-wait', 'En attente', 'fa-clock'),
+  'en_cours': ('badge-run', 'En cours', 'fa-spinner'),
+  'termine': ('badge-done', 'Termine', 'fa-check-circle'),
+  'refuse': ('badge-ref', 'Refuse', 'fa-times-circle')
+} %}
+
+{% set filter_statut = request.args.get('statut', '') %}
+
+{% for o in orders %}
+  {% if not filter_statut or o.statut == filter_statut %}
+  {% set badge = smap.get(o.statut, ('badge-wait', 'En attente', 'fa-clock')) %}
+
+  <div class="order-item">
+    <div class="order-top">
+      <div style="flex:1;min-width:0">
+        <div class="order-service">{{ o.service }}</div>
+        <div class="order-reseau">
+          <i class="{{ icons.get(o.reseau, 'fas fa-share-alt') }}"></i>
+          {{ o.reseau|capitalize }}
+        </div>
+      </div>
+      <span class="order-badge {{ badge[0] }}"><i class="fas {{ badge[2] }}"></i> {{ badge[1] }}</span>
+    </div>
+
+    <div class="order-meta">
+      <div class="order-meta-item"><i class="fas fa-user"></i> <strong>{{ o.user_email }}</strong></div>
+      <div class="order-meta-item"><i class="fas fa-hashtag"></i> <strong>{{ "{:,}".format(o.quantite) }}</strong> unites</div>
+      <div class="order-meta-item"><i class="fas fa-coins"></i> <strong>{{ "{:,.0f}".format(o.prix_total) }} F</strong></div>
+      <div class="order-meta-item"><i class="fas fa-calendar"></i> {{ o.created_at[:10] if o.created_at else '' }}</div>
+    </div>
+
+    {% if o.lien %}
+    <div style="margin-top:8px">
+      <a href="{{ o.lien }}" target="_blank" class="order-link">
+        <i class="fas fa-external-link-alt"></i> {{ o.lien[:50] }}{% if o.lien|length > 50 %}...{% endif %}
+      </a>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+{% endfor %}
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-state-ico"><i class="fas fa-box-open"></i></div>
+  <h3>Aucune commande pour l'instant</h3>
+  <p>Des que vos clients passeront des commandes sur votre boutique, elles apparaitront ici.</p>
+  {% if profile.est_revendeur %}
+  <a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn btn-primary" style="display:inline-flex;padding:12px 22px;font-size:.85rem">
+    <i class="fas fa-store"></i> Voir ma boutique
+  </a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
