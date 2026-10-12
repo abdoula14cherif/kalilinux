@@ -47,6 +47,20 @@ def get_profile_by_email(email):
         return None
 
 
+def get_profile_by_slug(slug):
+    """Recupere un profil revendeur par son slug (boutique publique)."""
+    try:
+        r = requests.get(
+            _url(f"profiles?revendeur_slug=eq.{slug}&est_revendeur=eq.true&limit=1"),
+            headers=_headers(True)
+        )
+        data = r.json()
+        return data[0] if isinstance(data, list) and data else None
+    except Exception as e:
+        logger.error(f"get_profile_by_slug: {e}")
+        return None
+
+
 def update_profile(user_id, data):
     """Met a jour un profil."""
     try:
@@ -112,9 +126,13 @@ def activer_revendeur(user_id, slug, modele, commission_pct=0.10):
 # SERVICES
 # ═══════════════════════════════════════════════════════════════
 
-def get_active_services():
+def get_active_services(network=None):
     try:
-        r = requests.get(_url("services?actif=eq.true&order=reseau,categorie"), headers=_headers(True))
+        if network:
+            url = _url(f"services?actif=eq.true&reseau=eq.{network}&order=categorie")
+        else:
+            url = _url("services?actif=eq.true&order=reseau,categorie")
+        r = requests.get(url, headers=_headers(True))
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
