@@ -1,46 +1,113 @@
 {% extends "dashboard/layout.html" %}
 
 {% block title %}Accueil — Boost Reseller{% endblock %}
-{% block page_title %}Bonjour {{ (profile.full_name or profile.email).split()[0] }} 👋{% endblock %}
-{% block page_subtitle %}Voici un apercu de votre espace revendeur{% endblock %}
+
+{% block page_title %}<span style="font-size:1.25rem">Bonjour {{ (profile.full_name or profile.email).split()[0] }} 👋</span>{% endblock %}
+{% block page_subtitle %}Voici un aperçu de votre espace revendeur{% endblock %}
 
 {% block topbar_actions %}
   {% if not profile.est_revendeur %}
-  <a href="{{ url_for('dashboard.publier') }}" class="btn btn-primary" style="padding:9px 16px;font-size:.82rem">
+  <a href="{{ url_for('dashboard.publier') }}" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem;font-weight:700">
     <i class="fas fa-rocket"></i> Publier ma boutique
   </a>
   {% else %}
-  <a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn btn-primary" style="padding:9px 16px;font-size:.82rem">
+  <a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem;font-weight:700">
     <i class="fas fa-external-link-alt"></i> Voir ma boutique
   </a>
   {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+/* CARTE STATUT EN LIGNE */
+.status-card{background:linear-gradient(135deg,#10B981,#059669);color:#fff;border-radius:20px;padding:22px 24px;margin-bottom:20px;box-shadow:0 10px 30px rgba(16,185,129,.25);position:relative;overflow:hidden}
+.status-card::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15) 0%,transparent 65%);pointer-events:none}
+.status-card.draft{background:linear-gradient(135deg,#00BFFF,#0096C7);box-shadow:0 10px 30px rgba(0,191,255,.25)}
+.status-row{display:flex;align-items:center;gap:14px;margin-bottom:14px;position:relative;z-index:1}
+.status-icon{width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.status-title{font-size:1.05rem;font-weight:900;color:#fff;margin-bottom:2px}
+.status-sub{font-size:.82rem;opacity:.9;line-height:1.4}
+.status-link{background:rgba(255,255,255,.2);backdrop-filter:blur(10px);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:1;margin-top:14px}
+.status-link-text{font-family:monospace;font-size:.78rem;font-weight:700;color:#fff;word-break:break-all;flex:1}
+.status-link-btn{background:#fff;color:#059669;padding:8px 14px;border-radius:9px;text-decoration:none;font-weight:800;font-size:.76rem;flex-shrink:0;display:flex;align-items:center;gap:6px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+.stat-card{background:#fff;border-radius:16px;padding:18px 16px;border:1px solid var(--gray);box-shadow:0 2px 8px rgba(0,0,0,.03);transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.06)}
+.stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.stat-ico{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.stat-label{font-size:.74rem;color:var(--mid);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.stat-value{font-size:1.5rem;font-weight:900;color:var(--dark);line-height:1.1}
+.stat-value small{font-size:.8rem;font-weight:600;color:var(--mid);margin-left:2px}
+.stat-trend{font-size:.72rem;color:var(--green);font-weight:700;margin-top:6px;display:flex;align-items:center;gap:4px}
+
+/* ACTIONS RAPIDES */
+.actions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:22px}
+.action-card{background:#fff;border-radius:14px;padding:18px 14px;border:1px solid var(--gray);text-align:center;text-decoration:none;transition:all .22s;display:flex;flex-direction:column;align-items:center;gap:10px}
+.action-card:hover{border-color:var(--primary);transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,191,255,.12)}
+.action-ico{width:46px;height:46px;border-radius:13px;background:var(--primary-l);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.action-card.accent .action-ico{background:#FFF3E6;color:var(--accent)}
+.action-card.green .action-ico{background:#EDFFF5;color:var(--green)}
+.action-card.purple .action-ico{background:#F5F3FF;color:#7C3AED}
+.action-label{font-size:.83rem;font-weight:700;color:var(--dark);line-height:1.3}
+
+/* PROGRESSION */
+.progress-list{display:flex;flex-direction:column;gap:2px}
+.progress-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--gray);text-decoration:none;color:inherit;transition:background .2s}
+.progress-item:last-child{border-bottom:none;padding-bottom:0}
+.progress-item:first-child{padding-top:0}
+.progress-item:hover{background:var(--off)}
+.progress-check{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.85rem;font-weight:900}
+.progress-check.done{background:#EDFFF5;color:var(--green)}
+.progress-check.todo{background:var(--primary-l);color:var(--primary)}
+.progress-text{flex:1;font-size:.88rem;font-weight:600;color:var(--dark)}
+.progress-arrow{color:var(--light);font-size:.82rem}
+
+/* ORDERS */
+.order-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray)}
+.order-item:last-child{border-bottom:none}
+.order-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;flex-shrink:0}
+.order-info{flex:1;min-width:0}
+.order-title{font-size:.85rem;font-weight:700;color:var(--dark);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.order-meta{font-size:.74rem;color:var(--mid)}
+.order-price{font-size:.88rem;font-weight:900;color:var(--accent);flex-shrink:0}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:30px 20px;color:var(--light)}
+.empty-state i{font-size:2rem;color:var(--gray);margin-bottom:10px;display:block}
+.empty-state p{font-size:.84rem;color:var(--mid)}
 {% endblock %}
 
 {% block dashboard_content %}
 
 <!-- CARTE STATUT -->
 {% if not profile.est_revendeur %}
-<div class="card" style="background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;border:none">
-  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-    <div style="font-size:2.5rem">🚀</div>
-    <div style="flex:1;min-width:200px">
-      <h3 style="color:#fff;font-size:1.1rem;font-weight:900;margin-bottom:6px">Votre boutique est en brouillon</h3>
-      <p style="font-size:.85rem;opacity:.92;line-height:1.6">Completez les informations de votre boutique puis publiez-la pour la rendre visible au public.</p>
+<div class="status-card draft">
+  <div class="status-row">
+    <div class="status-icon">🚀</div>
+    <div style="flex:1;min-width:0">
+      <div class="status-title">Votre boutique est en brouillon</div>
+      <div class="status-sub">Complétez votre configuration puis publiez pour la rendre visible.</div>
     </div>
-    <a href="{{ url_for('dashboard.publier') }}" class="btn btn-accent" style="padding:12px 22px;white-space:nowrap">
-      <i class="fas fa-rocket"></i> Publier
+  </div>
+  <div style="position:relative;z-index:1">
+    <a href="{{ url_for('dashboard.publier') }}" style="display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--primary-d);padding:11px 20px;border-radius:11px;text-decoration:none;font-weight:800;font-size:.85rem;box-shadow:0 4px 14px rgba(0,0,0,.1)">
+      <i class="fas fa-rocket"></i> Publier ma boutique
     </a>
   </div>
 </div>
 {% else %}
-<div class="card" style="background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none">
-  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-    <div style="font-size:2.5rem">✅</div>
-    <div style="flex:1;min-width:200px">
-      <h3 style="color:#fff;font-size:1.1rem;font-weight:900;margin-bottom:6px">Votre boutique est en ligne !</h3>
-      <p style="font-size:.85rem;opacity:.92;line-height:1.6">Partagez votre lien pour attirer des clients : <strong>{{ profile.revendeur_slug }}</strong></p>
+<div class="status-card">
+  <div class="status-row">
+    <div class="status-icon">✅</div>
+    <div style="flex:1;min-width:0">
+      <div class="status-title">Votre boutique est en ligne !</div>
+      <div class="status-sub">Partagez votre lien pour attirer des clients.</div>
     </div>
-    <a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn btn-accent" style="padding:12px 22px;white-space:nowrap">
+  </div>
+  <div class="status-link">
+    <div class="status-link-text"><i class="fas fa-link"></i> boostcentral.world/r/{{ profile.revendeur_slug }}</div>
+    <a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="status-link-btn">
       <i class="fas fa-external-link-alt"></i> Voir
     </a>
   </div>
@@ -48,56 +115,113 @@
 {% endif %}
 
 <!-- STATS -->
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px">
-  <div class="card" style="text-align:center;padding:18px">
-    <div style="font-size:1.6rem;font-weight:900;color:var(--primary)">{{ "{:,.0f}".format(profile.balance or 0) }}</div>
-    <div style="font-size:.76rem;color:var(--mid);font-weight:600;margin-top:4px">Solde (FCFA)</div>
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-ico" style="background:#E0F7FF;color:#00BFFF"><i class="fas fa-wallet"></i></div>
+      <span style="font-size:.68rem;font-weight:700;color:#00BFFF;background:#E0F7FF;padding:3px 8px;border-radius:10px">SOLDE</span>
+    </div>
+    <div class="stat-label">Solde disponible</div>
+    <div class="stat-value">{{ "{:,.0f}".format(profile.balance or 0) }} <small>FCFA</small></div>
   </div>
-  <div class="card" style="text-align:center;padding:18px">
-    <div style="font-size:1.6rem;font-weight:900;color:var(--accent)">{{ "{:,.0f}".format(profile.solde_affilie or 0) }}</div>
-    <div style="font-size:.76rem;color:var(--mid);font-weight:600;margin-top:4px">Gains affilies</div>
+
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-ico" style="background:#FFF3E6;color:#FF6600"><i class="fas fa-coins"></i></div>
+      <span style="font-size:.68rem;font-weight:700;color:#FF6600;background:#FFF3E6;padding:3px 8px;border-radius:10px">GAINS</span>
+    </div>
+    <div class="stat-label">Gains affilies</div>
+    <div class="stat-value">{{ "{:,.0f}".format(profile.solde_affilie or 0) }} <small>FCFA</small></div>
   </div>
-  <div class="card" style="text-align:center;padding:18px">
-    <div style="font-size:1.6rem;font-weight:900;color:var(--green)">0</div>
-    <div style="font-size:.76rem;color:var(--mid);font-weight:600;margin-top:4px">Mes clients</div>
+
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-ico" style="background:#EDFFF5;color:#059669"><i class="fas fa-users"></i></div>
+      <span style="font-size:.68rem;font-weight:700;color:#059669;background:#EDFFF5;padding:3px 8px;border-radius:10px">CLIENTS</span>
+    </div>
+    <div class="stat-label">Mes clients</div>
+    <div class="stat-value">0</div>
   </div>
-  <div class="card" style="text-align:center;padding:18px">
-    <div style="font-size:1.6rem;font-weight:900;color:var(--dark)">0</div>
-    <div style="font-size:.76rem;color:var(--mid);font-weight:600;margin-top:4px">Commandes</div>
+
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-ico" style="background:#F5F3FF;color:#7C3AED"><i class="fas fa-box"></i></div>
+      <span style="font-size:.68rem;font-weight:700;color:#7C3AED;background:#F5F3FF;padding:3px 8px;border-radius:10px">TOTAL</span>
+    </div>
+    <div class="stat-label">Commandes</div>
+    <div class="stat-value">0</div>
   </div>
 </div>
 
-<!-- ETAPES DE CONFIGURATION -->
+<!-- ACTIONS RAPIDES -->
+<div class="card">
+  <div class="card-title"><i class="fas fa-bolt"></i> Actions rapides</div>
+  <div class="actions-grid" style="margin-bottom:0">
+    <a href="{{ url_for('dashboard.boutique') }}" class="action-card">
+      <div class="action-ico"><i class="fas fa-palette"></i></div>
+      <div class="action-label">Personnaliser<br>ma boutique</div>
+    </a>
+    <a href="{{ url_for('dashboard.prix') }}" class="action-card accent">
+      <div class="action-ico"><i class="fas fa-tags"></i></div>
+      <div class="action-label">Mes prix<br>& tarifs</div>
+    </a>
+    <a href="{{ url_for('dashboard.publier') }}" class="action-card green">
+      <div class="action-ico"><i class="fas fa-rocket"></i></div>
+      <div class="action-label">Publier<br>ma boutique</div>
+    </a>
+    <a href="https://wa.me/237658033690?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20sur%20mon%20espace%20revendeur" target="_blank" class="action-card purple">
+      <div class="action-ico"><i class="fab fa-whatsapp"></i></div>
+      <div class="action-label">Contacter<br>le support</div>
+    </a>
+  </div>
+</div>
+
+<!-- PROGRESSION DE CONFIGURATION -->
 <div class="card">
   <div class="card-title"><i class="fas fa-list-check"></i> Progression de votre configuration</div>
 
-  {% set etapes = [
-    ('Apparence de la boutique', 'dashboard.boutique', 'fas fa-palette', profile.boutique_nom),
-    ('Mes prix', 'dashboard.prix', 'fas fa-tags', False),
-    ('Mon abonnement', 'dashboard.abonnement', 'fas fa-crown', False),
-    ('Publier ma boutique', 'dashboard.publier', 'fas fa-rocket', profile.est_revendeur)
-  ] %}
+  <div class="progress-list">
+    {% set etapes = [
+      ('Apparence de la boutique', 'dashboard.boutique', 'fas fa-palette', profile.boutique_nom),
+      ('Mes prix et tarifs', 'dashboard.prix', 'fas fa-tags', False),
+      ('Mon abonnement', 'dashboard.abonnement', 'fas fa-crown', False),
+      ('Publier ma boutique', 'dashboard.publier', 'fas fa-rocket', profile.est_revendeur)
+    ] %}
 
-  {% for titre, endpoint, icone, fait in etapes %}
-  <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--gray)">
-    <div style="width:36px;height:36px;border-radius:10px;background:{% if fait %}#EDFFF5{% else %}#E0F7FF{% endif %};color:{% if fait %}var(--green){% else %}var(--primary){% endif %};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-      <i class="{% if fait %}fas fa-check{% else %}{{ icone }}{% endif %}"></i>
-    </div>
-    <div style="flex:1;font-size:.88rem;font-weight:600;color:var(--dark)">{{ titre }}</div>
-    <a href="{{ url_for(endpoint) }}" style="font-size:.78rem;color:var(--primary);font-weight:700;text-decoration:none">
-      {% if fait %}Modifier{% else %}Configurer{% endif %} <i class="fas fa-arrow-right"></i>
+    {% for titre, endpoint, icone, fait in etapes %}
+    <a href="{{ url_for(endpoint) }}" class="progress-item">
+      <div class="progress-check {% if fait %}done{% else %}todo{% endif %}">
+        <i class="{% if fait %}fas fa-check{% else %}{{ icone }}{% endif %}"></i>
+      </div>
+      <div class="progress-text">{{ titre }}</div>
+      <div class="progress-arrow">
+        {% if fait %}Modifier{% else %}Configurer{% endif %} <i class="fas fa-chevron-right" style="font-size:.7rem"></i>
+      </div>
     </a>
+    {% endfor %}
   </div>
-  {% endfor %}
 </div>
 
-<!-- BESOIN D'AIDE -->
-<div class="card" style="text-align:center;background:var(--off)">
-  <div style="font-size:1.5rem;margin-bottom:8px">💬</div>
-  <h3 style="font-size:.98rem;font-weight:800;color:var(--dark);margin-bottom:6px">Besoin d'aide ?</h3>
-  <p style="font-size:.83rem;color:var(--mid);margin-bottom:14px">Notre equipe est disponible 24/7 pour vous accompagner.</p>
-  <a href="https://wa.me/237658033690?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20sur%20mon%20espace%20revendeur" target="_blank" class="btn btn-primary" style="padding:10px 20px;font-size:.82rem">
-    <i class="fab fa-whatsapp"></i> Contacter le support
+<!-- DERNIERES COMMANDES -->
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div class="card-title" style="margin-bottom:0"><i class="fas fa-box"></i> Dernieres commandes</div>
+    <a href="{{ url_for('dashboard.commandes') }}" style="font-size:.78rem;color:var(--primary);font-weight:700;text-decoration:none">Voir tout <i class="fas fa-arrow-right"></i></a>
+  </div>
+
+  <div class="empty-state">
+    <i class="fas fa-inbox"></i>
+    <p>Aucune commande pour l'instant.<br>Partagez votre boutique pour commencer.</p>
+  </div>
+</div>
+
+<!-- SUPPORT -->
+<div class="card" style="text-align:center;background:linear-gradient(135deg,#F8FAFC,#F1F5F9);border:none">
+  <div style="font-size:1.8rem;margin-bottom:8px">💬</div>
+  <h3 style="font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:6px">Besoin d'aide ?</h3>
+  <p style="font-size:.84rem;color:var(--mid);margin-bottom:16px;line-height:1.6">Notre equipe est disponible 24/7 pour vous accompagner dans la creation de votre boutique.</p>
+  <a href="https://wa.me/237658033690?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20sur%20mon%20espace%20revendeur" target="_blank" class="btn btn-accent" style="padding:12px 24px;font-size:.85rem;display:inline-flex">
+    <i class="fab fa-whatsapp"></i> Contacter le support WhatsApp
   </a>
 </div>
 
