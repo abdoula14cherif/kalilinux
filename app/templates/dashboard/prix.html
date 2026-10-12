@@ -1,0 +1,178 @@
+{% extends "dashboard/layout.html" %}
+
+{% block title %}Mes prix — Boost Reseller{% endblock %}
+{% block page_title %}Mes prix{% endblock %}
+{% block page_subtitle %}Fixez vos tarifs pour chaque service{% endblock %}
+
+{% block extra_css %}
+.prix-intro{background:linear-gradient(135deg,#F0FAFF,#E0F7FF);border-left:4px solid #00BFFF;border-radius:14px;padding:16px 18px;margin-bottom:18px;font-size:.84rem;color:#0F172A;line-height:1.6}
+.prix-intro strong{color:#0096C7;font-weight:800}
+.prix-intro i{color:#00BFFF;margin-right:6px}
+
+.reseau-section{margin-bottom:22px}
+.reseau-title{font-size:.95rem;font-weight:900;color:#0F172A;margin-bottom:12px;display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:2px solid #E2E8F0}
+.reseau-title i{font-size:1.1rem}
+
+.svc-item{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:16px;margin-bottom:10px;transition:all .2s}
+.svc-item:hover{border-color:#CBD5E1;box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.svc-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.svc-name{font-size:.9rem;font-weight:800;color:#0F172A;line-height:1.3}
+.svc-meta{font-size:.74rem;color:#64748B;margin-top:3px}
+.svc-base{background:#F1F5F9;color:#475569;font-size:.72rem;font-weight:800;padding:5px 10px;border-radius:8px;white-space:nowrap}
+.svc-base strong{color:#0F172A}
+
+.svc-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.svc-input-wrap{flex:1;min-width:130px;position:relative}
+.svc-input{width:100%;padding:11px 40px 11px 13px;border:2px solid #E2E8F0;border-radius:10px;font-size:.88rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;font-weight:700;transition:border-color .2s}
+.svc-input:focus{border-color:#00BFFF}
+.svc-input::placeholder{font-weight:400;color:#94A3B8}
+.svc-unit{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.72rem;color:#94A3B8;font-weight:700;pointer-events:none}
+.btn-save{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;border:none;padding:11px 18px;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,191,255,.25);transition:transform .2s;flex-shrink:0}
+.btn-save:hover{transform:translateY(-1px)}
+.btn-save.saved{background:linear-gradient(135deg,#10B981,#059669)}
+
+.gain-tag{margin-top:10px;padding-top:10px;border-top:1px dashed #E2E8F0;font-size:.76rem;color:#059669;font-weight:700;display:flex;align-items:center;gap:6px}
+.gain-tag i{color:#059669}
+
+.empty-state{text-align:center;padding:40px 20px;color:#94A3B8}
+.empty-state i{font-size:2.5rem;color:#CBD5E1;margin-bottom:12px;display:block}
+.empty-state p{font-size:.88rem;color:#64748B}
+
+.info-banner{background:#FFF3E6;border-left:4px solid #FF6600;border-radius:14px;padding:16px 18px;margin-bottom:18px;font-size:.82rem;color:#78350F;line-height:1.6}
+.info-banner strong{color:#FF6600}
+.info-banner i{color:#FF6600;margin-right:6px}
+{% endblock %}
+
+{% block topbar_actions %}
+{% if profile.est_revendeur %}
+<a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-external-link-alt"></i> Voir ma boutique
+</a>
+{% endif %}
+{% endblock %}
+
+{% block dashboard_content %}
+
+{% if not profile.est_revendeur %}
+<div class="info-banner">
+  <i class="fas fa-info-circle"></i>
+  <strong>Publiez d'abord votre boutique</strong> pour que vos prix soient actifs.
+  Vous pouvez tout de meme les configurer maintenant.
+</div>
+{% endif %}
+
+<div class="prix-intro">
+  <i class="fas fa-lightbulb"></i>
+  <strong>Comment ca marche ?</strong> Fixez le prix que <strong>vos clients</strong> paieront.
+  La difference avec le prix de base Boost Central est <strong>automatiquement creditee</strong> sur votre solde
+  a chaque commande passee sur votre boutique.
+</div>
+
+{% if services %}
+  {% set reseaux_order = ['facebook', 'instagram', 'tiktok', 'youtube', 'twitter', 'telegram', 'whatsapp', 'spotify', 'snapchat', 'linkedin', 'pinterest', 'twitch', 'discord', 'threads', 'soundcloud', 'audiomack', 'kick', 'deezer'] %}
+  {% set services_par_reseau = {} %}
+  {% for s in services %}
+    {% if s.reseau not in services_par_reseau %}
+      {% set _ = services_par_reseau.update({s.reseau: []}) %}
+    {% endif %}
+    {% set _ = services_par_reseau[s.reseau].append(s) %}
+  {% endfor %}
+
+  {% set icons = {
+    'facebook': 'fab fa-facebook',
+    'instagram': 'fab fa-instagram',
+    'tiktok': 'fab fa-tiktok',
+    'youtube': 'fab fa-youtube',
+    'twitter': 'fab fa-twitter',
+    'x': 'fas fa-xmark',
+    'telegram': 'fab fa-telegram',
+    'whatsapp': 'fab fa-whatsapp',
+    'spotify': 'fab fa-spotify',
+    'snapchat': 'fab fa-snapchat',
+    'linkedin': 'fab fa-linkedin',
+    'pinterest': 'fab fa-pinterest',
+    'twitch': 'fab fa-twitch',
+    'discord': 'fab fa-discord',
+    'threads': 'fas fa-at',
+    'soundcloud': 'fab fa-soundcloud',
+    'audiomack': 'fas fa-music',
+    'kick': 'fas fa-bolt',
+    'deezer': 'fas fa-compact-disc'
+  } %}
+
+  {% set colors = {
+    'facebook': '#1877F2',
+    'instagram': '#E4405F',
+    'tiktok': '#000000',
+    'youtube': '#FF0000',
+    'twitter': '#1DA1F2',
+    'x': '#000000',
+    'telegram': '#0088CC',
+    'whatsapp': '#25D366',
+    'spotify': '#1DB954',
+    'snapchat': '#FFFC00',
+    'linkedin': '#0A66C2',
+    'pinterest': '#E60023',
+    'twitch': '#9146FF',
+    'discord': '#5865F2',
+    'threads': '#000000',
+    'soundcloud': '#FF5500',
+    'audiomack': '#FFA200',
+    'kick': '#53FC18',
+    'deezer': '#A238FF'
+  } %}
+
+  {% for reseau in reseaux_order %}
+    {% if reseau in services_par_reseau %}
+    <div class="reseau-section">
+      <div class="reseau-title">
+        <i class="{{ icons.get(reseau, 'fas fa-share-alt') }}" style="color:{{ colors.get(reseau, '#00BFFF') }}"></i>
+        {{ reseau|capitalize }}
+      </div>
+
+      {% for s in services_par_reseau[reseau] %}
+      <div class="svc-item">
+        <div class="svc-header">
+          <div style="flex:1;min-width:0">
+            <div class="svc-name">{{ s.categorie }}</div>
+            <div class="svc-meta">Min : {{ "{:,}".format(s.min_qte) }} · Max : {{ "{:,}".format(s.max_qte) }}</div>
+          </div>
+          <div class="svc-base">Base : <strong>{{ "{:,.0f}".format(s.prix_fcfa) }} F</strong></div>
+        </div>
+
+        <form method="POST" action="{{ url_for('dashboard.prix_enregistrer') }}" class="svc-form">
+          <input type="hidden" name="service_id" value="{{ s.id }}">
+          <div class="svc-input-wrap">
+            <input class="svc-input" type="number" name="prix_fcfa" step="0.1"
+                   min="{{ s.prix_fcfa }}"
+                   value="{{ mes_prix.get(s.id, '') }}"
+                   placeholder="Votre prix"
+                   required>
+            <span class="svc-unit">FCFA</span>
+          </div>
+          <button type="submit" class="btn-save {% if mes_prix.get(s.id) %}saved{% endif %}">
+            <i class="fas {% if mes_prix.get(s.id) %}fa-check{% else %}fa-save{% endif %}"></i>
+            {% if mes_prix.get(s.id) %}Enregistre{% else %}Enregistrer{% endif %}
+          </button>
+        </form>
+
+        {% if mes_prix.get(s.id) %}
+        <div class="gain-tag">
+          <i class="fas fa-arrow-up"></i>
+          Gain par unite : +{{ "%.1f"|format(mes_prix.get(s.id) - s.prix_fcfa) }} FCFA
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endfor %}
+
+{% else %}
+<div class="empty-state">
+  <i class="fas fa-box-open"></i>
+  <p>Aucun service disponible pour l'instant.</p>
+</div>
+{% endif %}
+
+{% endblock %}
