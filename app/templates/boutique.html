@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="{{ boutique.couleur_principale }}">
+<title>{{ boutique.nom }} — Boutique en ligne</title>
+{% if boutique.logo_url %}
+<link rel="icon" href="{{ boutique.logo_url }}">
+{% endif %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:{{ boutique.couleur_principale }};
+  --primary-d:{{ boutique.couleur_secondaire }};
+  --dark:#0F172A;
+  --mid:#475569;
+  --light:#94A3B8;
+  --off:#F8FAFC;
+  --white:#fff;
+  --gray:#E2E8F0;
+  --green:#059669;
+  --accent:#FF6600;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--off);color:var(--mid);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;height:auto;display:block}
+button{font-family:inherit;cursor:pointer}
+input,textarea{font-family:inherit;outline:none}
+
+/* ─── HEADER ─── */
+.shop-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--white);border-bottom:1px solid var(--gray);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.shop-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.shop-logo{width:40px;height:40px;border-radius:10px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--primary-d));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem}
+.shop-name{font-size:1rem;font-weight:900;color:var(--dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shop-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.btn-login{background:var(--primary);color:#fff;padding:9px 16px;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px}
+.btn-login:hover{opacity:.92}
+
+/* ─── HERO ─── */
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;text-align:center;padding:60px 24px}
+.hero.has-banniere{padding:0;min-height:340px;display:flex;align-items:center;justify-content:center}
+.hero-banniere{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;z-index:0}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.55),rgba(0,0,0,.35));z-index:1}
+.hero-content{position:relative;z-index:2;max-width:640px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);padding:7px 16px;border-radius:20px;font-size:.74rem;font-weight:800;letter-spacing:.4px;margin-bottom:20px}
+.hero h1{font-size:1.9rem;font-weight:900;margin-bottom:14px;line-height:1.2;text-shadow:0 2px 12px rgba(0,0,0,.2)}
+.hero p{font-size:.95rem;opacity:.95;line-height:1.7;max-width:520px;margin:0 auto 28px;text-shadow:0 2px 8px rgba(0,0,0,.2)}
+.hero-cta{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--primary);padding:15px 32px;border-radius:14px;font-weight:900;font-size:.98rem;text-decoration:none;box-shadow:0 12px 30px rgba(0,0,0,.25);transition:transform .2s}
+.hero-cta:hover{transform:translateY(-2px)}
+
+/* Contact rapide */
+.hero-contact{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px;position:relative;z-index:2}
+.contact-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);color:#fff;padding:9px 16px;border-radius:20px;font-size:.78rem;font-weight:700;text-decoration:none;transition:background .2s}
+.contact-btn:hover{background:rgba(255,255,255,.3)}
+
+/* ─── TRUST ─── */
+.trust-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:640px;margin:-30px auto 0;padding:0 20px;position:relative;z-index:10}
+.trust-item{background:var(--white);border-radius:14px;padding:14px 10px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.08);border:1px solid var(--gray)}
+.trust-item i{font-size:1.15rem;color:var(--primary);margin-bottom:6px;display:block}
+.trust-item span{font-size:.72rem;font-weight:800;color:var(--dark);display:block;line-height:1.3}
+
+/* ─── MAIN ─── */
+.shop-main{padding:32px 20px 60px;max-width:960px;margin:0 auto}
+
+/* A propos */
+.apropos{background:var(--white);border-radius:16px;padding:22px;border:1px solid var(--gray);margin-bottom:24px}
+.apropos h2{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.apropos h2 i{color:var(--primary)}
+.apropos p{font-size:.86rem;color:var(--mid);line-height:1.7}
+
+/* Section reseau */
+.reseau-section{margin-bottom:28px}
+.reseau-title{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:14px;display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:2px solid var(--gray)}
+.reseau-title i{font-size:1.2rem}
+
+.svc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.svc-card{background:var(--white);border-radius:14px;padding:18px;border:1px solid var(--gray);transition:all .25s;position:relative;overflow:hidden}
+.svc-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.08);border-color:var(--primary)}
+.svc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--primary-d))}
+.svc-name{font-size:.88rem;font-weight:800;color:var(--dark);margin-bottom:12px;line-height:1.4;min-height:38px}
+.svc-price{font-size:1.3rem;font-weight:900;color:var(--primary);line-height:1}
+.svc-price small{font-size:.72rem;font-weight:700;color:var(--mid);margin-left:4px}
+.svc-unit{font-size:.72rem;color:var(--light);margin-top:4px;font-weight:600}
+.svc-badge{display:inline-block;font-size:.68rem;font-weight:800;padding:3px 9px;border-radius:10px;background:#EDFFF5;color:var(--green);margin-top:10px}
+
+/* ─── CTA FINAL ─── */
+.cta-final{background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:20px;padding:36px 24px;text-align:center;color:#fff;margin-top:40px;position:relative;overflow:hidden}
+.cta-final::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 65%);pointer-events:none}
+.cta-final h2{font-size:1.25rem;font-weight:900;margin-bottom:10px;position:relative}
+.cta-final p{font-size:.9rem;opacity:.92;margin-bottom:22px;position:relative;line-height:1.6}
+.cta-final .btn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--primary);padding:15px 32px;border-radius:14px;font-weight:900;font-size:.95rem;text-decoration:none;box-shadow:0 10px 24px rgba(0,0,0,.2);position:relative}
+
+/* ─── EMPTY ─── */
+.empty-shop{text-align:center;padding:60px 24px;background:var(--white);border-radius:18px;border:1px solid var(--gray)}
+.empty-shop i{font-size:2.8rem;color:var(--gray);display:block;margin-bottom:14px}
+.empty-shop h3{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:8px}
+.empty-shop p{font-size:.85rem;color:var(--mid);line-height:1.6}
+
+/* ─── FOOTER ─── */
+.shop-footer{background:var(--dark);color:rgba(255,255,255,.6);text-align:center;padding:28px 20px;font-size:.78rem;line-height:1.7}
+.shop-footer a{color:var(--primary);font-weight:700;text-decoration:none}
+.shop-footer .sep{margin:0 8px}
+
+/* ─── WHATSAPP FLOTTANT ─── */
+.wa-float{position:fixed;bottom:22px;right:22px;width:58px;height:58px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.7rem;box-shadow:0 8px 24px rgba(37,211,102,.5);z-index:90;text-decoration:none;animation:waPulse 2s infinite}
+.wa-float:hover{transform:scale(1.08);animation:none}
+@keyframes waPulse{0%,100%{box-shadow:0 8px 24px rgba(37,211,102,.5)}50%{box-shadow:0 8px 34px rgba(37,211,102,.8)}}
+
+/* Responsive */
+@media(max-width:520px){
+  .hero{padding:44px 20px}
+  .hero h1{font-size:1.5rem}
+  .trust-row{margin-top:-20px;gap:8px}
+  .trust-item{padding:10px 6px}
+  .trust-item span{font-size:.66rem}
+  .svc-grid{grid-template-columns:1fr}
+  .shop-main{padding:24px 14px 50px}
+  .shop-name{font-size:.9rem}
+  .shop-logo{width:36px;height:36px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="shop-header">
+  <div class="shop-brand">
+    {% if boutique.logo_url %}
+    <img class="shop-logo" src="{{ boutique.logo_url }}" alt="{{ boutique.nom }}">
+    {% else %}
+    <div class="shop-logo">{{ boutique.nom[0]|upper }}</div>
+    {% endif %}
+    <div class="shop-name">{{ boutique.nom }}</div>
+  </div>
+  <div class="shop-actions">
+    {% if est_connecte %}
+    <a href="{{ url_for('dashboard.index') }}" class="btn-login">
+      <i class="fas fa-user"></i> Mon espace
+    </a>
+    {% else %}
+    <a href="{{ url_for('auth.connexion') }}" class="btn-login">
+      <i class="fas fa-sign-in-alt"></i> Connexion
+    </a>
+    {% endif %}
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero {% if boutique.banniere_url %}has-banniere{% endif %}">
+  {% if boutique.banniere_url %}
+  <img class="hero-banniere" src="{{ boutique.banniere_url }}" alt="">
+  <div class="hero-overlay"></div>
+  {% endif %}
+  <div class="hero-content">
+    <div class="hero-badge"><i class="fas fa-store"></i> {{ boutique.nom }}</div>
+    <h1>{{ boutique.slogan }}</h1>
+    <p>{{ boutique.message_accueil }}</p>
+    <a href="{% if est_connecte %}{{ url_for('dashboard.index') }}{% else %}{{ url_for('auth.connexion') }}{% endif %}" class="hero-cta">
+      <i class="fas fa-rocket"></i> {% if est_connecte %}Acceder a mon espace{% else %}Creer mon compte gratuit{% endif %}
+    </a>
+
+    {% if boutique.whatsapp or boutique.facebook or boutique.instagram or boutique.tiktok or boutique.telegram %}
+    <div class="hero-contact">
+      {% if boutique.whatsapp %}<a href="https://wa.me/{{ boutique.whatsapp }}" target="_blank" class="contact-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>{% endif %}
+      {% if boutique.facebook %}<a href="{{ boutique.facebook }}" target="_blank" class="contact-btn"><i class="fab fa-facebook"></i> Facebook</a>{% endif %}
+      {% if boutique.instagram %}<a href="{{ boutique.instagram }}" target="_blank" class="contact-btn"><i class="fab fa-instagram"></i> Instagram</a>{% endif %}
+      {% if boutique.tiktok %}<a href="{{ boutique.tiktok }}" target="_blank" class="contact-btn"><i class="fab fa-tiktok"></i> TikTok</a>{% endif %}
+      {% if boutique.telegram %}<a href="{{ boutique.telegram }}" target="_blank" class="contact-btn"><i class="fab fa-telegram"></i> Telegram</a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- TRUST -->
+<div class="trust-row">
+  <div class="trust-item"><i class="fas fa-bolt"></i><span>Livraison rapide</span></div>
+  <div class="trust-item"><i class="fas fa-shield-halved"></i><span>Paiement securise</span></div>
+  <div class="trust-item"><i class="fas fa-headset"></i><span>Support reactif</span></div>
+</div>
+
+<!-- MAIN -->
+<main class="shop-main">
+
+  {% if boutique.a_propos %}
+  <div class="apropos">
+    <h2><i class="fas fa-info-circle"></i> A propos de la boutique</h2>
+    <p>{{ boutique.a_propos }}</p>
+  </div>
+  {% endif %}
+
+  {% if services_par_reseau %}
+    {% set icons = {
+      'facebook': 'fab fa-facebook', 'instagram': 'fab fa-instagram', 'tiktok': 'fab fa-tiktok',
+      'youtube': 'fab fa-youtube', 'twitter': 'fab fa-twitter', 'telegram': 'fab fa-telegram',
+      'whatsapp': 'fab fa-whatsapp', 'spotify': 'fab fa-spotify', 'snapchat': 'fab fa-snapchat',
+      'linkedin': 'fab fa-linkedin', 'pinterest': 'fab fa-pinterest', 'twitch': 'fab fa-twitch',
+      'discord': 'fab fa-discord', 'threads': 'fas fa-at', 'soundcloud': 'fab fa-soundcloud',
+      'audiomack': 'fas fa-music', 'kick': 'fas fa-bolt', 'deezer': 'fas fa-compact-disc'
+    } %}
+    {% set colors = {
+      'facebook': '#1877F2', 'instagram': '#E4405F', 'tiktok': '#000000',
+      'youtube': '#FF0000', 'twitter': '#1DA1F2', 'telegram': '#0088CC',
+      'whatsapp': '#25D366', 'spotify': '#1DB954', 'snapchat': '#FFFC00',
+      'linkedin': '#0A66C2', 'pinterest': '#E60023', 'twitch': '#9146FF',
+      'discord': '#5865F2', 'threads': '#000000', 'soundcloud': '#FF5500',
+      'audiomack': '#FFA200', 'kick': '#53FC18', 'deezer': '#A238FF'
+    } %}
+
+    {% for reseau, liste in services_par_reseau.items() %}
+    <div class="reseau-section">
+      <div class="reseau-title">
+        <i class="{{ icons.get(reseau, 'fas fa-share-alt') }}" style="color:{{ colors.get(reseau, boutique.couleur_principale) }}"></i>
+        {{ reseau|capitalize }}
+      </div>
+      <div class="svc-grid">
+        {% for s in liste %}
+        <div class="svc-card">
+          <div class="svc-name">{{ s.categorie }}</div>
+          {% if boutique.afficher_prix %}
+          <div class="svc-price">{{ "{:,.0f}".format(s.prix_affiche) }}<small>FCFA</small></div>
+          <div class="svc-unit">par unite · min {{ "{:,}".format(s.min_qte) }}</div>
+          <div class="svc-badge"><i class="fas fa-bolt"></i> Livraison rapide</div>
+          {% else %}
+          <div class="svc-price" style="font-size:.95rem;color:var(--mid);font-weight:700">Prix sur demande</div>
+          <div class="svc-unit">Contactez-nous pour un devis</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="cta-final">
+      <h2>Pret a booster vos reseaux ?</h2>
+      <p>Creez votre compte en 30 secondes et passez votre premiere commande des maintenant.</p>
+      <a href="{% if est_connecte %}{{ url_for('dashboard.index') }}{% else %}{{ url_for('auth.connexion') }}{% endif %}" class="btn">
+        <i class="fas fa-arrow-right"></i> Commencer maintenant
+      </a>
+    </div>
+
+  {% else %}
+    <div class="empty-shop">
+      <i class="fas fa-store-slash"></i>
+      <h3>Cette boutique prepare son catalogue</h3>
+      <p>Le revendeur n'a pas encore configure ses services. Revenez bientot !</p>
+    </div>
+  {% endif %}
+
+</main>
+
+<!-- FOOTER -->
+<footer class="shop-footer">
+  <div>
+    &copy; 2026 <strong style="color:#fff">{{ boutique.nom }}</strong>
+    <span class="sep">·</span>
+    <a href="https://reseller.boostcentral.world">Propulse par Boost Central</a>
+  </div>
+</footer>
+
+<!-- WHATSAPP FLOTTANT -->
+{% if boutique.whatsapp_flottant and boutique.whatsapp %}
+<a href="https://wa.me/{{ boutique.whatsapp }}?text={{ ('Bonjour ' ~ boutique.nom ~ ', je viens de votre boutique et je voudrais des informations.')|urlencode }}"
+   target="_blank" class="wa-float" title="Contacter {{ boutique.nom }}">
+  <i class="fab fa-whatsapp"></i>
+</a>
+{% endif %}
+
+</body>
+</html>
