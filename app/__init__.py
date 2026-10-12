@@ -1,3 +1,6 @@
+"""
+Factory Flask pour Boost Reseller.
+"""
 import os
 import logging
 from flask import Flask, render_template, send_from_directory
@@ -24,11 +27,13 @@ def create_app(config_name="production"):
     # Enregistrer les blueprints
     from app.routes.home import home_bp
     from app.routes.auth import auth_bp
+    from app.routes.dashboard import dashboard_bp
 
     app.register_blueprint(home_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
 
-    # Fichiers statiques
+    # Fichiers statiques (PWA)
     @app.route("/sw.js")
     def sw():
         return send_from_directory("static", "sw.js", mimetype="application/javascript")
