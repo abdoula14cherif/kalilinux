@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Connexion — Boost Reseller{% endblock %}
+
+{% block extra_css %}
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#00BFFF,#0096C7)}
+.auth-card{background:#fff;border-radius:24px;padding:36px 28px;max-width:420px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.15)}
+.auth-logo{text-align:center;margin-bottom:8px;font-size:1.4rem;font-weight:900;background:linear-gradient(90deg,#00BFFF,#FF6600);-webkit-background-clip:text;background-clip:text;color:transparent}
+.auth-sub{text-align:center;font-size:.85rem;color:#475569;margin-bottom:26px}
+.btn-sso{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#0066FF,#0047CC);color:#fff;padding:16px;border:none;border-radius:14px;font-weight:800;font-size:.95rem;cursor:pointer;text-decoration:none;box-shadow:0 8px 22px rgba(0,102,255,.35);transition:transform .2s}
+.btn-sso:hover{transform:translateY(-2px)}
+.btn-sso i{font-size:1.1rem}
+.sep{display:flex;align-items:center;gap:12px;margin:24px 0;color:#94A3B8;font-size:.78rem}
+.sep::before,.sep::after{content:'';flex:1;height:1px;background:#E2E8F0}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:600;color:#0F172A;margin-bottom:6px}
+.inp{width:100%;padding:13px 14px;border:2px solid #E2E8F0;border-radius:12px;font-size:.92rem;color:#0F172A;outline:none;transition:border-color .2s;background:#fff;font-family:inherit}
+.inp:focus{border-color:#00BFFF}
+.btn-classique{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6600,#E65C00);color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(255,102,0,.3);transition:transform .2s}
+.btn-classique:hover{transform:translateY(-2px)}
+.footer-info{text-align:center;font-size:.78rem;color:#94A3B8;margin-top:20px;line-height:1.6}
+.footer-info a{color:#00BFFF;font-weight:700;text-decoration:none}
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+
+    <div class="auth-logo">BOOST RESELLER</div>
+    <div class="auth-sub">Connectez-vous pour acceder a votre espace revendeur</div>
+
+    <!-- BOUTON SSO -->
+    <a href="{{ url_for('auth.sso_redirect') }}" class="btn-sso">
+      <i class="fas fa-shield-halved"></i>
+      Se connecter avec Boost Central
+    </a>
+
+    <div class="sep">ou</div>
+
+    <!-- CONNEXION CLASSIQUE -->
+    <form method="POST" action="{{ url_for('auth.login_classique') }}">
+      <div class="fg">
+        <label><i class="fas fa-envelope" style="color:#00BFFF"></i> Email</label>
+        <input class="inp" type="email" name="email" placeholder="votre@email.com" required autocomplete="email">
+      </div>
+      <div class="fg">
+        <label><i class="fas fa-lock" style="color:#00BFFF"></i> Mot de passe</label>
+        <input class="inp" type="password" name="password" placeholder="Votre mot de passe" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-classique">
+        <i class="fas fa-arrow-right-to-bracket"></i> Se connecter
+      </button>
+    </form>
+
+    <div class="footer-info">
+      Pas encore de compte ?<br>
+      Creez-en un sur <a href="https://boostcentral.world/auth/login" target="_blank">Boost Central</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
