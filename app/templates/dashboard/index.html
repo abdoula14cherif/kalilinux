@@ -1,61 +1,104 @@
-{% extends "base.html" %}
-{% block title %}Mon espace — Boost Reseller{% endblock %}
+{% extends "dashboard/layout.html" %}
 
-{% block extra_css %}
-.dash-wrap{min-height:100vh;background:var(--off)}
-.dash-header{background:#fff;border-bottom:1px solid var(--gray);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
-.dash-logo{font-size:1.1rem;font-weight:900;background:linear-gradient(90deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
-.dash-user{display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--mid)}
-.btn-logout{background:#FEE2E2;color:#991B1B;padding:8px 14px;border-radius:9px;text-decoration:none;font-weight:700;font-size:.78rem}
-.dash-main{padding:24px 20px;max-width:900px;margin:0 auto}
-.welcome-card{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border-radius:20px;padding:30px 24px;margin-bottom:24px;text-align:center;box-shadow:0 10px 30px rgba(0,191,255,.25)}
-.welcome-card h1{color:#fff;font-size:1.4rem;font-weight:900;margin-bottom:8px}
-.welcome-card p{font-size:.9rem;opacity:.92;line-height:1.6;margin-bottom:20px}
-.activation-box{background:#fff;border:2px dashed var(--accent);border-radius:16px;padding:24px;text-align:center;margin-bottom:20px}
-.activation-box h2{font-size:1.1rem;font-weight:900;color:var(--dark);margin-bottom:8px}
-.activation-box p{font-size:.85rem;color:var(--mid);margin-bottom:16px;line-height:1.5}
-.btn-activer{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent),var(--accent-d));color:#fff;padding:14px 28px;border-radius:12px;text-decoration:none;font-weight:800;font-size:.95rem;box-shadow:0 6px 18px rgba(255,102,0,.3)}
-.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px}
-.info-card{background:#fff;border:1px solid var(--gray);border-radius:14px;padding:16px;text-align:center}
-.info-card .val{font-size:1.3rem;font-weight:900;color:var(--primary)}
-.info-card .lbl{font-size:.75rem;color:var(--mid);margin-top:4px;font-weight:600}
+{% block title %}Accueil — Boost Reseller{% endblock %}
+{% block page_title %}Bonjour {{ (profile.full_name or profile.email).split()[0] }} 👋{% endblock %}
+{% block page_subtitle %}Voici un apercu de votre espace revendeur{% endblock %}
+
+{% block topbar_actions %}
+  {% if not profile.est_revendeur %}
+  <a href="{{ url_for('dashboard.publier') }}" class="btn btn-primary" style="padding:9px 16px;font-size:.82rem">
+    <i class="fas fa-rocket"></i> Publier ma boutique
+  </a>
+  {% else %}
+  <a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn btn-primary" style="padding:9px 16px;font-size:.82rem">
+    <i class="fas fa-external-link-alt"></i> Voir ma boutique
+  </a>
+  {% endif %}
 {% endblock %}
 
-{% block nav %}
-<header class="dash-header">
-  <div class="dash-logo">BOOST RESELLER</div>
-  <div class="dash-user">
-    <span><i class="fas fa-user-circle"></i> {{ profile.full_name or profile.email }}</span>
-    <a href="{{ url_for('auth.logout') }}" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Deconnexion</a>
+{% block dashboard_content %}
+
+<!-- CARTE STATUT -->
+{% if not profile.est_revendeur %}
+<div class="card" style="background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;border:none">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="font-size:2.5rem">🚀</div>
+    <div style="flex:1;min-width:200px">
+      <h3 style="color:#fff;font-size:1.1rem;font-weight:900;margin-bottom:6px">Votre boutique est en brouillon</h3>
+      <p style="font-size:.85rem;opacity:.92;line-height:1.6">Completez les informations de votre boutique puis publiez-la pour la rendre visible au public.</p>
+    </div>
+    <a href="{{ url_for('dashboard.publier') }}" class="btn btn-accent" style="padding:12px 22px;white-space:nowrap">
+      <i class="fas fa-rocket"></i> Publier
+    </a>
   </div>
-</header>
-{% endblock %}
-
-{% block content %}
-<div class="dash-wrap">
-  <main class="dash-main">
-
-    <div class="welcome-card">
-      <h1>Bienvenue {{ (profile.full_name or profile.email).split()[0] }} ! 👋</h1>
-      <p>Votre espace revendeur est pret. Activez votre compte pour commencer a vendre.</p>
-    </div>
-
-    {% if not profile.est_revendeur %}
-    <div class="activation-box">
-      <h2>🚀 Activer mon compte revendeur</h2>
-      <p>Pour acceder a toutes les fonctionnalites, activez votre compte revendeur.<br>Frais d'activation : <strong>5 000 FCFA</strong>.</p>
-      <a href="#" class="btn-activer">
-        <i class="fas fa-rocket"></i> Activer mon compte (5 000 FCFA)
-      </a>
-    </div>
-    {% else %}
-    <div class="info-grid">
-      <div class="info-card"><div class="val">{{ "{:,.0f}".format(profile.balance or 0) }} F</div><div class="lbl">Solde</div></div>
-      <div class="info-card"><div class="val">{{ "{:,.0f}".format(profile.solde_affilie or 0) }} F</div><div class="lbl">Gains affilies</div></div>
-      <div class="info-card"><div class="val">{{ profile.revendeur_slug or '-' }}</div><div class="lbl">Mon slug</div></div>
-    </div>
-    {% endif %}
-
-  </main>
 </div>
+{% else %}
+<div class="card" style="background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="font-size:2.5rem">✅</div>
+    <div style="flex:1;min-width:200px">
+      <h3 style="color:#fff;font-size:1.1rem;font-weight:900;margin-bottom:6px">Votre boutique est en ligne !</h3>
+      <p style="font-size:.85rem;opacity:.92;line-height:1.6">Partagez votre lien pour attirer des clients : <strong>{{ profile.revendeur_slug }}</strong></p>
+    </div>
+    <a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn btn-accent" style="padding:12px 22px;white-space:nowrap">
+      <i class="fas fa-external-link-alt"></i> Voir
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<!-- STATS -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px">
+  <div class="card" style="text-align:center;padding:18px">
+    <div style="font-size:1.6rem;font-weight:900;color:var(--primary)">{{ "{:,.0f}".format(profile.balance or 0) }}</div>
+    <div style="font-size:.76rem;color:var(--mid);font-weight:600;margin-top:4px">Solde (FCFA)</div>
+  </div>
+  <div class="card" style="text-align:center;padding:18px">
+    <div style="font-size:1.6rem;font-weight:900;color:var(--accent)">{{ "{:,.0f}".format(profile.solde_affilie or 0) }}</div>
+    <div style="font-size:.76rem;color:var(--mid);font-weight:600;margin-top:4px">Gains affilies</div>
+  </div>
+  <div class="card" style="text-align:center;padding:18px">
+    <div style="font-size:1.6rem;font-weight:900;color:var(--green)">0</div>
+    <div style="font-size:.76rem;color:var(--mid);font-weight:600;margin-top:4px">Mes clients</div>
+  </div>
+  <div class="card" style="text-align:center;padding:18px">
+    <div style="font-size:1.6rem;font-weight:900;color:var(--dark)">0</div>
+    <div style="font-size:.76rem;color:var(--mid);font-weight:600;margin-top:4px">Commandes</div>
+  </div>
+</div>
+
+<!-- ETAPES DE CONFIGURATION -->
+<div class="card">
+  <div class="card-title"><i class="fas fa-list-check"></i> Progression de votre configuration</div>
+
+  {% set etapes = [
+    ('Apparence de la boutique', 'dashboard.boutique', 'fas fa-palette', profile.boutique_nom),
+    ('Mes prix', 'dashboard.prix', 'fas fa-tags', False),
+    ('Mon abonnement', 'dashboard.abonnement', 'fas fa-crown', False),
+    ('Publier ma boutique', 'dashboard.publier', 'fas fa-rocket', profile.est_revendeur)
+  ] %}
+
+  {% for titre, endpoint, icone, fait in etapes %}
+  <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--gray)">
+    <div style="width:36px;height:36px;border-radius:10px;background:{% if fait %}#EDFFF5{% else %}#E0F7FF{% endif %};color:{% if fait %}var(--green){% else %}var(--primary){% endif %};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <i class="{% if fait %}fas fa-check{% else %}{{ icone }}{% endif %}"></i>
+    </div>
+    <div style="flex:1;font-size:.88rem;font-weight:600;color:var(--dark)">{{ titre }}</div>
+    <a href="{{ url_for(endpoint) }}" style="font-size:.78rem;color:var(--primary);font-weight:700;text-decoration:none">
+      {% if fait %}Modifier{% else %}Configurer{% endif %} <i class="fas fa-arrow-right"></i>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- BESOIN D'AIDE -->
+<div class="card" style="text-align:center;background:var(--off)">
+  <div style="font-size:1.5rem;margin-bottom:8px">💬</div>
+  <h3 style="font-size:.98rem;font-weight:800;color:var(--dark);margin-bottom:6px">Besoin d'aide ?</h3>
+  <p style="font-size:.83rem;color:var(--mid);margin-bottom:14px">Notre equipe est disponible 24/7 pour vous accompagner.</p>
+  <a href="https://wa.me/237658033690?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20sur%20mon%20espace%20revendeur" target="_blank" class="btn btn-primary" style="padding:10px 20px;font-size:.82rem">
+    <i class="fab fa-whatsapp"></i> Contacter le support
+  </a>
+</div>
+
 {% endblock %}
