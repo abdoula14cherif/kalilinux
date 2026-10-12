@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Mon espace — Boost Reseller{% endblock %}
+
+{% block extra_css %}
+.dash-wrap{min-height:100vh;background:var(--off)}
+.dash-header{background:#fff;border-bottom:1px solid var(--gray);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.dash-logo{font-size:1.1rem;font-weight:900;background:linear-gradient(90deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.dash-user{display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--mid)}
+.btn-logout{background:#FEE2E2;color:#991B1B;padding:8px 14px;border-radius:9px;text-decoration:none;font-weight:700;font-size:.78rem}
+.dash-main{padding:24px 20px;max-width:900px;margin:0 auto}
+.welcome-card{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border-radius:20px;padding:30px 24px;margin-bottom:24px;text-align:center;box-shadow:0 10px 30px rgba(0,191,255,.25)}
+.welcome-card h1{color:#fff;font-size:1.4rem;font-weight:900;margin-bottom:8px}
+.welcome-card p{font-size:.9rem;opacity:.92;line-height:1.6;margin-bottom:20px}
+.activation-box{background:#fff;border:2px dashed var(--accent);border-radius:16px;padding:24px;text-align:center;margin-bottom:20px}
+.activation-box h2{font-size:1.1rem;font-weight:900;color:var(--dark);margin-bottom:8px}
+.activation-box p{font-size:.85rem;color:var(--mid);margin-bottom:16px;line-height:1.5}
+.btn-activer{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent),var(--accent-d));color:#fff;padding:14px 28px;border-radius:12px;text-decoration:none;font-weight:800;font-size:.95rem;box-shadow:0 6px 18px rgba(255,102,0,.3)}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.info-card{background:#fff;border:1px solid var(--gray);border-radius:14px;padding:16px;text-align:center}
+.info-card .val{font-size:1.3rem;font-weight:900;color:var(--primary)}
+.info-card .lbl{font-size:.75rem;color:var(--mid);margin-top:4px;font-weight:600}
+{% endblock %}
+
+{% block nav %}
+<header class="dash-header">
+  <div class="dash-logo">BOOST RESELLER</div>
+  <div class="dash-user">
+    <span><i class="fas fa-user-circle"></i> {{ profile.full_name or profile.email }}</span>
+    <a href="{{ url_for('auth.logout') }}" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Deconnexion</a>
+  </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="dash-wrap">
+  <main class="dash-main">
+
+    <div class="welcome-card">
+      <h1>Bienvenue {{ (profile.full_name or profile.email).split()[0] }} ! 👋</h1>
+      <p>Votre espace revendeur est pret. Activez votre compte pour commencer a vendre.</p>
+    </div>
+
+    {% if not profile.est_revendeur %}
+    <div class="activation-box">
+      <h2>🚀 Activer mon compte revendeur</h2>
+      <p>Pour acceder a toutes les fonctionnalites, activez votre compte revendeur.<br>Frais d'activation : <strong>5 000 FCFA</strong>.</p>
+      <a href="#" class="btn-activer">
+        <i class="fas fa-rocket"></i> Activer mon compte (5 000 FCFA)
+      </a>
+    </div>
+    {% else %}
+    <div class="info-grid">
+      <div class="info-card"><div class="val">{{ "{:,.0f}".format(profile.balance or 0) }} F</div><div class="lbl">Solde</div></div>
+      <div class="info-card"><div class="val">{{ "{:,.0f}".format(profile.solde_affilie or 0) }} F</div><div class="lbl">Gains affilies</div></div>
+      <div class="info-card"><div class="val">{{ profile.revendeur_slug or '-' }}</div><div class="lbl">Mon slug</div></div>
+    </div>
+    {% endif %}
+
+  </main>
+</div>
+{% endblock %}
