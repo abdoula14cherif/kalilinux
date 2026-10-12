@@ -9,7 +9,21 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "run.py"
+      "dest": "run.py",
+      "headers": {
+        "Cache-Control": "public, max-age=0, must-revalidate"
+      }
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
     }
   ]
 }
