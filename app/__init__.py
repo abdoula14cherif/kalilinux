@@ -28,10 +28,12 @@ def create_app(config_name="production"):
     from app.routes.home import home_bp
     from app.routes.auth import auth_bp
     from app.routes.dashboard import dashboard_bp
+    from app.routes.boutique import boutique_bp
 
     app.register_blueprint(home_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
+    app.register_blueprint(boutique_bp)  # Routes /r/<slug>
 
     # Fichiers statiques (PWA)
     @app.route("/sw.js")
