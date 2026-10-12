@@ -1,0 +1,327 @@
+{% extends "dashboard/layout.html" %}
+
+{% block title %}Ma boutique — Boost Reseller{% endblock %}
+{% block page_title %}Ma boutique{% endblock %}
+{% block page_subtitle %}Personnalisez votre espace de vente{% endblock %}
+
+{% block topbar_actions %}
+  {% if profile.est_revendeur %}
+  <a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
+    <i class="fas fa-external-link-alt"></i> Apercu
+  </a>
+  {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+.boutique-form .card{background:#fff;border-radius:16px;padding:22px;border:1px solid #E2E8F0;box-shadow:0 2px 8px rgba(0,0,0,.03);margin-bottom:18px}
+.card-title{font-size:1rem;font-weight:800;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.card-title i{color:#00BFFF}
+.card-subtitle{font-size:.78rem;color:#64748B;font-weight:500;margin-top:-14px;margin-bottom:18px;line-height:1.5}
+
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.fg .hint{font-size:.72rem;color:#94A3B8;margin-top:4px;font-weight:400;line-height:1.5}
+.inp,.txta{width:100%;padding:12px 14px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus,.txta:focus{border-color:#00BFFF}
+.txta{min-height:90px;resize:vertical;line-height:1.6}
+
+/* Thèmes */
+.themes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-top:10px}
+.theme-item{position:relative;cursor:pointer;border:3px solid #E2E8F0;border-radius:14px;overflow:hidden;transition:all .2s}
+.theme-item:hover{transform:translateY(-3px);border-color:#CBD5E1}
+.theme-item.actif{border-color:#00BFFF;box-shadow:0 0 0 4px rgba(0,191,255,.15)}
+.theme-item input{position:absolute;opacity:0;pointer-events:none}
+.theme-preview{height:58px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem}
+.theme-label{text-align:center;font-size:.76rem;font-weight:700;color:#0F172A;padding:7px 4px;background:#fff}
+
+/* Upload */
+.upload-box{border:2px dashed #CBD5E1;border-radius:12px;padding:18px;text-align:center;cursor:pointer;position:relative;overflow:hidden;transition:all .2s;background:#F8FAFC}
+.upload-box:hover{border-color:#00BFFF;background:#F0FAFF}
+.upload-box input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-box i{font-size:1.6rem;color:#94A3B8;display:block;margin-bottom:6px}
+.upload-box span{font-size:.78rem;color:#64748B;font-weight:600}
+.preview-img{max-width:100%;max-height:120px;border-radius:10px;margin-top:12px;object-fit:cover;border:1px solid #E2E8F0}
+.preview-banniere{max-width:100%;max-height:90px;border-radius:10px;margin-top:12px;object-fit:cover;border:1px solid #E2E8F0;width:100%}
+.btn-suppr{display:inline-flex;align-items:center;gap:5px;background:#FEE2E2;color:#991B1B;padding:6px 12px;border-radius:9px;font-size:.74rem;font-weight:700;border:none;cursor:pointer;margin-top:8px;text-decoration:none}
+
+/* Réseaux sociaux - ordre et visibilité */
+.reseau-item{display:flex;align-items:center;gap:12px;padding:14px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;margin-bottom:10px}
+.reseau-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;flex-shrink:0}
+.reseau-fb{background:#1877F2}
+.reseau-ig{background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF,#515BD4)}
+.reseau-tt{background:#000}
+.reseau-tg{background:#0088CC}
+.reseau-content{flex:1;min-width:0}
+.reseau-input{width:100%;padding:9px 12px;border:2px solid #E2E8F0;border-radius:9px;font-size:.82rem;color:#0F172A;outline:none;background:#fff;font-family:inherit}
+.reseau-input:focus{border-color:#00BFFF}
+.reseau-controls{display:flex;gap:6px;align-items:center}
+.reseau-order{display:flex;flex-direction:column;gap:2px}
+.btn-order{background:#E2E8F0;border:none;width:26px;height:22px;border-radius:6px;cursor:pointer;color:#64748B;font-size:.7rem;display:flex;align-items:center;justify-content:center}
+.btn-order:hover{background:#CBD5E1;color:#0F172A}
+.switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;transition:.3s;border-radius:24px}
+.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;transition:.3s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+input:checked + .slider{background:#00BFFF}
+input:checked + .slider:before{transform:translateX(18px)}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid #E2E8F0}
+.toggle-row:last-child{border-bottom:none}
+.toggle-lbl{font-size:.86rem;font-weight:700;color:#0F172A}
+.toggle-desc{font-size:.74rem;color:#64748B;margin-top:3px;font-weight:500}
+
+/* Barre fixe bas */
+.save-bar{position:sticky;bottom:0;background:#fff;border-top:1px solid #E2E8F0;padding:14px 20px;margin:0 -22px -22px -22px;display:flex;gap:10px;justify-content:flex-end;box-shadow:0 -4px 12px rgba(0,0,0,.05);z-index:10}
+.btn-save{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;padding:13px 26px;border-radius:12px;border:none;font-weight:800;font-size:.9rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,191,255,.3);display:inline-flex;align-items:center;gap:8px}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,191,255,.4)}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="boutique-form">
+
+  <!-- STATUT -->
+  <div class="card" style="background:linear-gradient(135deg,#E0F7FF,#F0FAFF);border:none">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="width:46px;height:46px;border-radius:12px;background:#fff;color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">
+        <i class="fas fa-palette"></i>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.95rem;font-weight:900;color:#0F172A;margin-bottom:3px">Personnalisez votre boutique</div>
+        <div style="font-size:.82rem;color:#475569;line-height:1.5">
+          Toutes les modifications sont sauvegardables <strong>sans activation</strong>.
+          Publiez quand vous etes pret.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form method="POST" action="{{ url_for('dashboard.boutique_enregistrer') }}" enctype="multipart/form-data">
+
+    <!-- IDENTITE -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-store"></i> Identite de la boutique</div>
+
+      <div class="fg">
+        <label>Nom de la boutique</label>
+        <input class="inp" type="text" name="boutique_nom" value="{{ profile.boutique_nom or '' }}" placeholder="Ex : Boost Douala" maxlength="60">
+        <div class="hint">Ce nom apparaitra en haut de votre boutique.</div>
+      </div>
+
+      <div class="fg">
+        <label>Slogan (titre principal)</label>
+        <input class="inp" type="text" name="boutique_slogan" value="{{ profile.boutique_slogan or '' }}" placeholder="Ex : Le boost le plus rapide du Cameroun" maxlength="100">
+      </div>
+
+      <div class="fg" style="margin-bottom:0">
+        <label>Message d'accueil</label>
+        <textarea class="txta" name="boutique_message_accueil" placeholder="Decrivez votre boutique en quelques mots..." maxlength="300">{{ profile.boutique_message_accueil or '' }}</textarea>
+      </div>
+    </div>
+
+    <!-- APPARENCE -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-image"></i> Apparence</div>
+
+      <div class="fg">
+        <label>Logo de la boutique</label>
+        <div class="upload-box">
+          <input type="file" name="boutique_logo" accept="image/*">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <span>Cliquez pour uploader un logo</span>
+        </div>
+        {% if profile.boutique_logo_url %}
+        <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+          <img class="preview-img" style="margin-top:0;max-height:70px" src="{{ profile.boutique_logo_url }}" alt="Logo">
+          <form method="POST" action="{{ url_for('dashboard.boutique_supprimer_image') }}" style="display:inline">
+            <input type="hidden" name="type" value="logo">
+            <button type="submit" class="btn-suppr" onclick="return confirm('Supprimer le logo ?')"><i class="fas fa-trash"></i> Supprimer</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="fg" style="margin-bottom:0">
+        <label>Banniere</label>
+        <div class="upload-box">
+          <input type="file" name="boutique_banniere" accept="image/*">
+          <i class="fas fa-panorama"></i>
+          <span>Cliquez pour uploader une banniere</span>
+        </div>
+        {% if profile.boutique_banniere_url %}
+        <div style="margin-top:12px">
+          <img class="preview-banniere" src="{{ profile.boutique_banniere_url }}" alt="Banniere">
+          <form method="POST" action="{{ url_for('dashboard.boutique_supprimer_image') }}" style="display:inline">
+            <input type="hidden" name="type" value="banniere">
+            <button type="submit" class="btn-suppr" onclick="return confirm('Supprimer la banniere ?')"><i class="fas fa-trash"></i> Supprimer</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- THEME -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-palette"></i> Theme de couleurs</div>
+      <div class="card-subtitle">Choisissez la couleur qui represente votre marque.</div>
+
+      <div class="themes-grid">
+        {% for nom, couleurs in themes.items() %}
+        <label class="theme-item {% if (profile.boutique_theme or 'bleu') == nom %}actif{% endif %}">
+          <input type="radio" name="boutique_theme" value="{{ nom }}" {% if (profile.boutique_theme or 'bleu') == nom %}checked{% endif %} onchange="selectTheme(this)">
+          <div class="theme-preview" style="background:linear-gradient(135deg,{{ couleurs[0] }},{{ couleurs[1] }})">Aa</div>
+          <div class="theme-label">{{ nom|capitalize }}</div>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-address-book"></i> Contact</div>
+
+      <div class="fg">
+        <label>Numero WhatsApp</label>
+        <input class="inp" type="text" name="boutique_whatsapp" value="{{ profile.boutique_whatsapp or '' }}" placeholder="Ex : 237658033690">
+        <div class="hint">Format international sans le + (ex : 237658033690)</div>
+      </div>
+
+      <div class="fg" style="margin-bottom:0">
+        <label>Email de contact (optionnel)</label>
+        <input class="inp" type="email" name="boutique_email" value="{{ profile.boutique_email or '' }}" placeholder="contact@monsite.com">
+      </div>
+    </div>
+
+    <!-- RESEAUX SOCIAUX -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-share-alt"></i> Reseaux sociaux</div>
+      <div class="card-subtitle">Ajoutez vos liens. Utilisez les fleches pour changer l'ordre d'affichage sur votre boutique.</div>
+
+      <!-- Facebook -->
+      <div class="reseau-item" data-reseau="facebook">
+        <div class="reseau-icon reseau-fb"><i class="fab fa-facebook-f"></i></div>
+        <div class="reseau-content">
+          <input class="reseau-input" type="url" name="boutique_facebook" value="{{ profile.boutique_facebook or '' }}" placeholder="https://facebook.com/mapage">
+        </div>
+        <div class="reseau-controls">
+          <div class="reseau-order">
+            <button type="button" class="btn-order" onclick="moveUp(this)"><i class="fas fa-chevron-up"></i></button>
+            <button type="button" class="btn-order" onclick="moveDown(this)"><i class="fas fa-chevron-down"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instagram -->
+      <div class="reseau-item" data-reseau="instagram">
+        <div class="reseau-icon reseau-ig"><i class="fab fa-instagram"></i></div>
+        <div class="reseau-content">
+          <input class="reseau-input" type="url" name="boutique_instagram" value="{{ profile.boutique_instagram or '' }}" placeholder="https://instagram.com/moncompte">
+        </div>
+        <div class="reseau-controls">
+          <div class="reseau-order">
+            <button type="button" class="btn-order" onclick="moveUp(this)"><i class="fas fa-chevron-up"></i></button>
+            <button type="button" class="btn-order" onclick="moveDown(this)"><i class="fas fa-chevron-down"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TikTok -->
+      <div class="reseau-item" data-reseau="tiktok">
+        <div class="reseau-icon reseau-tt"><i class="fab fa-tiktok"></i></div>
+        <div class="reseau-content">
+          <input class="reseau-input" type="url" name="boutique_tiktok" value="{{ profile.boutique_tiktok or '' }}" placeholder="https://tiktok.com/@moncompte">
+        </div>
+        <div class="reseau-controls">
+          <div class="reseau-order">
+            <button type="button" class="btn-order" onclick="moveUp(this)"><i class="fas fa-chevron-up"></i></button>
+            <button type="button" class="btn-order" onclick="moveDown(this)"><i class="fas fa-chevron-down"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Telegram -->
+      <div class="reseau-item" data-reseau="telegram" style="margin-bottom:0">
+        <div class="reseau-icon reseau-tg"><i class="fab fa-telegram"></i></div>
+        <div class="reseau-content">
+          <input class="reseau-input" type="url" name="boutique_telegram" value="{{ profile.boutique_telegram or '' }}" placeholder="https://t.me/moncanal">
+        </div>
+        <div class="reseau-controls">
+          <div class="reseau-order">
+            <button type="button" class="btn-order" onclick="moveUp(this)"><i class="fas fa-chevron-up"></i></button>
+            <button type="button" class="btn-order" onclick="moveDown(this)"><i class="fas fa-chevron-down"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- A PROPOS -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-info-circle"></i> A propos</div>
+      <div class="fg" style="margin-bottom:0">
+        <label>Texte "A propos" (optionnel)</label>
+        <textarea class="txta" name="boutique_a_propos" placeholder="Parlez de votre entreprise, vos garanties, vos delais...">{{ profile.boutique_a_propos or '' }}</textarea>
+        <div class="hint">Ce texte apparaitra dans une section dediee de votre boutique.</div>
+      </div>
+    </div>
+
+    <!-- OPTIONS -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-cog"></i> Options d'affichage</div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-lbl">Afficher les prix</div>
+          <div class="toggle-desc">Si desactive, les clients verront "Prix sur demande"</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" name="boutique_afficher_prix" {% if profile.boutique_afficher_prix != False %}checked{% endif %}>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-lbl">WhatsApp flottant</div>
+          <div class="toggle-desc">Bouton WhatsApp en bas a droite de votre boutique</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" name="boutique_whatsapp_flottant" {% if profile.boutique_whatsapp_flottant != False %}checked{% endif %}>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- BARRE DE SAUVEGARDE -->
+    <div class="save-bar">
+      <button type="submit" class="btn-save">
+        <i class="fas fa-save"></i> Enregistrer les modifications
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+function selectTheme(el){
+  document.querySelectorAll('.theme-item').forEach(t => t.classList.remove('actif'));
+  el.closest('.theme-item').classList.add('actif');
+}
+
+function moveUp(btn){
+  var item = btn.closest('.reseau-item');
+  var prev = item.previousElementSibling;
+  if(prev && prev.classList.contains('reseau-item')){
+    item.parentNode.insertBefore(item, prev);
+  }
+}
+
+function moveDown(btn){
+  var item = btn.closest('.reseau-item');
+  var next = item.nextElementSibling;
+  if(next && next.classList.contains('reseau-item')){
+    item.parentNode.insertBefore(next, item);
+  }
+}
+</script>
+{% endblock %}
