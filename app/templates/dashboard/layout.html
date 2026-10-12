@@ -1,62 +1,101 @@
 {% extends "base.html" %}
-{% block extra_css %}
-.dash-app{display:flex;min-height:100vh;background:var(--off)}
 
-/* Sidebar */
-.sidebar{width:250px;background:var(--dark);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;transition:transform .3s;overflow-y:auto}
-.sidebar-header{padding:22px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
-.sidebar-logo{font-size:1.15rem;font-weight:900;background:linear-gradient(90deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+{% block title %}{% block page_title_meta %}Dashboard{% endblock %} — Boost Reseller{% endblock %}
+
+{% block content %}
+<style>
+/* === DASHBOARD LAYOUT === */
+.dash-app{display:flex;min-height:100vh;background:#F8FAFC;position:relative}
+
+/* SIDEBAR */
+.dash-sidebar{
+  width:250px;background:#0F172A;color:#fff;
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:100;
+  transition:transform .3s ease;overflow-y:auto;
+}
+.dash-sidebar::-webkit-scrollbar{width:4px}
+.dash-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px}
+
+.sidebar-header{padding:20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-logo{font-size:1.1rem;font-weight:900;background:linear-gradient(90deg,#00BFFF,#FF6600);-webkit-background-clip:text;background-clip:text;color:transparent}
 .sidebar-status{margin-top:10px;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:20px;display:inline-block;letter-spacing:.3px}
-.status-brouillon{background:rgba(255,102,0,.2);color:#FF6600}
-.status-online{background:rgba(5,150,105,.2);color:#34D399}
+.status-brouillon{background:rgba(255,102,0,.15);color:#FF6600}
+.status-online{background:rgba(5,150,105,.15);color:#34D399}
 
-.sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:2px}
-.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;color:rgba(255,255,255,.7);text-decoration:none;font-size:.86rem;font-weight:600;transition:all .2s}
+.sidebar-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;font-weight:600;transition:all .2s}
 .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
-.nav-item.active{background:linear-gradient(90deg,rgba(0,191,255,.2),rgba(0,191,255,.05));color:var(--primary);border-left:3px solid var(--primary)}
-.nav-item i{width:20px;text-align:center;font-size:.95rem}
-.nav-badge{margin-left:auto;background:var(--accent);color:#fff;font-size:.65rem;font-weight:900;padding:2px 7px;border-radius:10px}
+.nav-item.active{background:linear-gradient(90deg,rgba(0,191,255,.2),rgba(0,191,255,.05));color:#00BFFF}
+.nav-item i{width:18px;text-align:center;font-size:.92rem}
 
-.sidebar-footer{padding:16px 12px;border-top:1px solid rgba(255,255,255,.08)}
-.sidebar-user{padding:10px 12px;font-size:.76rem;color:rgba(255,255,255,.6);margin-bottom:8px;word-break:break-all}
+.sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,.08)}
+.sidebar-user{padding:10px 12px;font-size:.76rem;color:rgba(255,255,255,.6);margin-bottom:6px;word-break:break-all;display:flex;align-items:center;gap:8px}
 .btn-logout-side{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#F87171;font-size:.82rem;font-weight:700;text-decoration:none;border-radius:10px;transition:background .2s}
 .btn-logout-side:hover{background:rgba(220,38,38,.1)}
 
-/* Contenu */
-.dash-main{flex:1;margin-left:250px;min-width:0}
-.dash-topbar{background:#fff;border-bottom:1px solid var(--gray);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;gap:12px}
-.dash-title{font-size:1.1rem;font-weight:900;color:var(--dark)}
-.dash-title small{display:block;font-size:.75rem;color:var(--mid);font-weight:500;margin-top:2px}
-.dash-actions{display:flex;gap:8px;align-items:center}
+/* OVERLAY MOBILE */
+.sidebar-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:99;opacity:0;transition:opacity .3s;
+}
+.sidebar-overlay.open{display:block;opacity:1}
 
-.btn-hamburger{display:none;background:none;border:none;font-size:1.3rem;color:var(--dark);cursor:pointer;padding:8px}
+/* MAIN */
+.dash-main{flex:1;margin-left:250px;min-width:0;min-height:100vh;display:flex;flex-direction:column}
 
-.dash-content{padding:24px;max-width:1200px;margin:0 auto}
+/* TOPBAR */
+.dash-topbar{
+  background:#fff;border-bottom:1px solid #E2E8F0;
+  padding:14px 22px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:90;gap:12px;
+}
+.topbar-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.topbar-title{font-size:1.15rem;font-weight:900;color:#0F172A;line-height:1.2}
+.topbar-subtitle{font-size:.78rem;color:#64748B;font-weight:500;margin-top:2px}
+.topbar-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
 
-/* Responsive */
+.btn-hamburger{
+  display:none;background:none;border:none;font-size:1.3rem;
+  color:#0F172A;cursor:pointer;padding:8px;border-radius:8px;
+}
+.btn-hamburger:hover{background:#F1F5F9}
+
+/* CONTENU */
+.dash-content{flex:1;padding:22px;max-width:1200px;width:100%;margin:0 auto}
+
+/* RESPONSIVE */
 @media(max-width:900px){
-  .sidebar{transform:translateX(-100%)}
-  .sidebar.open{transform:translateX(0)}
+  .dash-sidebar{transform:translateX(-100%)}
+  .dash-sidebar.open{transform:translateX(0)}
   .dash-main{margin-left:0}
-  .btn-hamburger{display:block}
-  .sidebar-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:45;display:none}
-  .sidebar-backdrop.open{display:block}
+  .btn-hamburger{display:flex;align-items:center;justify-content:center}
+  .dash-topbar{padding:12px 16px}
+  .dash-content{padding:16px}
+  .topbar-title{font-size:1rem}
+  .topbar-subtitle{font-size:.72rem}
 }
 
-/* Cartes generiques */
-.card{background:#fff;border-radius:16px;padding:22px;border:1px solid var(--gray);box-shadow:0 2px 8px rgba(0,0,0,.03);margin-bottom:18px}
-.card-title{font-size:1rem;font-weight:800;color:var(--dark);margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.card-title i{color:var(--primary)}
-{% endblock %}
+/* CARTES GENERIQUES */
+.dash-app .card{background:#fff;border-radius:16px;padding:20px;border:1px solid #E2E8F0;box-shadow:0 2px 8px rgba(0,0,0,.03);margin-bottom:18px}
+.dash-app .card-title{font-size:1rem;font-weight:800;color:#0F172A;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.dash-app .card-title i{color:#00BFFF}
 
-{% block content %}
+/* BOUTONS */
+.dash-app .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:12px;font-weight:700;font-size:.9rem;border:none;cursor:pointer;transition:all .2s;text-decoration:none}
+.dash-app .btn-primary{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;box-shadow:0 4px 14px rgba(0,191,255,.28)}
+.dash-app .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,191,255,.35)}
+.dash-app .btn-accent{background:linear-gradient(135deg,#FF6600,#E65C00);color:#fff;box-shadow:0 4px 14px rgba(255,102,0,.28)}
+.dash-app .btn-accent:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,102,0,.35)}
+</style>
+
 <div class="dash-app">
 
   <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
+  <aside class="dash-sidebar" id="dashSidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">BOOST RESELLER</div>
-      {% if profile.est_revendeur %}
+      {% if profile and profile.est_revendeur %}
       <span class="sidebar-status status-online">● EN LIGNE</span>
       {% else %}
       <span class="sidebar-status status-brouillon">● BROUILLON</span>
@@ -95,7 +134,8 @@
 
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <i class="fas fa-user-circle"></i> {{ profile.full_name or profile.email }}
+        <i class="fas fa-user-circle" style="font-size:1.1rem;color:#00BFFF"></i>
+        <span>{{ profile.full_name or profile.email if profile else 'Utilisateur' }}</span>
       </div>
       <a href="{{ url_for('auth.logout') }}" class="btn-logout-side">
         <i class="fas fa-sign-out-alt"></i> Deconnexion
@@ -103,20 +143,22 @@
     </div>
   </aside>
 
-  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-  <!-- CONTENU -->
+  <!-- CONTENU PRINCIPAL -->
   <div class="dash-main">
 
     <div class="dash-topbar">
-      <div style="display:flex;align-items:center;gap:10px">
-        <button class="btn-hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-        <div class="dash-title">
-          {% block page_title %}Mon espace{% endblock %}
-          <small>{% block page_subtitle %}Gerez votre activite{% endblock %}</small>
+      <div class="topbar-left">
+        <button class="btn-hamburger" onclick="toggleSidebar()" aria-label="Menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div style="min-width:0;flex:1">
+          <div class="topbar-title">{% block page_title %}Mon espace{% endblock %}</div>
+          <div class="topbar-subtitle">{% block page_subtitle %}Gerez votre activite{% endblock %}</div>
         </div>
       </div>
-      <div class="dash-actions">
+      <div class="topbar-actions">
         {% block topbar_actions %}{% endblock %}
       </div>
     </div>
@@ -131,8 +173,22 @@
 
 <script>
 function toggleSidebar(){
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sidebarBackdrop').classList.toggle('open');
+  var sb = document.getElementById('dashSidebar');
+  var ov = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('open');
 }
+// Fermer la sidebar automatiquement si on clique sur un lien (mobile)
+document.querySelectorAll('.nav-item').forEach(function(el){
+  el.addEventListener('click', function(){
+    if(window.innerWidth <= 900){
+      var sb = document.getElementById('dashSidebar');
+      var ov = document.getElementById('sidebarOverlay');
+      sb.classList.remove('open');
+      ov.classList.remove('open');
+    }
+  });
+});
 </script>
+
 {% endblock %}
