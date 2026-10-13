@@ -72,7 +72,6 @@ def update_profile(user_id, data):
 
 
 def debit_balance(user_id, montant):
-    """Debite le solde. Retourne le nouveau solde ou None si insuffisant."""
     try:
         profile = get_profile(user_id)
         if not profile:
@@ -102,24 +101,51 @@ def credit_balance(user_id, montant):
 
 
 def slug_deja_pris(slug):
-    """Verifie si un slug est deja utilise."""
     try:
         r = requests.get(_url(f"profiles?revendeur_slug=eq.{slug}&limit=1"), headers=_headers(True))
         data = r.json()
         return isinstance(data, list) and len(data) > 0
     except Exception as e:
         logger.error(f"slug_deja_pris: {e}")
-        return True  # Par securite, on refuse
+        return True
 
 
 def activer_revendeur(user_id, slug, modele, commission_pct=0.10):
-    """Active le compte revendeur."""
     return update_profile(user_id, {
         "est_revendeur": True,
         "revendeur_slug": slug,
         "revendeur_modele": modele,
         "revendeur_commission_pct": commission_pct if modele == "commission" else 0.0,
+        "boutique_active": True,
     })
+
+
+def toggle_boutique_active(revendeur_id, active):
+    """Active ou desactive une boutique (usage admin)."""
+    try:
+        r = requests.patch(
+            _url(f"profiles?id=eq.{revendeur_id}"),
+            json={"boutique_active": active},
+            headers=_headers(True)
+        )
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"toggle_boutique_active: {e}")
+        return False
+
+
+def get_all_revendeurs(limit=200):
+    """Liste tous les revendeurs (pour l'admin)."""
+    try:
+        r = requests.get(
+            _url(f"profiles?est_revendeur=eq.true&order=created_at.desc&limit={limit}"),
+            headers=_headers(True)
+        )
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_all_revendeurs: {e}")
+        return []
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -210,7 +236,6 @@ def get_revendeur_clients(revendeur_id):
 
 
 def get_revendeur_clients_detail(revendeur_id):
-    """Retourne la liste des clients avec leurs infos."""
     try:
         r = requests.get(
             _url(f"revendeur_clients?revendeur_id=eq.{revendeur_id}&order=created_at.desc"),
@@ -261,7 +286,6 @@ def rattacher_client_revendeur(revendeur_id, client_id):
 # ═══════════════════════════════════════════════════════════════
 
 def get_revendeur_orders(revendeur_id, limit=100):
-    """Commandes passees par les clients rattaches a ce revendeur."""
     try:
         r = requests.get(
             _url(f"revendeur_clients?revendeur_id=eq.{revendeur_id}&select=client_id"),
