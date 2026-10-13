@@ -1,0 +1,322 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Mes produits — Boost Reseller{% endblock %}
+{% block page_title %}Mes produits{% endblock %}
+{% block page_subtitle %}{{ produits|length }} produit(s) dans votre catalogue{% endblock %}
+
+{% block topbar_actions %}
+<button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-plus"></i> Ajouter un produit
+</button>
+{% endblock %}
+
+{% block extra_css %}
+.stats-mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat-mini{background:#fff;border-radius:14px;padding:16px;border:1px solid #E2E8F0;display:flex;align-items:center;gap:12px}
+.stat-mini-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0}
+.stat-mini-val{font-size:1.25rem;font-weight:900;color:#0F172A;line-height:1.1}
+.stat-mini-lbl{font-size:.72rem;color:#64748B;font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+
+.filters-bar{background:#fff;border-radius:14px;padding:14px 16px;border:1px solid #E2E8F0;margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.search-box{position:relative;flex:1;min-width:200px}
+.search-box i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:.85rem}
+.search-inp{width:100%;padding:10px 14px 10px 38px;border:2px solid #E2E8F0;border-radius:10px;font-size:.85rem;color:#0F172A;outline:none;background:#F8FAFC;font-family:inherit}
+.search-inp:focus{border-color:#00BFFF;background:#fff}
+.filter-sel{padding:10px 14px;border:2px solid #E2E8F0;border-radius:10px;font-size:.85rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;font-weight:600;cursor:pointer}
+.filter-sel:focus{border-color:#00BFFF}
+
+.produits-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.produit-card{background:#fff;border-radius:14px;border:1px solid #E2E8F0;overflow:hidden;transition:all .22s;display:flex;flex-direction:column}
+.produit-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.08);border-color:#00BFFF}
+.produit-img{width:100%;height:170px;object-fit:cover;background:#F1F5F9;display:flex;align-items:center;justify-content:center;color:#CBD5E1;font-size:2.5rem}
+.produit-img img{width:100%;height:100%;object-fit:cover}
+.produit-body{padding:14px;flex:1;display:flex;flex-direction:column}
+.produit-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.produit-nom{font-size:.92rem;font-weight:800;color:#0F172A;line-height:1.3;flex:1}
+.produit-badge{font-size:.65rem;font-weight:800;padding:3px 8px;border-radius:10px;white-space:nowrap}
+.badge-actif{background:#EDFFF5;color:#059669}
+.badge-inactif{background:#FEE2E2;color:#991B1B}
+.badge-stock{background:#FEF3C7;color:#92400E}
+.produit-desc{font-size:.76rem;color:#64748B;line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.produit-prix{font-size:1.15rem;font-weight:900;color:#00BFFF;margin-bottom:4px}
+.produit-prix small{font-size:.7rem;font-weight:700;color:#64748B;margin-left:3px}
+.produit-stock{font-size:.72rem;color:#64748B;font-weight:600;margin-bottom:12px}
+.produit-actions{display:flex;gap:6px;margin-top:auto}
+.btn-action{flex:1;padding:8px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:4px}
+.btn-mod{background:#E0F7FF;color:#0096C7}
+.btn-mod:hover{background:#0096C7;color:#fff}
+.btn-off{background:#FEF3C7;color:#92400E}
+.btn-off:hover{background:#92400E;color:#fff}
+.btn-del{background:#FEE2E2;color:#991B1B}
+.btn-del:hover{background:#991B1B;color:#fff}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:70px;height:70px;border-radius:50%;background:#E0F7FF;color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px 22px;max-width:480px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94A3B8}
+.modal h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal h3 i{color:#00BFFF}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.inp,.txta,.sel{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus,.txta:focus,.sel:focus{border-color:#00BFFF}
+.txta{min-height:80px;resize:vertical}
+.upload-box{border:2px dashed #CBD5E1;border-radius:12px;padding:18px;text-align:center;cursor:pointer;position:relative;overflow:hidden;background:#F8FAFC;transition:.2s}
+.upload-box:hover{border-color:#00BFFF;background:#F0FAFF}
+.upload-box input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-box i{font-size:1.5rem;color:#94A3B8;display:block;margin-bottom:6px}
+.upload-box span{font-size:.78rem;color:#64748B;font-weight:600}
+.preview-img{max-width:100%;max-height:140px;border-radius:10px;margin-top:10px;object-fit:cover}
+.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,191,255,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+.btn-save:hover{transform:translateY(-1px)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<!-- STATS -->
+<div class="stats-mini">
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#E0F7FF;color:#00BFFF"><i class="fas fa-box"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ produits|length }}</div>
+      <div class="stat-mini-lbl">Produits</div>
+    </div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#EDFFF5;color:#059669"><i class="fas fa-check-circle"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ produits|selectattr('actif')|list|length }}</div>
+      <div class="stat-mini-lbl">Actifs</div>
+    </div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#F5F3FF;color:#7C3AED"><i class="fas fa-tags"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ categories|length }}</div>
+      <div class="stat-mini-lbl">Categories</div>
+    </div>
+  </div>
+</div>
+
+{% if produits %}
+<!-- FILTRES -->
+<div class="filters-bar">
+  <div class="search-box">
+    <i class="fas fa-search"></i>
+    <input class="search-inp" type="text" id="searchInp" placeholder="Rechercher un produit..." oninput="filtrerProduits()">
+  </div>
+  <select class="filter-sel" id="catFilter" onchange="filtrerProduits()">
+    <option value="">Toutes les categories</option>
+    {% for c in categories %}
+    <option value="{{ c.id }}">{{ c.nom }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+<!-- GRILLE PRODUITS -->
+<div class="produits-grid" id="produitsGrid">
+  {% for p in produits %}
+  <div class="produit-card" data-nom="{{ p.nom|lower }}" data-cat="{{ p.categorie_id or '' }}">
+    <div class="produit-img">
+      {% if p.image_url %}
+      <img src="{{ p.image_url }}" alt="{{ p.nom }}">
+      {% else %}
+      <i class="fas fa-image"></i>
+      {% endif %}
+    </div>
+    <div class="produit-body">
+      <div class="produit-header">
+        <div class="produit-nom">{{ p.nom }}</div>
+        {% if not p.actif %}
+        <span class="produit-badge badge-inactif">Inactif</span>
+        {% endif %}
+      </div>
+      {% if p.description %}<div class="produit-desc">{{ p.description }}</div>{% endif %}
+      <div class="produit-prix">{{ "{:,.0f}".format(p.prix or 0) }}<small>FCFA</small></div>
+      {% if p.stock is not none and p.stock >= 0 %}
+      <div class="produit-stock"><i class="fas fa-cubes"></i> Stock : {{ p.stock }}</div>
+      {% else %}
+      <div class="produit-stock"><i class="fas fa-infinity"></i> Stock illimite</div>
+      {% endif %}
+      <div class="produit-actions">
+        <button class="btn-action btn-mod" onclick='ouvrirModif({{ p|tojson }})'>
+          <i class="fas fa-edit"></i> Modifier
+        </button>
+        <form method="POST" action="{{ url_for('dashboard.produits_toggle') }}" style="flex:1">
+          <input type="hidden" name="produit_id" value="{{ p.id }}">
+          <input type="hidden" name="actif" value="{{ '1' if p.actif else '0' }}">
+          <button type="submit" class="btn-action btn-off" style="width:100%">
+            <i class="fas fa-{% if p.actif %}eye-slash{% else %}eye{% endif %}"></i>
+          </button>
+        </form>
+        <form method="POST" action="{{ url_for('dashboard.produits_supprimer') }}" style="flex:1" onsubmit="return confirm('Supprimer ce produit ?')">
+          <input type="hidden" name="produit_id" value="{{ p.id }}">
+          <button type="submit" class="btn-action btn-del" style="width:100%">
+            <i class="fas fa-trash"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<!-- EMPTY STATE -->
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-box-open"></i></div>
+  <h3>Aucun produit pour l'instant</h3>
+  <p>Ajoutez votre premier produit pour commencer a vendre sur votre boutique.</p>
+  <button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:12px 24px;font-size:.88rem">
+    <i class="fas fa-plus"></i> Ajouter mon premier produit
+  </button>
+</div>
+{% endif %}
+
+<!-- MODAL AJOUT -->
+<div class="modal-bg" id="modalAjout">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalAjout')">✕</button>
+    <h3><i class="fas fa-plus-circle"></i> Ajouter un produit</h3>
+    <form method="POST" action="{{ url_for('dashboard.produits_ajouter') }}" enctype="multipart/form-data">
+      <div class="fg">
+        <label>Nom du produit *</label>
+        <input class="inp" type="text" name="nom" placeholder="Ex: T-shirt Nike" required maxlength="100">
+      </div>
+      <div class="fg">
+        <label>Description</label>
+        <textarea class="txta" name="description" placeholder="Decrivez votre produit..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="fg">
+          <label>Prix (FCFA) *</label>
+          <input class="inp" type="number" name="prix" step="1" min="0" placeholder="0" required>
+        </div>
+        <div class="fg">
+          <label>Stock (-1 = illimite)</label>
+          <input class="inp" type="number" name="stock" value="-1" min="-1">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Categorie</label>
+        <select class="sel" name="categorie_id">
+          <option value="">— Aucune categorie —</option>
+          {% for c in categories %}
+          <option value="{{ c.id }}">{{ c.nom }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="fg">
+        <label>Image du produit</label>
+        <div class="upload-box">
+          <input type="file" name="image" accept="image/*" onchange="previewImg(this, 'previewAjout')">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <span>Cliquez pour uploader une image</span>
+        </div>
+        <img id="previewAjout" class="preview-img" style="display:none">
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-check"></i> Ajouter le produit</button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL MODIF -->
+<div class="modal-bg" id="modalModif">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalModif')">✕</button>
+    <h3><i class="fas fa-edit"></i> Modifier le produit</h3>
+    <form method="POST" action="{{ url_for('dashboard.produits_modifier') }}" enctype="multipart/form-data">
+      <input type="hidden" name="produit_id" id="m_id">
+      <div class="fg">
+        <label>Nom du produit *</label>
+        <input class="inp" type="text" name="nom" id="m_nom" required maxlength="100">
+      </div>
+      <div class="fg">
+        <label>Description</label>
+        <textarea class="txta" name="description" id="m_description"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="fg">
+          <label>Prix (FCFA) *</label>
+          <input class="inp" type="number" name="prix" id="m_prix" step="1" min="0" required>
+        </div>
+        <div class="fg">
+          <label>Stock (-1 = illimite)</label>
+          <input class="inp" type="number" name="stock" id="m_stock" min="-1">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Categorie</label>
+        <select class="sel" name="categorie_id" id="m_categorie_id">
+          <option value="">— Aucune categorie —</option>
+          {% for c in categories %}
+          <option value="{{ c.id }}">{{ c.nom }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="fg">
+        <label>Remplacer l'image (optionnel)</label>
+        <div class="upload-box">
+          <input type="file" name="image" accept="image/*" onchange="previewImg(this, 'previewModif')">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <span>Cliquez pour changer l'image</span>
+        </div>
+        <img id="previewModif" class="preview-img" style="display:none">
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-save"></i> Enregistrer</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function ouvrirAjout(){
+  document.getElementById('modalAjout').classList.add('open');
+}
+function ouvrirModif(produit){
+  document.getElementById('m_id').value = produit.id || '';
+  document.getElementById('m_nom').value = produit.nom || '';
+  document.getElementById('m_description').value = produit.description || '';
+  document.getElementById('m_prix').value = produit.prix || 0;
+  document.getElementById('m_stock').value = produit.stock !== undefined && produit.stock !== null ? produit.stock : -1;
+  document.getElementById('m_categorie_id').value = produit.categorie_id || '';
+  document.getElementById('modalModif').classList.add('open');
+}
+function fermerModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('open');
+  });
+});
+function previewImg(input, targetId){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = document.getElementById(targetId);
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+function filtrerProduits(){
+  var q = document.getElementById('searchInp').value.toLowerCase();
+  var cat = document.getElementById('catFilter').value;
+  document.querySelectorAll('.produit-card').forEach(function(card){
+    var nom = card.getAttribute('data-nom') || '';
+    var cardCat = card.getAttribute('data-cat') || '';
+    var okNom = nom.includes(q);
+    var okCat = !cat || cardCat === cat;
+    card.style.display = (okNom && okCat) ? 'flex' : 'none';
+  });
+}
+</script>
+
+{% endblock %}
