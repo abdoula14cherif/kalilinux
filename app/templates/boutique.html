@@ -5,24 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="{{ boutique.couleur_principale }}">
 <title>{{ boutique.nom }} — Boutique en ligne</title>
-{% if boutique.logo_url %}
-<link rel="icon" href="{{ boutique.logo_url }}">
-{% endif %}
+{% if boutique.logo_url %}<link rel="icon" href="{{ boutique.logo_url }}">{% endif %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --primary:{{ boutique.couleur_principale }};
-  --primary-d:{{ boutique.couleur_secondaire }};
-  --dark:#0F172A;
-  --mid:#475569;
-  --light:#94A3B8;
-  --off:#F8FAFC;
-  --white:#fff;
-  --gray:#E2E8F0;
-  --green:#059669;
-  --accent:#FF6600;
-}
+:root{--primary:{{ boutique.couleur_principale }};--primary-d:{{ boutique.couleur_secondaire }};--dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;--white:#fff;--gray:#E2E8F0;--green:#059669;--accent:#FF6600}
 html{scroll-behavior:smooth}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--off);color:var(--mid);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
@@ -30,52 +17,73 @@ img{max-width:100%;height:auto;display:block}
 button{font-family:inherit;cursor:pointer}
 input,textarea{font-family:inherit;outline:none}
 
-/* ─── HEADER ─── */
-.shop-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--white);border-bottom:1px solid var(--gray);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+/* HEADER */
+.shop-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--white);border-bottom:1px solid var(--gray);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.03)}
 .shop-brand{display:flex;align-items:center;gap:10px;min-width:0}
 .shop-logo{width:40px;height:40px;border-radius:10px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--primary-d));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem}
 .shop-name{font-size:1rem;font-weight:900;color:var(--dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.shop-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
 .btn-login{background:var(--primary);color:#fff;padding:9px 16px;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px}
-.btn-login:hover{opacity:.92}
 
-/* ─── HERO ─── */
-.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;text-align:center;padding:60px 24px}
-.hero.has-banniere{padding:0;min-height:340px;display:flex;align-items:center;justify-content:center}
+/* NAV */
+.shop-nav{background:var(--white);border-bottom:1px solid var(--gray);padding:0 20px;overflow-x:auto;display:flex;gap:4px;position:sticky;top:65px;z-index:99;scrollbar-width:none}
+.shop-nav::-webkit-scrollbar{display:none}
+.shop-nav a{padding:12px 14px;font-size:.82rem;font-weight:700;color:var(--mid);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
+.shop-nav a:hover{color:var(--primary)}
+.shop-nav a.active{color:var(--primary);border-bottom-color:var(--primary)}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;text-align:center;padding:56px 24px}
+.hero.has-banniere{padding:0;min-height:400px;display:flex;align-items:center;justify-content:center}
 .hero-banniere{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;z-index:0}
-.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.55),rgba(0,0,0,.35));z-index:1}
-.hero-content{position:relative;z-index:2;max-width:640px;margin:0 auto}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.6),rgba(0,0,0,.4));z-index:1}
+.hero-content{position:relative;z-index:2;max-width:680px;margin:0 auto;padding:40px 0}
 .hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);padding:7px 16px;border-radius:20px;font-size:.74rem;font-weight:800;letter-spacing:.4px;margin-bottom:20px}
-.hero h1{font-size:1.9rem;font-weight:900;margin-bottom:14px;line-height:1.2;text-shadow:0 2px 12px rgba(0,0,0,.2)}
+.hero h1{font-size:2rem;font-weight:900;margin-bottom:14px;line-height:1.2;text-shadow:0 2px 12px rgba(0,0,0,.2)}
 .hero p{font-size:.95rem;opacity:.95;line-height:1.7;max-width:520px;margin:0 auto 28px;text-shadow:0 2px 8px rgba(0,0,0,.2)}
 .hero-cta{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--primary);padding:15px 32px;border-radius:14px;font-weight:900;font-size:.98rem;text-decoration:none;box-shadow:0 12px 30px rgba(0,0,0,.25);transition:transform .2s}
 .hero-cta:hover{transform:translateY(-2px)}
 
-/* Contact rapide */
-.hero-contact{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px;position:relative;z-index:2}
+/* STATS HERO */
+.hero-stats{display:flex;justify-content:center;gap:26px;margin-top:28px;flex-wrap:wrap;position:relative;z-index:2}
+.hero-stat{text-align:center}
+.hero-stat-val{font-size:1.5rem;font-weight:900;color:#fff;line-height:1}
+.hero-stat-lbl{font-size:.72rem;color:rgba(255,255,255,.85);margin-top:4px;font-weight:700;letter-spacing:.4px}
+
+/* CONTACT */
+.hero-contact{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:22px;position:relative;z-index:2}
 .contact-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);color:#fff;padding:9px 16px;border-radius:20px;font-size:.78rem;font-weight:700;text-decoration:none;transition:background .2s}
 .contact-btn:hover{background:rgba(255,255,255,.3)}
 
-/* ─── TRUST ─── */
-.trust-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:640px;margin:-30px auto 0;padding:0 20px;position:relative;z-index:10}
-.trust-item{background:var(--white);border-radius:14px;padding:14px 10px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.08);border:1px solid var(--gray)}
+/* TRUST */
+.trust-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;max-width:720px;margin:-30px auto 0;padding:0 20px;position:relative;z-index:10}
+.trust-item{background:var(--white);border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.08);border:1px solid var(--gray)}
 .trust-item i{font-size:1.15rem;color:var(--primary);margin-bottom:6px;display:block}
-.trust-item span{font-size:.72rem;font-weight:800;color:var(--dark);display:block;line-height:1.3}
+.trust-item span{font-size:.74rem;font-weight:800;color:var(--dark);display:block;line-height:1.3}
 
-/* ─── MAIN ─── */
-.shop-main{padding:32px 20px 60px;max-width:960px;margin:0 auto}
+/* SECTIONS */
+.section{padding:40px 20px;max-width:960px;margin:0 auto}
+.section-title{font-size:1.25rem;font-weight:900;color:var(--dark);text-align:center;margin-bottom:8px}
+.section-sub{font-size:.85rem;color:var(--mid);text-align:center;max-width:480px;margin:0 auto 28px;line-height:1.6}
 
-/* A propos */
-.apropos{background:var(--white);border-radius:16px;padding:22px;border:1px solid var(--gray);margin-bottom:24px}
-.apropos h2{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.apropos h2 i{color:var(--primary)}
-.apropos p{font-size:.86rem;color:var(--mid);line-height:1.7}
+/* AVANTAGES */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.feat-card{background:var(--white);border-radius:14px;padding:22px;text-align:center;border:1px solid var(--gray);transition:all .25s}
+.feat-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.08)}
+.feat-ico{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 14px}
+.feat-card h3{font-size:.92rem;font-weight:900;color:var(--dark);margin-bottom:8px}
+.feat-card p{font-size:.78rem;color:var(--mid);line-height:1.6}
 
-/* Section reseau */
+/* COMMENT COMMANDER */
+.steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;position:relative}
+.step{text-align:center;padding:20px;position:relative}
+.step-num{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;font-size:1.2rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 8px 20px rgba(0,0,0,.15)}
+.step h3{font-size:.92rem;font-weight:900;color:var(--dark);margin-bottom:6px}
+.step p{font-size:.8rem;color:var(--mid);line-height:1.6}
+
+/* SERVICES */
 .reseau-section{margin-bottom:28px}
 .reseau-title{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:14px;display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:2px solid var(--gray)}
 .reseau-title i{font-size:1.2rem}
-
 .svc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
 .svc-card{background:var(--white);border-radius:14px;padding:18px;border:1px solid var(--gray);transition:all .25s;position:relative;overflow:hidden}
 .svc-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.08);border-color:var(--primary)}
@@ -85,39 +93,56 @@ input,textarea{font-family:inherit;outline:none}
 .svc-price small{font-size:.72rem;font-weight:700;color:var(--mid);margin-left:4px}
 .svc-unit{font-size:.72rem;color:var(--light);margin-top:4px;font-weight:600}
 .svc-badge{display:inline-block;font-size:.68rem;font-weight:800;padding:3px 9px;border-radius:10px;background:#EDFFF5;color:var(--green);margin-top:10px}
+.btn-commander{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:12px;padding:10px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border:none;border-radius:10px;font-weight:800;font-size:.82rem;text-decoration:none;transition:transform .2s}
+.btn-commander:hover{transform:translateY(-1px)}
 
-/* ─── CTA FINAL ─── */
-.cta-final{background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:20px;padding:36px 24px;text-align:center;color:#fff;margin-top:40px;position:relative;overflow:hidden}
+/* FAQ */
+.faq-item{background:var(--white);border:1px solid var(--gray);border-radius:14px;padding:16px 18px;margin-bottom:10px}
+.faq-item summary{font-size:.88rem;font-weight:800;color:var(--dark);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:"+";font-size:1.3rem;color:var(--primary);font-weight:300;transition:transform .2s}
+.faq-item[open] summary::after{transform:rotate(45deg)}
+.faq-item p{font-size:.82rem;color:var(--mid);line-height:1.7;margin-top:12px;padding-top:12px;border-top:1px solid var(--gray)}
+
+/* A PROPOS */
+.apropos{background:var(--white);border-radius:16px;padding:24px;border:1px solid var(--gray)}
+.apropos h3{font-size:.95rem;font-weight:900;color:var(--dark);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.apropos h3 i{color:var(--primary)}
+.apropos p{font-size:.85rem;color:var(--mid);line-height:1.7}
+
+/* CTA FINAL */
+.cta-final{background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:20px;padding:38px 24px;text-align:center;color:#fff;position:relative;overflow:hidden;margin:40px auto 0;max-width:960px}
 .cta-final::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 65%);pointer-events:none}
-.cta-final h2{font-size:1.25rem;font-weight:900;margin-bottom:10px;position:relative}
+.cta-final h2{font-size:1.3rem;font-weight:900;margin-bottom:10px;position:relative}
 .cta-final p{font-size:.9rem;opacity:.92;margin-bottom:22px;position:relative;line-height:1.6}
 .cta-final .btn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--primary);padding:15px 32px;border-radius:14px;font-weight:900;font-size:.95rem;text-decoration:none;box-shadow:0 10px 24px rgba(0,0,0,.2);position:relative}
 
-/* ─── EMPTY ─── */
+/* FOOTER */
+.shop-footer{background:var(--dark);color:rgba(255,255,255,.6);text-align:center;padding:32px 20px;font-size:.78rem;line-height:1.7;margin-top:40px}
+.shop-footer .brand{color:#fff;font-weight:900;font-size:1rem;margin-bottom:8px}
+.shop-footer a{color:var(--primary);font-weight:700;text-decoration:none}
+
+/* WHATSAPP FLOAT */
+.wa-float{position:fixed;bottom:22px;right:22px;width:58px;height:58px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.7rem;box-shadow:0 8px 24px rgba(37,211,102,.5);z-index:90;text-decoration:none;animation:waPulse 2s infinite}
+@keyframes waPulse{0%,100%{box-shadow:0 8px 24px rgba(37,211,102,.5)}50%{box-shadow:0 8px 34px rgba(37,211,102,.8)}}
+
+/* SCROLL TOP */
+.scroll-top{position:fixed;bottom:90px;right:22px;width:44px;height:44px;background:var(--primary);color:#fff;border:none;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:89}
+.scroll-top.show{display:flex}
+
+/* EMPTY */
 .empty-shop{text-align:center;padding:60px 24px;background:var(--white);border-radius:18px;border:1px solid var(--gray)}
 .empty-shop i{font-size:2.8rem;color:var(--gray);display:block;margin-bottom:14px}
 .empty-shop h3{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:8px}
 .empty-shop p{font-size:.85rem;color:var(--mid);line-height:1.6}
 
-/* ─── FOOTER ─── */
-.shop-footer{background:var(--dark);color:rgba(255,255,255,.6);text-align:center;padding:28px 20px;font-size:.78rem;line-height:1.7}
-.shop-footer a{color:var(--primary);font-weight:700;text-decoration:none}
-.shop-footer .sep{margin:0 8px}
-
-/* ─── WHATSAPP FLOTTANT ─── */
-.wa-float{position:fixed;bottom:22px;right:22px;width:58px;height:58px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.7rem;box-shadow:0 8px 24px rgba(37,211,102,.5);z-index:90;text-decoration:none;animation:waPulse 2s infinite}
-.wa-float:hover{transform:scale(1.08);animation:none}
-@keyframes waPulse{0%,100%{box-shadow:0 8px 24px rgba(37,211,102,.5)}50%{box-shadow:0 8px 34px rgba(37,211,102,.8)}}
-
-/* Responsive */
 @media(max-width:520px){
-  .hero{padding:44px 20px}
+  .hero{padding:40px 18px}
   .hero h1{font-size:1.5rem}
-  .trust-row{margin-top:-20px;gap:8px}
-  .trust-item{padding:10px 6px}
-  .trust-item span{font-size:.66rem}
+  .hero-stats{gap:18px}
+  .hero-stat-val{font-size:1.2rem}
   .svc-grid{grid-template-columns:1fr}
-  .shop-main{padding:24px 14px 50px}
+  .section{padding:28px 14px}
   .shop-name{font-size:.9rem}
   .shop-logo{width:36px;height:36px}
 }
@@ -135,18 +160,24 @@ input,textarea{font-family:inherit;outline:none}
     {% endif %}
     <div class="shop-name">{{ boutique.nom }}</div>
   </div>
-  <div class="shop-actions">
+  <div>
     {% if est_connecte %}
-    <a href="{{ url_for('dashboard.index') }}" class="btn-login">
-      <i class="fas fa-user"></i> Mon espace
-    </a>
+    <a href="{{ url_for('dashboard.index') }}" class="btn-login"><i class="fas fa-user"></i> Mon espace</a>
     {% else %}
-    <a href="{{ url_for('auth.connexion') }}" class="btn-login">
-      <i class="fas fa-sign-in-alt"></i> Connexion
-    </a>
+    <a href="{{ url_for('auth.connexion') }}" class="btn-login"><i class="fas fa-sign-in-alt"></i> Connexion</a>
     {% endif %}
   </div>
 </header>
+
+<!-- NAV -->
+<nav class="shop-nav">
+  <a href="#services">Services</a>
+  <a href="#avantages">Avantages</a>
+  <a href="#comment">Comment commander</a>
+  {% if boutique.a_propos %}<a href="#apropos">A propos</a>{% endif %}
+  <a href="#faq">FAQ</a>
+  <a href="#contact">Contact</a>
+</nav>
 
 <!-- HERO -->
 <section class="hero {% if boutique.banniere_url %}has-banniere{% endif %}">
@@ -162,8 +193,14 @@ input,textarea{font-family:inherit;outline:none}
       <i class="fas fa-rocket"></i> {% if est_connecte %}Acceder a mon espace{% else %}Creer mon compte gratuit{% endif %}
     </a>
 
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-val">+{{ revendeur.get('referral_count', 0) or 0 }}</div><div class="hero-stat-lbl">CLIENTS</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">100%</div><div class="hero-stat-lbl">SECURISE</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">24/7</div><div class="hero-stat-lbl">SUPPORT</div></div>
+    </div>
+
     {% if boutique.whatsapp or boutique.facebook or boutique.instagram or boutique.tiktok or boutique.telegram %}
-    <div class="hero-contact">
+    <div class="hero-contact" id="contact">
       {% if boutique.whatsapp %}<a href="https://wa.me/{{ boutique.whatsapp }}" target="_blank" class="contact-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>{% endif %}
       {% if boutique.facebook %}<a href="{{ boutique.facebook }}" target="_blank" class="contact-btn"><i class="fab fa-facebook"></i> Facebook</a>{% endif %}
       {% if boutique.instagram %}<a href="{{ boutique.instagram }}" target="_blank" class="contact-btn"><i class="fab fa-instagram"></i> Instagram</a>{% endif %}
@@ -179,17 +216,66 @@ input,textarea{font-family:inherit;outline:none}
   <div class="trust-item"><i class="fas fa-bolt"></i><span>Livraison rapide</span></div>
   <div class="trust-item"><i class="fas fa-shield-halved"></i><span>Paiement securise</span></div>
   <div class="trust-item"><i class="fas fa-headset"></i><span>Support reactif</span></div>
+  <div class="trust-item"><i class="fas fa-undo"></i><span>Resultats garantis</span></div>
 </div>
 
-<!-- MAIN -->
-<main class="shop-main">
+<!-- AVANTAGES -->
+<section class="section" id="avantages">
+  <h2 class="section-title">Pourquoi nous choisir ?</h2>
+  <p class="section-sub">Des milliers de clients nous font deja confiance pour booster leur presence en ligne.</p>
 
-  {% if boutique.a_propos %}
-  <div class="apropos">
-    <h2><i class="fas fa-info-circle"></i> A propos de la boutique</h2>
-    <p>{{ boutique.a_propos }}</p>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-ico"><i class="fas fa-rocket"></i></div>
+      <h3>Livraison ultra rapide</h3>
+      <p>Vos commandes sont traitees en quelques minutes.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-ico"><i class="fas fa-lock"></i></div>
+      <h3>100% securise</h3>
+      <p>Paiement Mobile Money et carte bancaire proteges.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-ico"><i class="fas fa-tags"></i></div>
+      <h3>Prix imbattables</h3>
+      <p>Les meilleurs tarifs du marche africain.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-ico"><i class="fas fa-headset"></i></div>
+      <h3>Support 24/7</h3>
+      <p>Une equipe disponible sur WhatsApp a tout moment.</p>
+    </div>
   </div>
-  {% endif %}
+</section>
+
+<!-- COMMENT COMMANDER -->
+<section class="section" id="comment">
+  <h2 class="section-title">Comment commander ?</h2>
+  <p class="section-sub">Seulement 3 etapes pour booster vos reseaux sociaux.</p>
+
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Creez votre compte</h3>
+      <p>Inscription gratuite en 30 secondes.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Rechargez</h3>
+      <p>Ajoutez du credit via Mobile Money.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Commandez</h3>
+      <p>Choisissez votre service et validez.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section" id="services">
+  <h2 class="section-title">Nos services</h2>
+  <p class="section-sub">Des tarifs competitifs pour tous vos reseaux preferes.</p>
 
   {% if services_par_reseau %}
     {% set icons = {
@@ -225,48 +311,108 @@ input,textarea{font-family:inherit;outline:none}
           <div class="svc-badge"><i class="fas fa-bolt"></i> Livraison rapide</div>
           {% else %}
           <div class="svc-price" style="font-size:.95rem;color:var(--mid);font-weight:700">Prix sur demande</div>
-          <div class="svc-unit">Contactez-nous pour un devis</div>
           {% endif %}
+          <a href="{% if est_connecte %}{{ url_for('dashboard.index') }}{% else %}{{ url_for('auth.connexion') }}{% endif %}" class="btn-commander">
+            <i class="fas fa-shopping-cart"></i> Commander
+          </a>
         </div>
         {% endfor %}
       </div>
     </div>
     {% endfor %}
-
-    <div class="cta-final">
-      <h2>Pret a booster vos reseaux ?</h2>
-      <p>Creez votre compte en 30 secondes et passez votre premiere commande des maintenant.</p>
-      <a href="{% if est_connecte %}{{ url_for('dashboard.index') }}{% else %}{{ url_for('auth.connexion') }}{% endif %}" class="btn">
-        <i class="fas fa-arrow-right"></i> Commencer maintenant
-      </a>
-    </div>
-
   {% else %}
     <div class="empty-shop">
       <i class="fas fa-store-slash"></i>
       <h3>Cette boutique prepare son catalogue</h3>
-      <p>Le revendeur n'a pas encore configure ses services. Revenez bientot !</p>
+      <p>Revenez bientot pour decouvrir les services disponibles.</p>
     </div>
   {% endif %}
+</section>
 
-</main>
+<!-- A PROPOS -->
+{% if boutique.a_propos %}
+<section class="section" id="apropos">
+  <div class="apropos">
+    <h3><i class="fas fa-info-circle"></i> A propos de {{ boutique.nom }}</h3>
+    <p>{{ boutique.a_propos }}</p>
+  </div>
+</section>
+{% endif %}
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <h2 class="section-title">Questions frequentes</h2>
+  <p class="section-sub">Tout ce que vous devez savoir avant de commander.</p>
+
+  <details class="faq-item">
+    <summary>Comment creer mon compte ?</summary>
+    <p>Cliquez sur "Creer mon compte" en haut de la page. L'inscription est gratuite et prend moins de 30 secondes.</p>
+  </details>
+  <details class="faq-item">
+    <summary>Quels sont les moyens de paiement acceptes ?</summary>
+    <p>Nous acceptons Orange Money, MTN Mobile Money et carte bancaire (Visa, Mastercard).</p>
+  </details>
+  <details class="faq-item">
+    <summary>Combien de temps prend la livraison ?</summary>
+    <p>La majorite des commandes sont livrees en quelques minutes. Certains services peuvent prendre jusqu'a 24h.</p>
+  </details>
+  <details class="faq-item">
+    <summary>Que faire si ma commande n'arrive pas ?</summary>
+    <p>Contactez-nous via WhatsApp. Notre equipe traitera votre demande dans les plus brefs delais.</p>
+  </details>
+</section>
+
+<!-- CTA FINAL -->
+<div class="cta-final">
+  <h2>Pret a booster vos reseaux ?</h2>
+  <p>Rejoignez des milliers de clients satisfaits et boostez votre presence en ligne des aujourd'hui.</p>
+  <a href="{% if est_connecte %}{{ url_for('dashboard.index') }}{% else %}{{ url_for('auth.connexion') }}{% endif %}" class="btn">
+    <i class="fas fa-rocket"></i> Commencer maintenant
+  </a>
+</div>
 
 <!-- FOOTER -->
 <footer class="shop-footer">
-  <div>
-    &copy; 2026 <strong style="color:#fff">{{ boutique.nom }}</strong>
-    <span class="sep">·</span>
-    <a href="https://reseller.boostcentral.world">Propulse par Boost Central</a>
+  <div class="brand">{{ boutique.nom }}</div>
+  <div style="margin-bottom:12px">{{ boutique.slogan }}</div>
+  {% if boutique.whatsapp %}
+  <div style="margin-bottom:12px">
+    <i class="fab fa-whatsapp" style="color:#25D366"></i>
+    <a href="https://wa.me/{{ boutique.whatsapp }}">WhatsApp</a>
   </div>
+  {% endif %}
+  <div>&copy; 2026 {{ boutique.nom }} · Propulse par <a href="https://boostcentral.world" target="_blank">Boost Central</a></div>
 </footer>
 
-<!-- WHATSAPP FLOTTANT -->
+<!-- SCROLL TOP -->
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- WHATSAPP FLOAT -->
 {% if boutique.whatsapp_flottant and boutique.whatsapp %}
 <a href="https://wa.me/{{ boutique.whatsapp }}?text={{ ('Bonjour ' ~ boutique.nom ~ ', je viens de votre boutique et je voudrais des informations.')|urlencode }}"
-   target="_blank" class="wa-float" title="Contacter {{ boutique.nom }}">
+   target="_blank" class="wa-float">
   <i class="fab fa-whatsapp"></i>
 </a>
 {% endif %}
+
+<script>
+window.addEventListener('scroll', function(){
+  var btn = document.getElementById('scrollTop');
+  if(window.scrollY > 400){ btn.classList.add('show'); } else { btn.classList.remove('show'); }
+});
+document.querySelectorAll('.shop-nav a').forEach(function(a){
+  a.addEventListener('click', function(e){
+    var href = this.getAttribute('href');
+    if(href.startsWith('#')){
+      e.preventDefault();
+      var target = document.querySelector(href);
+      if(target){ target.scrollIntoView({behavior:'smooth', block:'start'}); }
+    }
+  });
+});
+</script>
 
 </body>
 </html>
