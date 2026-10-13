@@ -210,3 +210,156 @@ def visiter(slug):
         est_connecte=est_connecte,
         type_code=type_code,
     )
+
+import re
+import secrets
+from datetime import datetime, timezone
+
+
+def _generer_reference():
+    """Genere une reference unique pour la commande."""
+    return "CMD-" + secrets.token_hex(6).upper()
+
+
+@boutique_bp.route("/r/<slug>/commander", methods=["POST"])
+def commander(slug):
+    """Traite la commande invite (sans compte)."""
+    revendeur = get_profile_by_slug(slug)
+    if not revendeur or not revendeur.get("est_revendeur"):
+        flash("Boutique introuvable.", "error")
+        return redirect(url_for("home.index"))
+
+    from flask import request
+
+    # Recuperer les infos client
+    client_nom = request.form.get("client_nom", "").strip()
+    client_telephone = request.form.get("client_telephone", "").strip()
+    client_email = request.form.get("client_email", "").strip() or None
+    client_adresse = request.form.get("client_adresse", "").strip() or None
+    client_ville = request.form.get("client_ville", "").strip() or None
+    mode_paiement = request.form.get("mode_paiement", "cash")
+    note_client = request.form.get("note_client", "").strip() or None
+
+    if not client_nom or not client_telephone:
+        flash("Nom et telephone sont requis.", "error")
+        return redirect(url_for("boutique.visiter", slug=slug))
+
+    # Recuperer les produits du panier (JSON envoye par le client)
+    panier_json = request.form.get("panier_json", "[]")
+    try:
+        import json
+        panier = json.loads(panier_json)
+    except Exception:
+        panier = []
+
+    if not panier:
+        flash("Votre panier est vide.", "error")
+        return redirect(url_for("boutique.visiter", slug=slug))
+
+    # Calculer le total
+    sous_total = 0
+    produits_commande = []
+    for item in panier:
+        produit_id = item.get("id")
+        qte = int(item.get("qte", 1))
+        produit = get_produit_by_id(produit_id)
+        if not produit:
+            continue
+        prix = float(produit.get("prix", 0))
+        sous_total += prix * qte
+        produits_commande.append({
+            "id": produit_id,
+            "nom": produit.get("nom"),
+            "prix": prix,
+            "qte": qte,
+            "image": produit.get("image_url"),
+            "attributs": item.get("attributs", {})
+        })
+
+    if not produits_commande:
+        flash("Aucun produit valide dans le panier.", "error")
+        return redirect(url_for("boutique.visiter", slug=slug))
+
+    # Frais de livraison (0 par defaut, modifiable plus tard)
+    frais_livraison = 0
+    total = sous_total + frais_livraison
+
+    # Generer une reference unique
+    reference = _generer_reference()
+
+    # Creer la commande
+    from app.models.database import create_commande_boutique, decrementer_stock
+
+    commande_data = {
+        "revendeur_id": revendeur["id"],
+        "reference": reference,
+        "client_nom": client_nom,
+        "client_email": client_email,
+        "client_telephone": client_telephone,
+        "client_adresse": client_adresse,
+        "client_ville": client_ville,
+        "produits": produits_commande,
+        "sous_total": sous_total,
+        "frais_livraison": frais_livraison,
+        "total": total,
+        "mode_paiement": mode_paiement,
+        "mode_livraison": "livraison",
+        "statut": "en_attente",
+        "note_client": note_client,
+    }
+
+    commande = create_commande_boutique(commande_data)
+
+    if not commande:
+        flash("Erreur lors de l'enregistrement de la commande.", "error")
+        return redirect(url_for("boutique.visiter", slug=slug))
+
+    # Decrementer le stock
+    for p in produits_commande:
+        try:
+            decrementer_stock(p["id"], p["qte"])
+        except Exception:
+            pass
+
+    # Vider le panier cote client
+    session.pop("panier", None)
+
+    flash(f"✅ Commande {reference} enregistree ! Le vendeur va vous contacter.", "success")
+    return redirect(url_for("boutique.confirmation", slug=slug, reference=reference))
+
+
+@boutique_bp.route("/r/<slug>/confirmation/<reference>")
+def confirmation(slug, reference):
+    """Page de confirmation apres commande."""
+    revendeur = get_profile_by_slug(slug)
+    if not revendeur:
+        return redirect(url_for("home.index"))
+
+    from app.models.database import get_commande_boutique_by_reference
+    commande = get_commande_boutique_by_reference(reference)
+
+    if not commande or commande.get("revendeur_id") != revendeur["id"]:
+        flash("Commande introuvable.", "error")
+        return redirect(url_for("boutique.visiter", slug=slug))
+
+    # Theme
+    theme = revendeur.get("boutique_theme") or "bleu"
+    couleur_principale, couleur_secondaire = THEMES.get(theme, THEMES["bleu"])
+    if revendeur.get("boutique_couleur_principale"):
+        couleur_principale = revendeur["boutique_couleur_principale"]
+    if revendeur.get("boutique_couleur_secondaire"):
+        couleur_secondaire = revendeur["boutique_couleur_secondaire"]
+
+    boutique = {
+        "nom": revendeur.get("boutique_nom") or f"Boutique {slug.capitalize()}",
+        "logo_url": revendeur.get("boutique_logo_url"),
+        "couleur_principale": couleur_principale,
+        "couleur_secondaire": couleur_secondaire,
+        "whatsapp": revendeur.get("boutique_whatsapp"),
+    }
+
+    return render_template("boutique_confirmation.html",
+                          boutique=boutique,
+                          commande=commande,
+                          revendeur=revendeur,
+                          slug=slug)
