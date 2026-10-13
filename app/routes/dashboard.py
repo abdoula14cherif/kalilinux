@@ -16,6 +16,7 @@ from app.models.database import (
     get_all_boutique_types, get_boutique_type, get_categories_par_type,
     get_produits_revendeur, create_produit_boutique, update_produit_boutique,
     delete_produit_boutique, get_produit_boutique,
+    create_categorie, update_categorie, delete_categorie,
     get_abonnements_plans, get_fonctionnalites_premium
 )
 from app.models.storage import upload_image
@@ -98,7 +99,6 @@ def index():
 
     type_boutique = get_boutique_type(profile["boutique_type"]) or {}
 
-    # Stats adaptees au type
     stats = {
         "nb_produits": 0,
         "nb_commandes": 0,
@@ -200,13 +200,11 @@ def boutique_enregistrer():
     except Exception:
         pass
 
-    # Sections
     sections = {}
     for key in ("stats", "avantages", "comment", "services", "apropos", "avis", "faq"):
         sections[key] = request.form.get(f"section_{key}") == "on"
     data["boutique_sections_affichees"] = sections
 
-    # Uploads
     logo_file = request.files.get("boutique_logo")
     if logo_file and logo_file.filename:
         try:
@@ -435,14 +433,12 @@ def produits_ajouter():
         except Exception:
             pass
 
-    # Upload image
     image_file = request.files.get("image")
     if image_file and image_file.filename:
         image_url = upload_image(image_file, prefix="produit_")
         if image_url:
             data["image_url"] = image_url
 
-    # Stock
     stock_str = request.form.get("stock", "").strip()
     if stock_str:
         try:
@@ -557,6 +553,73 @@ def categories():
     return render_template("dashboard/categories.html",
                           profile=profile,
                           categories=categories_liste)
+
+
+@dashboard_bp.route("/categories/ajouter", methods=["POST"])
+@login_required
+def categories_ajouter():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    nom = request.form.get("nom", "").strip()
+    description = request.form.get("description", "").strip() or None
+
+    if not nom:
+        flash("Le nom est requis.", "error")
+        return redirect(url_for("dashboard.categories"))
+
+    result = create_categorie(profile["boutique_type"], nom, description)
+    if result:
+        flash(f"✅ Categorie '{nom}' creee !", "success")
+    else:
+        flash("Erreur lors de la creation.", "error")
+
+    return redirect(url_for("dashboard.categories"))
+
+
+@dashboard_bp.route("/categories/modifier", methods=["POST"])
+@login_required
+def categories_modifier():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    cat_id = request.form.get("categorie_id", "")
+    if not cat_id:
+        flash("ID manquant.", "error")
+        return redirect(url_for("dashboard.categories"))
+
+    data = {
+        "nom": request.form.get("nom", "").strip(),
+        "description": request.form.get("description", "").strip() or None,
+    }
+
+    ok = update_categorie(cat_id, data)
+    if ok:
+        flash("✅ Categorie mise a jour.", "success")
+    else:
+        flash("Erreur.", "error")
+
+    return redirect(url_for("dashboard.categories"))
+
+
+@dashboard_bp.route("/categories/supprimer", methods=["POST"])
+@login_required
+def categories_supprimer():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    cat_id = request.form.get("categorie_id", "")
+    if cat_id:
+        ok = delete_categorie(cat_id)
+        if ok:
+            flash("Categorie supprimee.", "success")
+        else:
+            flash("Erreur.", "error")
+
+    return redirect(url_for("dashboard.categories"))
 
 
 # ═══════════════════════════════════════════════════════════════
