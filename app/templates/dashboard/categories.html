@@ -1,0 +1,157 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Mes catégories — Boost Reseller{% endblock %}
+{% block page_title %}Catégories{% endblock %}
+{% block page_subtitle %}{{ categories|length }} catégorie(s) pour votre type de boutique{% endblock %}
+
+{% block topbar_actions %}
+<button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-plus"></i> Ajouter une catégorie
+</button>
+{% endblock %}
+
+{% block extra_css %}
+.info-banner{background:linear-gradient(135deg,#E0F7FF,#F0FAFF);border-left:4px solid #00BFFF;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#0F172A;line-height:1.6}
+.info-banner i{color:#00BFFF;margin-right:6px}
+.info-banner strong{color:#0096C7}
+
+.categories-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.cat-card{background:#fff;border-radius:14px;border:1px solid #E2E8F0;padding:18px;transition:all .22s;position:relative;overflow:hidden}
+.cat-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.08);border-color:#00BFFF}
+.cat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#00BFFF,#FF6600)}
+.cat-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.cat-ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#E0F7FF,#F0FAFF);color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.cat-info{flex:1;min-width:0}
+.cat-nom{font-size:.95rem;font-weight:900;color:#0F172A;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-desc{font-size:.75rem;color:#64748B;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-actions{display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px dashed #E2E8F0}
+.btn-action{flex:1;padding:8px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:4px}
+.btn-mod{background:#E0F7FF;color:#0096C7}
+.btn-mod:hover{background:#0096C7;color:#fff}
+.btn-del{background:#FEE2E2;color:#991B1B}
+.btn-del:hover{background:#991B1B;color:#fff}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:70px;height:70px;border-radius:50%;background:#E0F7FF;color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px 22px;max-width:440px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94A3B8}
+.modal h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal h3 i{color:#00BFFF}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.inp,.txta{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus,.txta:focus{border-color:#00BFFF}
+.txta{min-height:70px;resize:vertical}
+.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,191,255,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+.btn-save:hover{transform:translateY(-1px)}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="info-banner">
+  <i class="fas fa-info-circle"></i>
+  Les <strong>catégories</strong> vous aident à organiser vos produits. Elles sont visibles par vos clients sur votre boutique.
+</div>
+
+{% if categories %}
+<div class="categories-grid">
+  {% for c in categories %}
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="cat-ico">
+        <i class="fas fa-folder"></i>
+      </div>
+      <div class="cat-info">
+        <div class="cat-nom">{{ c.nom }}</div>
+        {% if c.description %}<div class="cat-desc">{{ c.description }}</div>{% endif %}
+      </div>
+    </div>
+    <div class="cat-actions">
+      <button class="btn-action btn-mod" onclick="ouvrirModif({{ c|tojson }})">
+        <i class="fas fa-edit"></i> Modifier
+      </button>
+      <form method="POST" action="#" style="flex:1" onsubmit="return confirm('Supprimer cette categorie ? Les produits lies ne seront pas supprimes.')">
+        <button type="submit" class="btn-action btn-del" style="width:100%">
+          <i class="fas fa-trash"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-folder-open"></i></div>
+  <h3>Aucune catégorie pour l'instant</h3>
+  <p>Les catégories vous aident à organiser vos produits (Hommes, Femmes, Enfants...).</p>
+  <button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:12px 24px;font-size:.88rem">
+    <i class="fas fa-plus"></i> Créer ma première catégorie
+  </button>
+</div>
+{% endif %}
+
+<!-- MODAL AJOUT -->
+<div class="modal-bg" id="modalAjout">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalAjout')">✕</button>
+    <h3><i class="fas fa-plus-circle"></i> Nouvelle catégorie</h3>
+    <form method="POST" action="#">
+      <div class="fg">
+        <label>Nom de la catégorie *</label>
+        <input class="inp" type="text" name="nom" placeholder="Ex: Hommes, Femmes, Enfants..." required maxlength="60">
+      </div>
+      <div class="fg">
+        <label>Description (optionnel)</label>
+        <textarea class="txta" name="description" placeholder="Decrivez cette categorie..."></textarea>
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-check"></i> Creer la categorie</button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL MODIF -->
+<div class="modal-bg" id="modalModif">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalModif')">✕</button>
+    <h3><i class="fas fa-edit"></i> Modifier la catégorie</h3>
+    <form method="POST" action="#">
+      <input type="hidden" name="categorie_id" id="m_id">
+      <div class="fg">
+        <label>Nom de la catégorie *</label>
+        <input class="inp" type="text" name="nom" id="m_nom" required maxlength="60">
+      </div>
+      <div class="fg">
+        <label>Description</label>
+        <textarea class="txta" name="description" id="m_description"></textarea>
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-save"></i> Enregistrer</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function ouvrirAjout(){
+  document.getElementById('modalAjout').classList.add('open');
+}
+function ouvrirModif(cat){
+  document.getElementById('m_id').value = cat.id || '';
+  document.getElementById('m_nom').value = cat.nom || '';
+  document.getElementById('m_description').value = cat.description || '';
+  document.getElementById('modalModif').classList.add('open');
+}
+function fermerModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('open');
+  });
+});
+</script>
+
+{% endblock %}
