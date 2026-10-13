@@ -1,0 +1,144 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Paramètres — Boost Reseller{% endblock %}
+{% block page_title %}Paramètres{% endblock %}
+{% block page_subtitle %}Gérez votre compte et votre boutique{% endblock %}
+
+{% block extra_css %}
+.settings-section{background:#fff;border-radius:16px;border:1px solid #E2E8F0;padding:22px;margin-bottom:18px}
+.section-title{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.section-title i{color:#00BFFF}
+.section-sub{font-size:.82rem;color:#64748B;margin-bottom:18px;line-height:1.5}
+
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #E2E8F0}
+.info-row:last-child{border-bottom:none;padding-bottom:0}
+.info-row:first-of-type{padding-top:0}
+.info-lbl{font-size:.85rem;color:#64748B;font-weight:600}
+.info-val{font-size:.88rem;color:#0F172A;font-weight:700;text-align:right;word-break:break-word;max-width:60%}
+
+.badge-statut{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:12px;font-size:.72rem;font-weight:900}
+.b-ok{background:#EDFFF5;color:#059669}
+.b-warn{background:#FEF3C7;color:#92400E}
+.b-info{background:#E0F7FF;color:#0096C7}
+
+.types-mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:12px}
+.type-mini{border:2px solid #E2E8F0;border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
+.type-mini:hover{border-color:#00BFFF}
+.type-mini.actif{border-color:#00BFFF;background:#F0FAFF}
+.type-mini-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;margin:0 auto 8px}
+.type-mini-nom{font-size:.75rem;font-weight:800;color:#0F172A;line-height:1.3}
+
+.danger-zone{border:2px solid #FEE2E2;background:linear-gradient(135deg,#fff,#FEF2F2)}
+.danger-zone .section-title i{color:#DC2626}
+.danger-zone .section-sub{color:#991B1B}
+
+.btn-danger{background:#FEE2E2;color:#991B1B;padding:12px 22px;border:none;border-radius:12px;font-weight:900;font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.2s}
+.btn-danger:hover{background:#DC2626;color:#fff}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<!-- INFOS COMPTE -->
+<div class="settings-section">
+  <div class="section-title"><i class="fas fa-user-circle"></i> Mon compte</div>
+  <div class="section-sub">Informations liées à votre compte Boost Central.</div>
+
+  <div class="info-row">
+    <div class="info-lbl">Email</div>
+    <div class="info-val">{{ profile.email }}</div>
+  </div>
+  <div class="info-row">
+    <div class="info-lbl">Nom complet</div>
+    <div class="info-val">{{ profile.full_name or '—' }}</div>
+  </div>
+  <div class="info-row">
+    <div class="info-lbl">Pays</div>
+    <div class="info-val">{{ profile.country or '—' }}</div>
+  </div>
+  <div class="info-row">
+    <div class="info-lbl">Solde</div>
+    <div class="info-val" style="color:#059669">{{ "{:,.0f}".format(profile.balance or 0) }} FCFA</div>
+  </div>
+</div>
+
+<!-- INFOS BOUTIQUE -->
+<div class="settings-section">
+  <div class="section-title"><i class="fas fa-store"></i> Ma boutique</div>
+  <div class="section-sub">Informations générales de votre boutique.</div>
+
+  <div class="info-row">
+    <div class="info-lbl">Nom de la boutique</div>
+    <div class="info-val">{{ profile.boutique_nom or '—' }}</div>
+  </div>
+  <div class="info-row">
+    <div class="info-lbl">Type de boutique</div>
+    <div class="info-val">{{ profile.boutique_type|capitalize if profile.boutique_type else '—' }}</div>
+  </div>
+  <div class="info-row">
+    <div class="info-lbl">Identifiant (slug)</div>
+    <div class="info-val">{% if profile.revendeur_slug %}/r/{{ profile.revendeur_slug }}{% else %}—{% endif %}</div>
+  </div>
+  <div class="info-row">
+    <div class="info-lbl">Statut</div>
+    <div class="info-val">
+      {% if profile.est_revendeur %}
+      <span class="badge-statut b-ok"><i class="fas fa-check-circle"></i> En ligne</span>
+      {% else %}
+      <span class="badge-statut b-warn"><i class="fas fa-clock"></i> Brouillon</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="info-row">
+    <div class="info-lbl">Mode de gains</div>
+    <div class="info-val">
+      {% if profile.revendeur_modele == 'marge' %}Marge sur prix{% elif profile.revendeur_modele == 'commission' %}Commission {{ ((profile.revendeur_commission_pct or 0) * 100)|round|int }}%{% else %}—{% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- CHANGER TYPE -->
+<div class="settings-section">
+  <div class="section-title"><i class="fas fa-exchange-alt"></i> Changer de type de boutique</div>
+  <div class="section-sub">⚠️ Changer de type peut affecter vos produits existants. Contactez le support pour changer.</div>
+
+  <div class="types-mini-grid">
+    {% for t in types_boutique %}
+    <div class="type-mini {% if t.code == profile.boutique_type %}actif{% endif %}">
+      <div class="type-mini-ico" style="background:linear-gradient(135deg,{{ t.couleur }},{{ t.couleur }}cc)">
+        <i class="{{ t.icone }}"></i>
+      </div>
+      <div class="type-mini-nom">{{ t.nom }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ABONNEMENT -->
+<div class="settings-section">
+  <div class="section-title"><i class="fas fa-star"></i> Mon abonnement</div>
+  <div class="section-sub">Votre plan actuel et les fonctionnalités incluses.</div>
+
+  <div class="info-row">
+    <div class="info-lbl">Plan actuel</div>
+    <div class="info-val">{{ (profile.abonnement_niveau or 'gratuit')|capitalize }}</div>
+  </div>
+  <div class="info-row">
+    <div class="info-lbl">Expire le</div>
+    <div class="info-val">{% if profile.abonnement_expire_le %}{{ profile.abonnement_expire_le[:10] }}{% else %}—{% endif %}</div>
+  </div>
+  <div style="margin-top:16px">
+    <a href="{{ url_for('dashboard.abonnement') }}" class="btn btn-primary" style="padding:12px 22px;font-size:.85rem">
+      <i class="fas fa-arrow-right"></i> Voir les plans
+    </a>
+  </div>
+</div>
+
+<!-- DANGER ZONE -->
+<div class="settings-section danger-zone">
+  <div class="section-title"><i class="fas fa-exclamation-triangle"></i> Zone de danger</div>
+  <div class="section-sub">Ces actions sont irréversibles. Contactez le support avant de continuer.</div>
+  <button type="button" class="btn-danger" onclick="alert('🔒 Cette action est désactivée pour le moment.\nContactez le support WhatsApp pour plus d\'informations.')">
+    <i class="fas fa-trash"></i> Désactiver mon compte revendeur
+  </button>
+</div>
+
+{% endblock %}
