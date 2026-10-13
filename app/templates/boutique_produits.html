@@ -469,6 +469,60 @@ button{font-family:inherit;cursor:pointer}
   <span id="toastMsg">Ajoute au panier</span>
 </div>
 
+<!-- MODAL CHECKOUT -->
+<div class="modal-bg" id="modalCheckout" onclick="if(event.target===this) fermerModal('modalCheckout')">
+  <div class="modal-content">
+    <div class="modal-header"><h3>Finaliser ma commande</h3><button class="modal-close" onclick="fermerModal('modalCheckout')">✕</button></div>
+
+    <form method="POST" action="{{ url_for('boutique.commander', slug=slug) }}" id="formCheckout">
+      <input type="hidden" name="panier_json" id="panierJson">
+
+      <div class="fg" style="margin-bottom:14px">
+        <label style="display:block;font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:6px">Nom complet *</label>
+        <input type="text" name="client_nom" required style="width:100%;padding:12px;border:2px solid var(--border);border-radius:11px;background:var(--soft-bg);color:var(--text);font-family:inherit;font-size:.9rem">
+      </div>
+
+      <div class="fg" style="margin-bottom:14px">
+        <label style="display:block;font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:6px">Telephone (WhatsApp) *</label>
+        <input type="tel" name="client_telephone" required placeholder="Ex: 237658033690" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:11px;background:var(--soft-bg);color:var(--text);font-family:inherit;font-size:.9rem">
+      </div>
+
+      <div class="fg" style="margin-bottom:14px">
+        <label style="display:block;font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:6px">Email (optionnel)</label>
+        <input type="email" name="client_email" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:11px;background:var(--soft-bg);color:var(--text);font-family:inherit;font-size:.9rem">
+      </div>
+
+      <div class="fg" style="margin-bottom:14px">
+        <label style="display:block;font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:6px">Adresse</label>
+        <input type="text" name="client_adresse" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:11px;background:var(--soft-bg);color:var(--text);font-family:inherit;font-size:.9rem">
+      </div>
+
+      <div class="fg" style="margin-bottom:14px">
+        <label style="display:block;font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:6px">Ville</label>
+        <input type="text" name="client_ville" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:11px;background:var(--soft-bg);color:var(--text);font-family:inherit;font-size:.9rem">
+      </div>
+
+      <div class="fg" style="margin-bottom:14px">
+        <label style="display:block;font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:6px">Mode de paiement *</label>
+        <select name="mode_paiement" required style="width:100%;padding:12px;border:2px solid var(--border);border-radius:11px;background:var(--soft-bg);color:var(--text);font-family:inherit;font-size:.9rem">
+          <option value="cash">💵 Paiement a la livraison</option>
+          <option value="mtn">📱 MTN Mobile Money</option>
+          <option value="orange">📱 Orange Money</option>
+        </select>
+      </div>
+
+      <div class="fg" style="margin-bottom:16px">
+        <label style="display:block;font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:6px">Note (optionnel)</label>
+        <textarea name="note_client" rows="2" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:11px;background:var(--soft-bg);color:var(--text);font-family:inherit;font-size:.9rem;resize:vertical"></textarea>
+      </div>
+
+      <button type="submit" class="btn-checkout">
+        <i class="fas fa-check-circle"></i> Confirmer ma commande
+      </button>
+    </form>
+  </div>
+</div>
+
 <script>
 var vueActuelle = 'grille';
 var categorieActive = 'all';
@@ -610,9 +664,9 @@ function majChariot(){
   html += '<span class="chariot-total-val" id="totalPanier">' + total.toLocaleString('fr-FR') + ' F</span>';
   html += '</div>';
 
-  html += '<a href="https://wa.me/{{ boutique.whatsapp }}?text=' + encodeURIComponent('Bonjour {{ boutique.nom }}, je veux commander : ' + chariot.map(function(i){ return i.qte + 'x ' + i.nom; }).join(', ') + ' — Total : ' + total.toLocaleString('fr-FR') + ' F') + '" target="_blank" class="btn-checkout">';
-  html += '<i class="fab fa-whatsapp"></i> Commander sur WhatsApp';
-  html += '</a>';
+  html += '<button type="button" onclick="ouvrirCheckout()" class="btn-checkout">';
+  html += '<i class="fas fa-check-circle"></i> Valider ma commande';
+  html += '</button>';
 
   body.innerHTML = html;
 }
@@ -621,12 +675,22 @@ function ouvrirChariot(){
   document.getElementById('modalChariot').classList.add('open');
 }
 
+// CHECKOUT
+function ouvrirCheckout(){
+  if(chariot.length === 0){
+    afficherToast('Votre panier est vide');
+    return;
+  }
+  document.getElementById('panierJson').value = JSON.stringify(chariot);
+  fermerModal('modalChariot');
+  document.getElementById('modalCheckout').classList.add('open');
+}
+
 // COUPON
 var COUPONS_DISPONIBLES = [];
 function appliquerCoupon(){
   var code = document.getElementById('couponCode').value.trim().toUpperCase();
   if(!code) return;
-  // On verifie cote client seulement pour l'affichage (le vrai check se fait cote serveur au checkout)
   var msg = document.getElementById('couponMsg');
   msg.className = 'coupon-msg ok';
   msg.textContent = '✅ Code "' + code + '" applique ! La reduction sera confirmee au paiement.';
@@ -652,7 +716,6 @@ function ouvrirProduit(produit){
   document.getElementById('mpDesc').textContent = produit.description || 'Produit de qualite.';
   document.getElementById('mpQte').textContent = 1;
 
-  // Attributs
   var html = '';
   if(attributsDispo && attributsDispo.length > 0){
     attributsDispo.forEach(function(a){
