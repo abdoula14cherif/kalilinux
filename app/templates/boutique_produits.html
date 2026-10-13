@@ -20,15 +20,15 @@
   --green-d:#059669;
   --red:#DC2626;
   --orange:#F59E0B;
-  --mode:{{ 'dark' if profile.get('boutique_theme') == 'noir' else 'light' }};
-  --panel-bg:{{ '#0F172A' if profile.get('boutique_theme') == 'noir' else '#FFFFFF' }};
-  --card-bg:{{ '#1E293B' if profile.get('boutique_theme') == 'noir' else '#FFFFFF' }};
-  --page-bg:{{ '#0F172A' if profile.get('boutique_theme') == 'noir' else '#F5F7FA' }};
-  --text:{{ '#F1F5F9' if profile.get('boutique_theme') == 'noir' else '#0F172A' }};
-  --text-mid:{{ '#94A3B8' if profile.get('boutique_theme') == 'noir' else '#64748B' }};
-  --text-light:{{ '#64748B' if profile.get('boutique_theme') == 'noir' else '#94A3B8' }};
-  --border:{{ 'rgba(255,255,255,.08)' if profile.get('boutique_theme') == 'noir' else '#E5E9F0' }};
-  --soft-bg:{{ '#334155' if profile.get('boutique_theme') == 'noir' else '#F1F5F9' }};
+  --mode:{{ 'dark' if revendeur.get('boutique_theme') == 'noir' else 'light' }};
+  --panel-bg:{{ '#0F172A' if revendeur.get('boutique_theme') == 'noir' else '#FFFFFF' }};
+  --card-bg:{{ '#1E293B' if revendeur.get('boutique_theme') == 'noir' else '#FFFFFF' }};
+  --page-bg:{{ '#0F172A' if revendeur.get('boutique_theme') == 'noir' else '#F5F7FA' }};
+  --text:{{ '#F1F5F9' if revendeur.get('boutique_theme') == 'noir' else '#0F172A' }};
+  --text-mid:{{ '#94A3B8' if revendeur.get('boutique_theme') == 'noir' else '#64748B' }};
+  --text-light:{{ '#64748B' if revendeur.get('boutique_theme') == 'noir' else '#94A3B8' }};
+  --border:{{ 'rgba(255,255,255,.08)' if revendeur.get('boutique_theme') == 'noir' else '#E5E9F0' }};
+  --soft-bg:{{ '#334155' if revendeur.get('boutique_theme') == 'noir' else '#F1F5F9' }};
 }
 html{scroll-behavior:smooth}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--page-bg);color:var(--text-mid);min-height:100vh;padding-bottom:80px;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
