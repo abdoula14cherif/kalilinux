@@ -1,70 +1,36 @@
 {% extends "base.html" %}
-
 {% block title %}{% block page_title_meta %}Dashboard{% endblock %} — Boost Reseller{% endblock %}
-
 {% block content %}
 <style>
-/* === DASHBOARD LAYOUT === */
-.dash-app{display:flex;min-height:100vh;background:#F8FAFC;position:relative}
-
-/* SIDEBAR */
-.dash-sidebar{
-  width:250px;background:#0F172A;color:#fff;
-  display:flex;flex-direction:column;
-  position:fixed;top:0;left:0;bottom:0;z-index:100;
-  transition:transform .3s ease;overflow-y:auto;
-}
+.dash-app{display:flex;min-height:100vh;background:#F8FAFC}
+.dash-sidebar{width:260px;background:#0F172A;color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s;overflow-y:auto}
 .dash-sidebar::-webkit-scrollbar{width:4px}
 .dash-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px}
-
 .sidebar-header{padding:20px;border-bottom:1px solid rgba(255,255,255,.08)}
 .sidebar-logo{font-size:1.1rem;font-weight:900;background:linear-gradient(90deg,#00BFFF,#FF6600);-webkit-background-clip:text;background-clip:text;color:transparent}
 .sidebar-status{margin-top:10px;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:20px;display:inline-block;letter-spacing:.3px}
 .status-brouillon{background:rgba(255,102,0,.15);color:#FF6600}
 .status-online{background:rgba(5,150,105,.15);color:#34D399}
-
 .sidebar-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px}
 .nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;font-weight:600;transition:all .2s}
 .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
 .nav-item.active{background:linear-gradient(90deg,rgba(0,191,255,.2),rgba(0,191,255,.05));color:#00BFFF}
 .nav-item i{width:18px;text-align:center;font-size:.92rem}
-
 .sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,.08)}
 .sidebar-user{padding:10px 12px;font-size:.76rem;color:rgba(255,255,255,.6);margin-bottom:6px;word-break:break-all;display:flex;align-items:center;gap:8px}
-.btn-logout-side{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#F87171;font-size:.82rem;font-weight:700;text-decoration:none;border-radius:10px;transition:background .2s}
+.btn-logout-side{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#F87171;font-size:.82rem;font-weight:700;text-decoration:none;border-radius:10px}
 .btn-logout-side:hover{background:rgba(220,38,38,.1)}
-
-/* OVERLAY MOBILE */
-.sidebar-overlay{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
-  z-index:99;opacity:0;transition:opacity .3s;
-}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;opacity:0;transition:opacity .3s}
 .sidebar-overlay.open{display:block;opacity:1}
-
-/* MAIN */
-.dash-main{flex:1;margin-left:250px;min-width:0;min-height:100vh;display:flex;flex-direction:column}
-
-/* TOPBAR */
-.dash-topbar{
-  background:#fff;border-bottom:1px solid #E2E8F0;
-  padding:14px 22px;display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:90;gap:12px;
-}
+.dash-main{flex:1;margin-left:260px;min-width:0;min-height:100vh;display:flex;flex-direction:column}
+.dash-topbar{background:#fff;border-bottom:1px solid #E2E8F0;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:90;gap:12px}
 .topbar-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
 .topbar-title{font-size:1.15rem;font-weight:900;color:#0F172A;line-height:1.2}
 .topbar-subtitle{font-size:.78rem;color:#64748B;font-weight:500;margin-top:2px}
 .topbar-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
-
-.btn-hamburger{
-  display:none;background:none;border:none;font-size:1.3rem;
-  color:#0F172A;cursor:pointer;padding:8px;border-radius:8px;
-}
+.btn-hamburger{display:none;background:none;border:none;font-size:1.3rem;color:#0F172A;cursor:pointer;padding:8px;border-radius:8px}
 .btn-hamburger:hover{background:#F1F5F9}
-
-/* CONTENU */
 .dash-content{flex:1;padding:22px;max-width:1200px;width:100%;margin:0 auto}
-
-/* RESPONSIVE */
 @media(max-width:900px){
   .dash-sidebar{transform:translateX(-100%)}
   .dash-sidebar.open{transform:translateX(0)}
@@ -73,25 +39,17 @@
   .dash-topbar{padding:12px 16px}
   .dash-content{padding:16px}
   .topbar-title{font-size:1rem}
-  .topbar-subtitle{font-size:.72rem}
 }
-
-/* CARTES GENERIQUES */
 .dash-app .card{background:#fff;border-radius:16px;padding:20px;border:1px solid #E2E8F0;box-shadow:0 2px 8px rgba(0,0,0,.03);margin-bottom:18px}
 .dash-app .card-title{font-size:1rem;font-weight:800;color:#0F172A;margin-bottom:16px;display:flex;align-items:center;gap:8px}
 .dash-app .card-title i{color:#00BFFF}
-
-/* BOUTONS */
 .dash-app .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:12px;font-weight:700;font-size:.9rem;border:none;cursor:pointer;transition:all .2s;text-decoration:none}
 .dash-app .btn-primary{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;box-shadow:0 4px 14px rgba(0,191,255,.28)}
-.dash-app .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,191,255,.35)}
+.dash-app .btn-primary:hover{transform:translateY(-1px)}
 .dash-app .btn-accent{background:linear-gradient(135deg,#FF6600,#E65C00);color:#fff;box-shadow:0 4px 14px rgba(255,102,0,.28)}
-.dash-app .btn-accent:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,102,0,.35)}
 </style>
 
 <div class="dash-app">
-
-  <!-- SIDEBAR -->
   <aside class="dash-sidebar" id="dashSidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">BOOST RESELLER</div>
@@ -109,20 +67,34 @@
       <a href="{{ url_for('dashboard.boutique') }}" class="nav-item {% if request.endpoint == 'dashboard.boutique' %}active{% endif %}">
         <i class="fas fa-palette"></i> Ma boutique
       </a>
+
+      {% if profile.boutique_type == 'digital' %}
       <a href="{{ url_for('dashboard.prix') }}" class="nav-item {% if request.endpoint == 'dashboard.prix' %}active{% endif %}">
         <i class="fas fa-tags"></i> Mes prix
+      </a>
+      {% else %}
+      <a href="{{ url_for('dashboard.produits') }}" class="nav-item {% if request.endpoint == 'dashboard.produits' %}active{% endif %}">
+        <i class="fas fa-box"></i> Mes produits
+      </a>
+      <a href="{{ url_for('dashboard.categories') }}" class="nav-item {% if request.endpoint == 'dashboard.categories' %}active{% endif %}">
+        <i class="fas fa-folder"></i> Categories
+      </a>
+      {% endif %}
+
+      <a href="{{ url_for('dashboard.commandes') }}" class="nav-item {% if request.endpoint == 'dashboard.commandes' %}active{% endif %}">
+        <i class="fas fa-shopping-bag"></i> Commandes
       </a>
       <a href="{{ url_for('dashboard.clients') }}" class="nav-item {% if request.endpoint == 'dashboard.clients' %}active{% endif %}">
         <i class="fas fa-users"></i> Clients
       </a>
-      <a href="{{ url_for('dashboard.commandes') }}" class="nav-item {% if request.endpoint == 'dashboard.commandes' %}active{% endif %}">
-        <i class="fas fa-box"></i> Commandes
-      </a>
       <a href="{{ url_for('dashboard.gains') }}" class="nav-item {% if request.endpoint == 'dashboard.gains' %}active{% endif %}">
         <i class="fas fa-wallet"></i> Mes gains
       </a>
+      <a href="{{ url_for('dashboard.premium') }}" class="nav-item {% if request.endpoint == 'dashboard.premium' %}active{% endif %}">
+        <i class="fas fa-crown"></i> Premium
+      </a>
       <a href="{{ url_for('dashboard.abonnement') }}" class="nav-item {% if request.endpoint == 'dashboard.abonnement' %}active{% endif %}">
-        <i class="fas fa-crown"></i> Abonnement
+        <i class="fas fa-star"></i> Abonnement
       </a>
       <a href="{{ url_for('dashboard.publier') }}" class="nav-item {% if request.endpoint == 'dashboard.publier' %}active{% endif %}">
         <i class="fas fa-rocket"></i> Publier
@@ -145,14 +117,10 @@
 
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-  <!-- CONTENU PRINCIPAL -->
   <div class="dash-main">
-
     <div class="dash-topbar">
       <div class="topbar-left">
-        <button class="btn-hamburger" onclick="toggleSidebar()" aria-label="Menu">
-          <i class="fas fa-bars"></i>
-        </button>
+        <button class="btn-hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
         <div style="min-width:0;flex:1">
           <div class="topbar-title">{% block page_title %}Mon espace{% endblock %}</div>
           <div class="topbar-subtitle">{% block page_subtitle %}Gerez votre activite{% endblock %}</div>
@@ -166,29 +134,21 @@
     <div class="dash-content">
       {% block dashboard_content %}{% endblock %}
     </div>
-
   </div>
-
 </div>
 
 <script>
 function toggleSidebar(){
-  var sb = document.getElementById('dashSidebar');
-  var ov = document.getElementById('sidebarOverlay');
-  sb.classList.toggle('open');
-  ov.classList.toggle('open');
+  document.getElementById('dashSidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
 }
-// Fermer la sidebar automatiquement si on clique sur un lien (mobile)
 document.querySelectorAll('.nav-item').forEach(function(el){
   el.addEventListener('click', function(){
     if(window.innerWidth <= 900){
-      var sb = document.getElementById('dashSidebar');
-      var ov = document.getElementById('sidebarOverlay');
-      sb.classList.remove('open');
-      ov.classList.remove('open');
+      document.getElementById('dashSidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
     }
   });
 });
 </script>
-
 {% endblock %}
