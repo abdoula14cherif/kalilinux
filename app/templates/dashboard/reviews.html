@@ -1,0 +1,175 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Avis clients — Boost Reseller{% endblock %}
+{% block page_title %}Avis clients{% endblock %}
+{% block page_subtitle %}{{ avis|length }} avis sur votre boutique{% endblock %}
+
+{% block topbar_actions %}
+<button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-plus"></i> Ajouter un avis
+</button>
+{% endblock %}
+
+{% block extra_css %}
+.info-banner{background:linear-gradient(135deg,#E0F7FF,#F0FAFF);border-left:4px solid #00BFFF;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#0F172A;line-height:1.6}
+.info-banner i{color:#00BFFF;margin-right:6px}
+.info-banner strong{color:#0096C7}
+
+.avis-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.avis-card{background:#fff;border-radius:16px;padding:20px;border:1px solid #E2E8F0;transition:all .25s;position:relative}
+.avis-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.08);border-color:#00BFFF}
+.avis-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.avis-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1rem;flex-shrink:0;text-transform:uppercase}
+.avis-info{flex:1;min-width:0}
+.avis-nom{font-size:.92rem;font-weight:900;color:#0F172A;margin-bottom:3px}
+.avis-date{font-size:.72rem;color:#94A3B8}
+.avis-note{display:flex;align-items:center;gap:2px;margin-bottom:10px}
+.avis-note i{color:#F59E0B;font-size:.9rem}
+.avis-commentaire{font-size:.85rem;color:#475569;line-height:1.6;font-style:italic;margin-bottom:14px;padding:12px;background:#F8FAFC;border-radius:10px;border-left:3px solid #00BFFF}
+.avis-actions{display:flex;gap:6px}
+.btn-action{flex:1;padding:8px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:4px}
+.btn-appr{background:#EDFFF5;color:#059669}
+.btn-appr:hover{background:#059669;color:#fff}
+.btn-appr.off{background:#FEF3C7;color:#92400E}
+.btn-appr.off:hover{background:#92400E;color:#fff}
+.btn-del{background:#FEE2E2;color:#991B1B}
+.btn-del:hover{background:#991B1B;color:#fff}
+.avis-badge{position:absolute;top:14px;right:14px;font-size:.65rem;font-weight:900;padding:3px 9px;border-radius:9px;letter-spacing:.3px}
+.b-appr{background:#EDFFF5;color:#059669}
+.b-attente{background:#FEF3C7;color:#92400E}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:70px;height:70px;border-radius:50%;background:#E0F7FF;color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px 22px;max-width:480px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94A3B8}
+.modal h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal h3 i{color:#00BFFF}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.inp,.txta{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus,.txta:focus{border-color:#00BFFF}
+.txta{min-height:90px;resize:vertical}
+.stars-select{display:flex;gap:6px;margin-top:6px}
+.star-btn{background:none;border:none;font-size:1.8rem;color:#CBD5E1;cursor:pointer;padding:0;transition:.2s}
+.star-btn.active,.star-btn:hover{color:#F59E0B}
+.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,191,255,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+.btn-save:hover{transform:translateY(-1px)}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="info-banner">
+  <i class="fas fa-star"></i>
+  Les <strong>avis clients</strong> renforcent la credibilite de votre boutique. Vous pouvez ajouter manuellement les avis recus par WhatsApp ou email.
+</div>
+
+{% if avis %}
+<div class="avis-grid">
+  {% for a in avis %}
+  <div class="avis-card">
+    <span class="avis-badge {% if a.approuve %}b-appr{% else %}b-attente{% endif %}">
+      {% if a.approuve %}✓ APPROUVE{% else %}⏳ EN ATTENTE{% endif %}
+    </span>
+    <div class="avis-header">
+      <div class="avis-avatar">{{ (a.client_nom or '?')[0] }}</div>
+      <div class="avis-info">
+        <div class="avis-nom">{{ a.client_nom }}</div>
+        <div class="avis-date">{{ (a.created_at or '')[:10] }}</div>
+      </div>
+    </div>
+    <div class="avis-note">
+      {% for i in range(1, 6) %}
+      <i class="fas fa-star" {% if i > a.note %}style="color:#CBD5E1"{% endif %}></i>
+      {% endfor %}
+      <span style="margin-left:6px;font-size:.75rem;color:#64748B;font-weight:700">{{ a.note }}/5</span>
+    </div>
+    {% if a.commentaire %}
+    <div class="avis-commentaire">"{{ a.commentaire }}"</div>
+    {% endif %}
+    <div class="avis-actions">
+      <form method="POST" action="{{ url_for('dashboard.reviews_approuver') }}" style="flex:1">
+        <input type="hidden" name="avis_id" value="{{ a.id }}">
+        <input type="hidden" name="approuve" value="{{ '1' if a.approuve else '0' }}">
+        <button type="submit" class="btn-action btn-appr {% if not a.approuve %}off{% endif %}" style="width:100%">
+          <i class="fas fa-{% if a.approuve %}eye-slash{% else %}check{% endif %}"></i>
+          {% if a.approuve %}Masquer{% else %}Approuver{% endif %}
+        </button>
+      </form>
+      <form method="POST" action="{{ url_for('dashboard.reviews_supprimer') }}" style="flex:1" onsubmit="return confirm('Supprimer cet avis ?')">
+        <input type="hidden" name="avis_id" value="{{ a.id }}">
+        <button type="submit" class="btn-action btn-del" style="width:100%">
+          <i class="fas fa-trash"></i> Supprimer
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-star"></i></div>
+  <h3>Aucun avis pour l'instant</h3>
+  <p>Ajoutez manuellement les avis de vos clients satisfaits pour renforcer la credibilite de votre boutique.</p>
+  <button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:12px 24px;font-size:.88rem">
+    <i class="fas fa-plus"></i> Ajouter mon premier avis
+  </button>
+</div>
+{% endif %}
+
+<!-- MODAL AJOUT -->
+<div class="modal-bg" id="modalAjout">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalAjout')">✕</button>
+    <h3><i class="fas fa-plus-circle"></i> Nouvel avis client</h3>
+    <form method="POST" action="{{ url_for('dashboard.reviews_ajouter') }}">
+      <div class="fg">
+        <label>Nom du client *</label>
+        <input class="inp" type="text" name="client_nom" placeholder="Ex: Abdou" required maxlength="60">
+      </div>
+      <div class="fg">
+        <label>Email (optionnel)</label>
+        <input class="inp" type="email" name="client_email" placeholder="client@example.com">
+      </div>
+      <div class="fg">
+        <label>Note *</label>
+        <div class="stars-select" id="starsSelect">
+          <button type="button" class="star-btn" onclick="setNote(1)">★</button>
+          <button type="button" class="star-btn" onclick="setNote(2)">★</button>
+          <button type="button" class="star-btn" onclick="setNote(3)">★</button>
+          <button type="button" class="star-btn" onclick="setNote(4)">★</button>
+          <button type="button" class="star-btn active" onclick="setNote(5)">★</button>
+        </div>
+        <input type="hidden" name="note" id="noteInput" value="5">
+      </div>
+      <div class="fg">
+        <label>Commentaire</label>
+        <textarea class="txta" name="commentaire" placeholder="Ex: Super service, livraison rapide !" maxlength="300"></textarea>
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-check"></i> Ajouter l'avis</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function ouvrirAjout(){ document.getElementById('modalAjout').classList.add('open'); }
+function fermerModal(id){ document.getElementById(id).classList.remove('open'); }
+function setNote(n){
+  document.getElementById('noteInput').value = n;
+  var btns = document.querySelectorAll('.star-btn');
+  btns.forEach(function(b, i){
+    b.classList.toggle('active', i < n);
+  });
+}
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('open');
+  });
+});
+</script>
+
+{% endblock %}
