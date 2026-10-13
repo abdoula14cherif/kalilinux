@@ -709,7 +709,10 @@ def parametres():
         return redir
     types_boutique = get_all_boutique_types()
     return render_template("dashboard/parametres.html",
-           
+                          profile=profile,
+                          types_boutique=types_boutique)
+
+
 # ═══════════════════════════════════════════════════════════════
 # BANNIÈRES
 # ═══════════════════════════════════════════════════════════════
@@ -949,5 +952,3 @@ def attributs_toggle():
         from app.models.database import update_attribut
         update_attribut(attribut_id, {"actif": not actif})
     return redirect(url_for("dashboard.attributs"))
-               profile=profile,
-                          types_boutique=types_boutique)
