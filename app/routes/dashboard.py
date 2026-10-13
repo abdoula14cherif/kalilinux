@@ -709,5 +709,245 @@ def parametres():
         return redir
     types_boutique = get_all_boutique_types()
     return render_template("dashboard/parametres.html",
-                          profile=profile,
+           
+# ═══════════════════════════════════════════════════════════════
+# BANNIÈRES
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_bp.route("/bannieres")
+@login_required
+def bannieres():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    from app.models.database import get_bannieres_revendeur
+    liste = get_bannieres_revendeur(profile["id"])
+    return render_template("dashboard/bannieres.html", profile=profile, bannieres=liste)
+
+
+@dashboard_bp.route("/bannieres/ajouter", methods=["POST"])
+@login_required
+def bannieres_ajouter():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    titre = request.form.get("titre", "").strip() or None
+    sous_titre = request.form.get("sous_titre", "").strip() or None
+    lien = request.form.get("lien", "").strip() or None
+    couleur_fond = request.form.get("couleur_fond", "#00BFFF")
+    couleur_texte = request.form.get("couleur_texte", "#FFFFFF")
+
+    image_file = request.files.get("image")
+    if not image_file or not image_file.filename:
+        flash("Une image est requise pour la banniere.", "error")
+        return redirect(url_for("dashboard.bannieres"))
+
+    image_url = upload_image(image_file, prefix="banniere_")
+    if not image_url:
+        flash("Erreur upload image.", "error")
+        return redirect(url_for("dashboard.bannieres"))
+
+    from app.models.database import create_banniere
+    result = create_banniere({
+        "revendeur_id": profile["id"],
+        "titre": titre,
+        "sous_titre": sous_titre,
+        "image_url": image_url,
+        "lien": lien,
+        "couleur_fond": couleur_fond,
+        "couleur_texte": couleur_texte,
+        "actif": True,
+    })
+
+    if result:
+        flash("✅ Banniere ajoutee !", "success")
+    else:
+        flash("Erreur lors de l'ajout.", "error")
+
+    return redirect(url_for("dashboard.bannieres"))
+
+
+@dashboard_bp.route("/bannieres/modifier", methods=["POST"])
+@login_required
+def bannieres_modifier():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    banniere_id = request.form.get("banniere_id", "")
+    if not banniere_id:
+        flash("ID manquant.", "error")
+        return redirect(url_for("dashboard.bannieres"))
+
+    data = {
+        "titre": request.form.get("titre", "").strip() or None,
+        "sous_titre": request.form.get("sous_titre", "").strip() or None,
+        "lien": request.form.get("lien", "").strip() or None,
+        "couleur_fond": request.form.get("couleur_fond", "#00BFFF"),
+        "couleur_texte": request.form.get("couleur_texte", "#FFFFFF"),
+    }
+
+    image_file = request.files.get("image")
+    if image_file and image_file.filename:
+        image_url = upload_image(image_file, prefix="banniere_")
+        if image_url:
+            data["image_url"] = image_url
+
+    from app.models.database import update_banniere
+    ok = update_banniere(banniere_id, data)
+    if ok:
+        flash("✅ Banniere mise a jour.", "success")
+    else:
+        flash("Erreur.", "error")
+
+    return redirect(url_for("dashboard.bannieres"))
+
+
+@dashboard_bp.route("/bannieres/supprimer", methods=["POST"])
+@login_required
+def bannieres_supprimer():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    banniere_id = request.form.get("banniere_id", "")
+    if banniere_id:
+        from app.models.database import delete_banniere
+        delete_banniere(banniere_id)
+        flash("Banniere supprimee.", "success")
+    return redirect(url_for("dashboard.bannieres"))
+
+
+@dashboard_bp.route("/bannieres/toggle", methods=["POST"])
+@login_required
+def bannieres_toggle():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    banniere_id = request.form.get("banniere_id", "")
+    actif = request.form.get("actif") == "1"
+    if banniere_id:
+        from app.models.database import update_banniere
+        update_banniere(banniere_id, {"actif": not actif})
+    return redirect(url_for("dashboard.bannieres"))
+
+
+# ═══════════════════════════════════════════════════════════════
+# ATTRIBUTS
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_bp.route("/attributs")
+@login_required
+def attributs():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    from app.models.database import get_attributs_revendeur
+    liste = get_attributs_revendeur(profile["id"])
+    return render_template("dashboard/attributs.html", profile=profile, attributs=liste)
+
+
+@dashboard_bp.route("/attributs/ajouter", methods=["POST"])
+@login_required
+def attributs_ajouter():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    nom = request.form.get("nom", "").strip()
+    type_attr = request.form.get("type", "texte")
+    valeurs_str = request.form.get("valeurs", "").strip()
+    obligatoire = request.form.get("obligatoire") == "on"
+
+    if not nom:
+        flash("Le nom est requis.", "error")
+        return redirect(url_for("dashboard.attributs"))
+
+    # Convertir "S,M,L,XL" en liste
+    valeurs = []
+    if valeurs_str:
+        valeurs = [v.strip() for v in valeurs_str.split(",") if v.strip()]
+
+    from app.models.database import create_attribut
+    result = create_attribut({
+        "revendeur_id": profile["id"],
+        "nom": nom,
+        "type": type_attr,
+        "valeurs": valeurs,
+        "obligatoire": obligatoire,
+        "actif": True,
+    })
+
+    if result:
+        flash(f"✅ Attribut '{nom}' cree !", "success")
+    else:
+        flash("Erreur lors de la creation.", "error")
+
+    return redirect(url_for("dashboard.attributs"))
+
+
+@dashboard_bp.route("/attributs/modifier", methods=["POST"])
+@login_required
+def attributs_modifier():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    attribut_id = request.form.get("attribut_id", "")
+    if not attribut_id:
+        flash("ID manquant.", "error")
+        return redirect(url_for("dashboard.attributs"))
+
+    nom = request.form.get("nom", "").strip()
+    type_attr = request.form.get("type", "texte")
+    valeurs_str = request.form.get("valeurs", "").strip()
+    obligatoire = request.form.get("obligatoire") == "on"
+
+    valeurs = []
+    if valeurs_str:
+        valeurs = [v.strip() for v in valeurs_str.split(",") if v.strip()]
+
+    from app.models.database import update_attribut
+    ok = update_attribut(attribut_id, {
+        "nom": nom,
+        "type": type_attr,
+        "valeurs": valeurs,
+        "obligatoire": obligatoire,
+    })
+
+    if ok:
+        flash("✅ Attribut mis a jour.", "success")
+    else:
+        flash("Erreur.", "error")
+
+    return redirect(url_for("dashboard.attributs"))
+
+
+@dashboard_bp.route("/attributs/supprimer", methods=["POST"])
+@login_required
+def attributs_supprimer():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    attribut_id = request.form.get("attribut_id", "")
+    if attribut_id:
+        from app.models.database import delete_attribut
+        delete_attribut(attribut_id)
+        flash("Attribut supprime.", "success")
+    return redirect(url_for("dashboard.attributs"))
+
+
+@dashboard_bp.route("/attributs/toggle", methods=["POST"])
+@login_required
+def attributs_toggle():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    attribut_id = request.form.get("attribut_id", "")
+    actif = request.form.get("actif") == "1"
+    if attribut_id:
+        from app.models.database import update_attribut
+        update_attribut(attribut_id, {"actif": not actif})
+    return redirect(url_for("dashboard.attributs"))
+               profile=profile,
                           types_boutique=types_boutique)
