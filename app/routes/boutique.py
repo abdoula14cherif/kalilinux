@@ -1,5 +1,6 @@
 """
 Boutique publique d'un revendeur : /r/<slug>
+Le template est choisi automatiquement selon le type de boutique.
 """
 import logging
 from flask import Blueprint, render_template, redirect, url_for, session, flash
@@ -8,6 +9,8 @@ from app.models.database import (
     get_active_services,
     get_revendeur_prix_all,
     incrementer_visite_boutique,
+    get_produits_revendeur,
+    get_categories_par_type,
 )
 
 logger = logging.getLogger(__name__)
@@ -21,6 +24,23 @@ THEMES = {
     "noir":   ("#0F172A", "#1E293B"),
     "rouge":  ("#DC2626", "#991B1B"),
 }
+
+
+def _template_pour_type(type_code):
+    """Retourne le nom du template selon le type de boutique."""
+    templates = {
+        "digital":      "boutique.html",
+        "mode":         "boutique_mode.html",
+        "beaute":       "boutique_beaute.html",
+        "formations":   "boutique_formations.html",
+        "ebooks":       "boutique_ebooks.html",
+        "restauration": "boutique_restauration.html",
+        "electronique": "boutique_electronique.html",
+        "immobilier":   "boutique_immobilier.html",
+        "art":          "boutique_art.html",
+        "general":      "boutique_general.html",
+    }
+    return templates.get(type_code, "boutique_general.html")
 
 
 @boutique_bp.route("/r/<slug>")
@@ -46,30 +66,10 @@ def visiter(slug):
     except Exception:
         pass
 
-    # Services
-    services = get_active_services()
-    modele = revendeur.get("revendeur_modele")
+    # Type de boutique
+    type_code = revendeur.get("boutique_type") or "digital"
 
-    services_affiches = []
-    if modele == "marge":
-        mes_prix = {p["service_id"]: p["prix_fcfa"] for p in get_revendeur_prix_all(revendeur["id"])}
-        for s in services:
-            if s["id"] in mes_prix:
-                s2 = dict(s)
-                s2["prix_affiche"] = mes_prix[s["id"]]
-                services_affiches.append(s2)
-    else:
-        for s in services:
-            s2 = dict(s)
-            s2["prix_affiche"] = s["prix_fcfa"]
-            services_affiches.append(s2)
-
-    services_par_reseau = {}
-    for s in services_affiches:
-        net = s["reseau"]
-        services_par_reseau.setdefault(net, []).append(s)
-
-    # Theme
+    # Theme et couleurs
     theme = revendeur.get("boutique_theme") or "bleu"
     couleur_principale, couleur_secondaire = THEMES.get(theme, THEMES["bleu"])
     if revendeur.get("boutique_couleur_principale"):
@@ -77,9 +77,10 @@ def visiter(slug):
     if revendeur.get("boutique_couleur_secondaire"):
         couleur_secondaire = revendeur["boutique_couleur_secondaire"]
 
+    # Dictionnaire boutique commun
     boutique = {
         "nom": revendeur.get("boutique_nom") or f"Boutique {slug.capitalize()}",
-        "slogan": revendeur.get("boutique_slogan") or "Boostez vos reseaux sociaux des aujourd'hui",
+        "slogan": revendeur.get("boutique_slogan") or "Decouvrez notre boutique",
         "logo_url": revendeur.get("boutique_logo_url"),
         "banniere_url": revendeur.get("boutique_banniere_url"),
         "theme": theme,
@@ -92,7 +93,7 @@ def visiter(slug):
         "tiktok": revendeur.get("boutique_tiktok"),
         "telegram": revendeur.get("boutique_telegram"),
         "message_accueil": revendeur.get("boutique_message_accueil") or
-            "Followers, vues, likes, commentaires — livraison rapide, paiement Mobile Money.",
+            "Decouvrez notre selection de produits et services.",
         "a_propos": revendeur.get("boutique_a_propos"),
         "afficher_prix": revendeur.get("boutique_afficher_prix", True),
         "whatsapp_flottant": revendeur.get("boutique_whatsapp_flottant", True),
@@ -118,12 +119,82 @@ def visiter(slug):
 
     est_connecte = "user_id" in session
 
-    return render_template(
-        "boutique.html",
-        revendeur=revendeur,
-        boutique=boutique,
-        services_par_reseau=services_par_reseau,
-        stats_boutique=stats_boutique,
-        slug=slug,
-        est_connecte=est_connecte,
-    )
+    # ═══════════════════════════════════════════════════════════════
+    # CHOIX DU TEMPLATE SELON LE TYPE
+    # ═══════════════════════════════════════════════════════════════
+
+    # Type DIGITAL : services + prix (systeme existant)
+    if type_code == "digital":
+        services = get_active_services()
+        modele = revendeur.get("revendeur_modele")
+
+        services_affiches = []
+        if modele == "marge":
+            mes_prix = {p["service_id"]: p["prix_fcfa"] for p in get_revendeur_prix_all(revendeur["id"])}
+            for s in services:
+                if s["id"] in mes_prix:
+                    s2 = dict(s)
+                    s2["prix_affiche"] = mes_prix[s["id"]]
+                    services_affiches.append(s2)
+        else:
+            for s in services:
+                s2 = dict(s)
+                s2["prix_affiche"] = s["prix_fcfa"]
+                services_affiches.append(s2)
+
+        services_par_reseau = {}
+        for s in services_affiches:
+            net = s["reseau"]
+            services_par_reseau.setdefault(net, []).append(s)
+
+        return render_template(
+            "boutique.html",
+            revendeur=revendeur,
+            boutique=boutique,
+            services_par_reseau=services_par_reseau,
+            stats_boutique=stats_boutique,
+            slug=slug,
+            est_connecte=est_connecte,
+            type_code=type_code,
+        )
+
+    # Autres types : produits + catégories
+    else:
+        produits = get_produits_revendeur(revendeur["id"], only_active=True)
+        categories = get_categories_par_type(type_code)
+
+        # Grouper les produits par catégorie
+        produits_par_categorie = {}
+        for p in produits:
+            cat_id = p.get("categorie_id") or 0
+            produits_par_categorie.setdefault(cat_id, []).append(p)
+
+        # Trouver le template selon le type
+        template = _template_pour_type(type_code)
+
+        # Verifier que le template existe (fallback sur general)
+        from flask import current_app
+        try:
+            current_app.jinja_env.get_template(template)
+        except Exception:
+            logger.warning(f"Template {template} introuvable, fallback sur boutique_general.html")
+            template = "boutique_general.html"
+            try:
+                current_app.jinja_env.get_template(template)
+            except Exception:
+                logger.error("Aucun template de boutique disponible !")
+                flash("Cette boutique est en cours de configuration.", "info")
+                return redirect(url_for("home.index"))
+
+        return render_template(
+            template,
+            revendeur=revendeur,
+            boutique=boutique,
+            produits=produits,
+            categories=categories,
+            produits_par_categorie=produits_par_categorie,
+            stats_boutique=stats_boutique,
+            slug=slug,
+            est_connecte=est_connecte,
+            type_code=type_code,
+        )
