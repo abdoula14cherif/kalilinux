@@ -576,3 +576,195 @@ def delete_attribut(attribut_id):
     except Exception as e:
         logger.error(f"delete_attribut: {e}")
         return False
+
+# ═══════════════════════════════════════════════════════════════
+# BANNIÈRES
+# ═══════════════════════════════════════════════════════════════
+
+def get_bannieres_revendeur(revendeur_id, only_active=False):
+    try:
+        url = f"boutique_bannieres?revendeur_id=eq.{revendeur_id}&order=ordre,created_at.desc"
+        if only_active:
+            url += "&actif=eq.true"
+        r = requests.get(_url(url), headers=_headers(True))
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_bannieres_revendeur: {e}")
+        return []
+
+
+def create_banniere(data):
+    try:
+        r = requests.post(_url("boutique_bannieres"), json=data, headers=_headers(True))
+        result = r.json()
+        return result[0] if isinstance(result, list) and result else None
+    except Exception as e:
+        logger.error(f"create_banniere: {e}")
+        return None
+
+
+def update_banniere(banniere_id, data):
+    try:
+        r = requests.patch(_url(f"boutique_bannieres?id=eq.{banniere_id}"), json=data, headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"update_banniere: {e}")
+        return False
+
+
+def delete_banniere(banniere_id):
+    try:
+        r = requests.delete(_url(f"boutique_bannieres?id=eq.{banniere_id}"), headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"delete_banniere: {e}")
+        return False
+
+
+# ═══════════════════════════════════════════════════════════════
+# AVIS CLIENTS
+# ═══════════════════════════════════════════════════════════════
+
+def get_avis_revendeur(revendeur_id, only_approuve=False):
+    try:
+        url = f"boutique_avis?revendeur_id=eq.{revendeur_id}&order=created_at.desc"
+        if only_approuve:
+            url += "&approuve=eq.true"
+        r = requests.get(_url(url), headers=_headers(True))
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_avis_revendeur: {e}")
+        return []
+
+
+def create_avis(data):
+    try:
+        r = requests.post(_url("boutique_avis"), json=data, headers=_headers(True))
+        result = r.json()
+        return result[0] if isinstance(result, list) and result else None
+    except Exception as e:
+        logger.error(f"create_avis: {e}")
+        return None
+
+
+def update_avis(avis_id, data):
+    try:
+        r = requests.patch(_url(f"boutique_avis?id=eq.{avis_id}"), json=data, headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"update_avis: {e}")
+        return False
+
+
+def delete_avis(avis_id):
+    try:
+        r = requests.delete(_url(f"boutique_avis?id=eq.{avis_id}"), headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"delete_avis: {e}")
+        return False
+
+
+# ═══════════════════════════════════════════════════════════════
+# ATTRIBUTS
+# ═══════════════════════════════════════════════════════════════
+
+def get_attributs_revendeur(revendeur_id, only_active=False):
+    try:
+        url = f"boutique_attributs?revendeur_id=eq.{revendeur_id}&order=ordre,created_at"
+        if only_active:
+            url += "&actif=eq.true"
+        r = requests.get(_url(url), headers=_headers(True))
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_attributs_revendeur: {e}")
+        return []
+
+
+def create_attribut(data):
+    try:
+        r = requests.post(_url("boutique_attributs"), json=data, headers=_headers(True))
+        result = r.json()
+        return result[0] if isinstance(result, list) and result else None
+    except Exception as e:
+        logger.error(f"create_attribut: {e}")
+        return None
+
+
+def update_attribut(attribut_id, data):
+    try:
+        r = requests.patch(_url(f"boutique_attributs?id=eq.{attribut_id}"), json=data, headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"update_attribut: {e}")
+        return False
+
+
+def delete_attribut(attribut_id):
+    try:
+        r = requests.delete(_url(f"boutique_attributs?id=eq.{attribut_id}"), headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"delete_attribut: {e}")
+        return False
+
+
+# ═══════════════════════════════════════════════════════════════
+# COUPONS
+# ═══════════════════════════════════════════════════════════════
+
+def get_coupons_revendeur(revendeur_id):
+    try:
+        r = requests.get(
+            _url(f"boutique_coupons?revendeur_id=eq.{revendeur_id}&order=created_at.desc"),
+            headers=_headers(True)
+        )
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_coupons_revendeur: {e}")
+        return []
+
+
+def get_coupon_by_code(revendeur_id, code):
+    try:
+        r = requests.get(
+            _url(f"boutique_coupons?revendeur_id=eq.{revendeur_id}&code=eq.{code}&limit=1"),
+            headers=_headers(True)
+        )
+        data = r.json()
+        return data[0] if isinstance(data, list) and data else None
+    except Exception as e:
+        logger.error(f"get_coupon_by_code: {e}")
+        return None
+
+
+def create_coupon(data):
+    try:
+        r = requests.post(_url("boutique_coupons"), json=data, headers=_headers(True))
+        result = r.json()
+        return result[0] if isinstance(result, list) and result else None
+    except Exception as e:
+        logger.error(f"create_coupon: {e}")
+        return None
+
+
+def update_coupon(coupon_id, data):
+    try:
+        r = requests.patch(_url(f"boutique_coupons?id=eq.{coupon_id}"), json=data, headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"update_coupon: {e}")
+        return False
+
+
+def delete_coupon(coupon_id):
+    try:
+        r = requests.delete(_url(f"boutique_coupons?id=eq.{coupon_id}"), headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"delete_coupon: {e}")
+        return False
