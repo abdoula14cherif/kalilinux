@@ -1,0 +1,197 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Coupons — Boost Reseller{% endblock %}
+{% block page_title %}Mes coupons{% endblock %}
+{% block page_subtitle %}{{ coupons|length }} code(s) promo actif(s){% endblock %}
+
+{% block topbar_actions %}
+<button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-plus"></i> Nouveau coupon
+</button>
+{% endblock %}
+
+{% block extra_css %}
+.info-banner{background:linear-gradient(135deg,#E0F7FF,#F0FAFF);border-left:4px solid #00BFFF;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#0F172A;line-height:1.6}
+.info-banner i{color:#00BFFF;margin-right:6px}
+.info-banner strong{color:#0096C7}
+
+.coupons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.coupon-card{background:#fff;border-radius:16px;padding:20px;border:2px dashed #00BFFF;position:relative;overflow:hidden;transition:.25s}
+.coupon-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,191,255,.15)}
+.coupon-card.inactif{border-color:#CBD5E1;opacity:.7}
+.coupon-card::before{content:'';position:absolute;left:-10px;top:0;bottom:0;width:20px;background:radial-gradient(circle,#00BFFF 4px,transparent 5px);background-size:20px 20px;opacity:.3}
+.coupon-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px}
+.coupon-code{font-family:monospace;font-size:1.3rem;font-weight:900;color:#00BFFF;letter-spacing:1px;word-break:break-all}
+.coupon-badge{font-size:.65rem;font-weight:900;padding:4px 10px;border-radius:10px;letter-spacing:.3px;flex-shrink:0}
+.b-actif{background:#EDFFF5;color:#059669}
+.b-inactif{background:#FEE2E2;color:#991B1B}
+.coupon-detail{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.coupon-row{display:flex;justify-content:space-between;font-size:.82rem;padding:6px 0;border-bottom:1px dashed #E2E8F0}
+.coupon-row:last-child{border-bottom:none}
+.coupon-row .lbl{color:#64748B;font-weight:600}
+.coupon-row .val{color:#0F172A;font-weight:800}
+.coupon-reduction{background:linear-gradient(135deg,#FFF3E6,#FFE6CC);border-radius:12px;padding:12px;text-align:center;margin-bottom:12px}
+.coupon-reduction-val{font-size:1.5rem;font-weight:900;color:#FF6600;line-height:1}
+.coupon-reduction-lbl{font-size:.7rem;color:#92400E;font-weight:700;text-transform:uppercase;margin-top:4px}
+.coupon-actions{display:flex;gap:6px}
+.btn-action{flex:1;padding:9px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:4px}
+.btn-copy{background:#E0F7FF;color:#0096C7}
+.btn-copy:hover{background:#0096C7;color:#fff}
+.btn-off{background:#FEF3C7;color:#92400E}
+.btn-off:hover{background:#92400E;color:#fff}
+.btn-del{background:#FEE2E2;color:#991B1B}
+.btn-del:hover{background:#991B1B;color:#fff}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:70px;height:70px;border-radius:50%;background:#E0F7FF;color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px 22px;max-width:480px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94A3B8}
+.modal h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal h3 i{color:#00BFFF}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.fg .hint{font-size:.72rem;color:#94A3B8;margin-top:4px;font-weight:400}
+.inp,.sel{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus,.sel:focus{border-color:#00BFFF}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,191,255,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+.btn-save:hover{transform:translateY(-1px)}
+.code-preview{background:#F8FAFC;border-radius:10px;padding:10px;text-align:center;font-family:monospace;font-size:1.1rem;font-weight:900;color:#00BFFF;letter-spacing:2px;margin-top:6px}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="info-banner">
+  <i class="fas fa-ticket-alt"></i>
+  Les <strong>coupons</strong> permettent d'offrir une reduction a vos clients. Ils saisissent le code au moment du paiement.
+</div>
+
+{% if coupons %}
+<div class="coupons-grid">
+  {% for c in coupons %}
+  <div class="coupon-card {% if not c.actif %}inactif{% endif %}">
+    <div class="coupon-header">
+      <div class="coupon-code">{{ c.code }}</div>
+      <span class="coupon-badge {% if c.actif %}b-actif{% else %}b-inactif{% endif %}">
+        {% if c.actif %}● ACTIF{% else %}● INACTIF{% endif %}
+      </span>
+    </div>
+
+    <div class="coupon-reduction">
+      <div class="coupon-reduction-val">
+        {% if c.type == 'pourcentage' %}-{{ c.valeur|int }}%{% else %}-{{ "{:,.0f}".format(c.valeur) }} F{% endif %}
+      </div>
+      <div class="coupon-reduction-lbl">de reduction</div>
+    </div>
+
+    <div class="coupon-detail">
+      {% if c.montant_min and c.montant_min > 0 %}
+      <div class="coupon-row"><span class="lbl">Minimum</span><span class="val">{{ "{:,.0f}".format(c.montant_min) }} F</span></div>
+      {% endif %}
+      <div class="coupon-row"><span class="lbl">Utilisations</span><span class="val">{{ c.utilisations or 0 }} / {{ c.max_utilisations or '∞' }}</span></div>
+      {% if c.date_expiration %}
+      <div class="coupon-row"><span class="lbl">Expire le</span><span class="val">{{ c.date_expiration[:10] }}</span></div>
+      {% endif %}
+    </div>
+
+    <div class="coupon-actions">
+      <button class="btn-action btn-copy" onclick="copierCode('{{ c.code }}')">
+        <i class="fas fa-copy"></i> Copier
+      </button>
+      <form method="POST" action="{{ url_for('dashboard.coupons_toggle') }}" style="flex:1">
+        <input type="hidden" name="coupon_id" value="{{ c.id }}">
+        <input type="hidden" name="actif" value="{{ '1' if c.actif else '0' }}">
+        <button type="submit" class="btn-action btn-off" style="width:100%">
+          <i class="fas fa-{% if c.actif %}pause{% else %}play{% endif %}"></i>
+        </button>
+      </form>
+      <form method="POST" action="{{ url_for('dashboard.coupons_supprimer') }}" style="flex:1" onsubmit="return confirm('Supprimer ce coupon ?')">
+        <input type="hidden" name="coupon_id" value="{{ c.id }}">
+        <button type="submit" class="btn-action btn-del" style="width:100%">
+          <i class="fas fa-trash"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-ticket-alt"></i></div>
+  <h3>Aucun coupon pour l'instant</h3>
+  <p>Creez votre premier code promo pour offrir des reductions a vos clients.</p>
+  <button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:12px 24px;font-size:.88rem">
+    <i class="fas fa-plus"></i> Creer mon premier coupon
+  </button>
+</div>
+{% endif %}
+
+<!-- MODAL AJOUT -->
+<div class="modal-bg" id="modalAjout">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalAjout')">✕</button>
+    <h3><i class="fas fa-ticket-alt"></i> Nouveau coupon</h3>
+    <form method="POST" action="{{ url_for('dashboard.coupons_ajouter') }}">
+      <div class="fg">
+        <label>Code promo *</label>
+        <input class="inp" type="text" name="code" id="codeInput" placeholder="Ex: PROMO10" required maxlength="20" style="text-transform:uppercase" oninput="this.value = this.value.toUpperCase(); majPreview()">
+        <div class="code-preview" id="codePreview">PROMO10</div>
+      </div>
+
+      <div class="fg">
+        <label>Type de reduction</label>
+        <select class="sel" name="type" id="typeSelect">
+          <option value="pourcentage">Pourcentage (%)</option>
+          <option value="montant">Montant fixe (FCFA)</option>
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>Valeur *</label>
+        <input class="inp" type="number" name="valeur" value="10" min="1" step="1" required>
+      </div>
+
+      <div class="row-2">
+        <div class="fg">
+          <label>Montant minimum (FCFA)</label>
+          <input class="inp" type="number" name="montant_min" value="0" min="0">
+        </div>
+        <div class="fg">
+          <label>Utilisations max</label>
+          <input class="inp" type="number" name="max_utilisations" value="100" min="1">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Date d'expiration (optionnel)</label>
+        <input class="inp" type="date" name="date_expiration">
+      </div>
+
+      <button type="submit" class="btn-save"><i class="fas fa-check"></i> Creer le coupon</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function ouvrirAjout(){ document.getElementById('modalAjout').classList.add('open'); }
+function fermerModal(id){ document.getElementById(id).classList.remove('open'); }
+function majPreview(){
+  var code = document.getElementById('codeInput').value || 'CODE';
+  document.getElementById('codePreview').textContent = code.toUpperCase();
+}
+function copierCode(code){
+  navigator.clipboard.writeText(code).then(function(){ alert('Code copie : ' + code); });
+}
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('open');
+  });
+});
+</script>
+
+{% endblock %}
