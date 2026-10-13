@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Choisir mon type de boutique — Boost Reseller{% endblock %}
+
+{% block extra_css %}
+body{background:linear-gradient(135deg,#F0FAFF,#E0F7FF);min-height:100vh}
+.choix-wrap{max-width:1000px;margin:0 auto;padding:40px 20px}
+.choix-header{text-align:center;margin-bottom:36px}
+.choix-header h1{font-size:1.8rem;font-weight:900;color:#0F172A;margin-bottom:12px;line-height:1.2}
+.choix-header p{font-size:.95rem;color:#475569;line-height:1.6;max-width:520px;margin:0 auto}
+.choix-info{background:#FFF3E6;border-left:4px solid #FF6600;border-radius:12px;padding:16px 18px;margin-bottom:28px;font-size:.85rem;color:#78350F;line-height:1.6}
+.choix-info strong{color:#FF6600}
+.types-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:30px}
+.type-card{background:#fff;border:3px solid #E2E8F0;border-radius:18px;padding:22px 18px;cursor:pointer;transition:all .25s;text-align:center;position:relative;overflow:hidden}
+.type-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.1);border-color:#CBD5E1}
+.type-card.sel{border-color:#00BFFF;box-shadow:0 0 0 5px rgba(0,191,255,.15);transform:translateY(-4px)}
+.type-card input{position:absolute;opacity:0;pointer-events:none}
+.type-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:transparent;transition:background .3s}
+.type-card.sel::before{background:linear-gradient(90deg,#00BFFF,#FF6600)}
+.type-ico{width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.7rem;color:#fff;margin:0 auto 14px;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+.type-nom{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:6px;line-height:1.3}
+.type-desc{font-size:.76rem;color:#64748B;line-height:1.5}
+.btn-confirmer{display:block;width:100%;max-width:400px;margin:0 auto;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-size:1rem;font-weight:900;cursor:pointer;box-shadow:0 8px 22px rgba(0,191,255,.35);transition:transform .2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-confirmer:hover:not(:disabled){transform:translateY(-2px)}
+.btn-confirmer:disabled{opacity:.4;cursor:not-allowed;transform:none}
+{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block content %}
+<div class="choix-wrap">
+
+  <div class="choix-header">
+    <h1>Quel type de boutique voulez-vous créer ? 🏪</h1>
+    <p>Choisissez ce que vous voulez vendre. Cela determine l'apparence et le fonctionnement de votre boutique.</p>
+  </div>
+
+  <div class="choix-info">
+    <i class="fas fa-info-circle"></i>
+    <strong>Important :</strong> Une fois choisi, votre boutique sera configuree pour ce type. Vous pourrez changer plus tard dans les parametres, mais tous vos produits actuels seront reinitialises.
+  </div>
+
+  <form method="POST" action="{{ url_for('dashboard.choisir_type') }}">
+    <div class="types-grid">
+      {% for t in types_boutique %}
+      <label class="type-card" onclick="selectType(this)">
+        <input type="radio" name="boutique_type" value="{{ t.code }}" required>
+        <div class="type-ico" style="background:linear-gradient(135deg,{{ t.couleur }},{{ t.couleur }}cc)">
+          <i class="{{ t.icone }}"></i>
+        </div>
+        <div class="type-nom">{{ t.nom }}</div>
+        <div class="type-desc">{{ t.description }}</div>
+      </label>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn-confirmer" id="btnConfirmer" disabled>
+      <i class="fas fa-check"></i> Confirmer mon choix
+    </button>
+  </form>
+
+</div>
+
+<script>
+function selectType(el){
+  document.querySelectorAll('.type-card').forEach(t => t.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('btnConfirmer').disabled = false;
+}
+</script>
+{% endblock %}
