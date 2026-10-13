@@ -952,3 +952,204 @@ def attributs_toggle():
         from app.models.database import update_attribut
         update_attribut(attribut_id, {"actif": not actif})
     return redirect(url_for("dashboard.attributs"))
+
+# ═══════════════════════════════════════════════════════════════
+# CONTACTS (réutilise clients existants)
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_bp.route("/contacts")
+@login_required
+def contacts():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    mes_contacts = []
+    try:
+        mes_contacts = get_revendeur_clients_detail(profile["id"])
+    except Exception as e:
+        logger.error(f"contacts load: {e}")
+    return render_template("dashboard/contacts.html", profile=profile, contacts=mes_contacts)
+
+
+# ═══════════════════════════════════════════════════════════════
+# REVIEWS (avis)
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_bp.route("/reviews")
+@login_required
+def reviews():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    from app.models.database import get_avis_revendeur
+    liste = get_avis_revendeur(profile["id"])
+    return render_template("dashboard/reviews.html", profile=profile, avis=liste)
+
+
+@dashboard_bp.route("/reviews/ajouter", methods=["POST"])
+@login_required
+def reviews_ajouter():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    client_nom = request.form.get("client_nom", "").strip()
+    client_email = request.form.get("client_email", "").strip() or None
+    commentaire = request.form.get("commentaire", "").strip() or None
+
+    try:
+        note = int(request.form.get("note", 5))
+        note = max(1, min(5, note))
+    except Exception:
+        note = 5
+
+    if not client_nom:
+        flash("Le nom du client est requis.", "error")
+        return redirect(url_for("dashboard.reviews"))
+
+    from app.models.database import create_avis
+    result = create_avis({
+        "revendeur_id": profile["id"],
+        "client_nom": client_nom,
+        "client_email": client_email,
+        "note": note,
+        "commentaire": commentaire,
+        "approuve": True,
+    })
+
+    if result:
+        flash(f"✅ Avis de {client_nom} ajoute !", "success")
+    else:
+        flash("Erreur lors de l'ajout.", "error")
+
+    return redirect(url_for("dashboard.reviews"))
+
+
+@dashboard_bp.route("/reviews/approuver", methods=["POST"])
+@login_required
+def reviews_approuver():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    avis_id = request.form.get("avis_id", "")
+    approuve = request.form.get("approuve") == "1"
+    if avis_id:
+        from app.models.database import update_avis
+        update_avis(avis_id, {"approuve": not approuve})
+    return redirect(url_for("dashboard.reviews"))
+
+
+@dashboard_bp.route("/reviews/supprimer", methods=["POST"])
+@login_required
+def reviews_supprimer():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    avis_id = request.form.get("avis_id", "")
+    if avis_id:
+        from app.models.database import delete_avis
+        delete_avis(avis_id)
+        flash("Avis supprime.", "success")
+    return redirect(url_for("dashboard.reviews"))
+
+
+# ═══════════════════════════════════════════════════════════════
+# COUPONS
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_bp.route("/coupons")
+@login_required
+def coupons():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    from app.models.database import get_coupons_revendeur
+    liste = get_coupons_revendeur(profile["id"])
+    return render_template("dashboard/coupons.html", profile=profile, coupons=liste)
+
+
+@dashboard_bp.route("/coupons/ajouter", methods=["POST"])
+@login_required
+def coupons_ajouter():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    code = request.form.get("code", "").strip().upper()
+    type_coupon = request.form.get("type", "pourcentage")
+    date_expiration = request.form.get("date_expiration", "").strip() or None
+
+    if not code:
+        flash("Le code est requis.", "error")
+        return redirect(url_for("dashboard.coupons"))
+
+    try:
+        valeur = float(request.form.get("valeur", 10))
+        if valeur <= 0:
+            raise ValueError
+    except Exception:
+        flash("Valeur invalide.", "error")
+        return redirect(url_for("dashboard.coupons"))
+
+    try:
+        montant_min = float(request.form.get("montant_min", 0))
+    except Exception:
+        montant_min = 0
+
+    try:
+        max_util = int(request.form.get("max_utilisations", 100))
+    except Exception:
+        max_util = 100
+
+    # Verifier que le code n'existe pas deja
+    from app.models.database import get_coupon_by_code, create_coupon
+    existant = get_coupon_by_code(profile["id"], code)
+    if existant:
+        flash(f"Le code {code} existe deja.", "error")
+        return redirect(url_for("dashboard.coupons"))
+
+    result = create_coupon({
+        "revendeur_id": profile["id"],
+        "code": code,
+        "type": type_coupon,
+        "valeur": valeur,
+        "montant_min": montant_min,
+        "max_utilisations": max_util,
+        "date_expiration": date_expiration,
+        "actif": True,
+    })
+
+    if result:
+        flash(f"✅ Coupon {code} cree !", "success")
+    else:
+        flash("Erreur lors de la creation.", "error")
+
+    return redirect(url_for("dashboard.coupons"))
+
+
+@dashboard_bp.route("/coupons/toggle", methods=["POST"])
+@login_required
+def coupons_toggle():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    coupon_id = request.form.get("coupon_id", "")
+    actif = request.form.get("actif") == "1"
+    if coupon_id:
+        from app.models.database import update_coupon
+        update_coupon(coupon_id, {"actif": not actif})
+    return redirect(url_for("dashboard.coupons"))
+
+
+@dashboard_bp.route("/coupons/supprimer", methods=["POST"])
+@login_required
+def coupons_supprimer():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    coupon_id = request.form.get("coupon_id", "")
+    if coupon_id:
+        from app.models.database import delete_coupon
+        delete_coupon(coupon_id)
+        flash("Coupon supprime.", "success")
+    return redirect(url_for("dashboard.coupons"))
