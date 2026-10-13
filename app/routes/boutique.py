@@ -1,6 +1,5 @@
 """
 Boutique publique d'un revendeur : /r/<slug>
-C'est ce que les clients du revendeur voient.
 """
 import logging
 from flask import Blueprint, render_template, redirect, url_for, session, flash
@@ -8,11 +7,11 @@ from app.models.database import (
     get_profile_by_slug,
     get_active_services,
     get_revendeur_prix_all,
+    incrementer_visite_boutique,
 )
 
 logger = logging.getLogger(__name__)
 boutique_bp = Blueprint("boutique", __name__)
-
 
 THEMES = {
     "bleu":   ("#0066FF", "#0047CC"),
@@ -26,32 +25,31 @@ THEMES = {
 
 @boutique_bp.route("/r/<slug>")
 def visiter(slug):
-    """
-    Boutique publique d'un revendeur.
-    """
     revendeur = get_profile_by_slug(slug)
     if not revendeur:
-        flash("Cette boutique n'existe pas ou n'est plus active.", "error")
+        flash("Cette boutique n'existe pas.", "error")
         return redirect(url_for("home.index"))
 
-    # Verifier que le compte est bien active
     if not revendeur.get("est_revendeur"):
         flash("Cette boutique n'est pas encore publiee.", "info")
         return redirect(url_for("home.index"))
 
-    # Verifier si l'admin a desactive la boutique
     if not revendeur.get("boutique_active", True):
         boutique_nom = revendeur.get("boutique_nom") or slug.capitalize()
         return render_template("boutique_desactivee.html", boutique_nom=boutique_nom), 403
 
-    # Memoriser le slug en session pour rattachement
     session["revendeur_slug"] = slug
 
-    # Recuperer les services
+    # Incrementer le compteur de visites
+    try:
+        incrementer_visite_boutique(revendeur["id"])
+    except Exception:
+        pass
+
+    # Services
     services = get_active_services()
     modele = revendeur.get("revendeur_modele")
 
-    # Filtrer selon le mode
     services_affiches = []
     if modele == "marge":
         mes_prix = {p["service_id"]: p["prix_fcfa"] for p in get_revendeur_prix_all(revendeur["id"])}
@@ -66,16 +64,14 @@ def visiter(slug):
             s2["prix_affiche"] = s["prix_fcfa"]
             services_affiches.append(s2)
 
-    # Grouper par reseau
     services_par_reseau = {}
     for s in services_affiches:
         net = s["reseau"]
         services_par_reseau.setdefault(net, []).append(s)
 
-    # Theme et couleurs
+    # Theme
     theme = revendeur.get("boutique_theme") or "bleu"
     couleur_principale, couleur_secondaire = THEMES.get(theme, THEMES["bleu"])
-
     if revendeur.get("boutique_couleur_principale"):
         couleur_principale = revendeur["boutique_couleur_principale"]
     if revendeur.get("boutique_couleur_secondaire"):
@@ -96,10 +92,28 @@ def visiter(slug):
         "tiktok": revendeur.get("boutique_tiktok"),
         "telegram": revendeur.get("boutique_telegram"),
         "message_accueil": revendeur.get("boutique_message_accueil") or
-            "Followers, vues, likes, commentaires — livraison rapide, paiement Mobile Money, suivi en temps reel de vos commandes.",
+            "Followers, vues, likes, commentaires — livraison rapide, paiement Mobile Money.",
         "a_propos": revendeur.get("boutique_a_propos"),
         "afficher_prix": revendeur.get("boutique_afficher_prix", True),
         "whatsapp_flottant": revendeur.get("boutique_whatsapp_flottant", True),
+        "type_grille": revendeur.get("boutique_type_grille") or "grille",
+        "services_par_ligne": revendeur.get("boutique_services_par_ligne") or 3,
+        "sections": revendeur.get("boutique_sections_affichees") or {
+            "stats": True, "avantages": True, "comment": True,
+            "services": True, "apropos": True, "avis": True, "faq": True
+        },
+        "badge_verifie": revendeur.get("boutique_badge_verifie", False),
+        "note": revendeur.get("boutique_note") or 4.9,
+        "nb_avis": revendeur.get("boutique_nb_avis") or 0,
+        "slogan_anime": revendeur.get("boutique_slogan_anime", False),
+    }
+
+    # Stats pour le hero
+    stats_boutique = {
+        "visites": revendeur.get("boutique_visites", 0) or 0,
+        "clients": revendeur.get("referral_count", 0) or 0,
+        "note": boutique["note"],
+        "nb_avis": boutique["nb_avis"],
     }
 
     est_connecte = "user_id" in session
@@ -109,6 +123,7 @@ def visiter(slug):
         revendeur=revendeur,
         boutique=boutique,
         services_par_reseau=services_par_reseau,
+        stats_boutique=stats_boutique,
         slug=slug,
         est_connecte=est_connecte,
     )
