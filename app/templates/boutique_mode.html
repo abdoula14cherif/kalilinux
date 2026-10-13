@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="{{ boutique.couleur_principale }}">
+<title>{{ boutique.nom }} — Boutique de mode</title>
+{% if boutique.logo_url %}<link rel="icon" href="{{ boutique.logo_url }}">{% endif %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:{{ boutique.couleur_principale }};--primary-d:{{ boutique.couleur_secondaire }};--dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;--white:#fff;--gray:#E2E8F0;--green:#059669;--accent:#FF6600;--pink:#EC4899;--cols:{{ boutique.services_par_ligne }}}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#FAFAFA;color:var(--mid);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;height:auto;display:block}
+button{font-family:inherit;cursor:pointer}
+
+/* HEADER */
+.shop-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--white);border-bottom:1px solid var(--gray);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.shop-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.shop-logo{width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,var(--pink),var(--primary));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem}
+.shop-name-wrap{min-width:0}
+.shop-name{font-size:1rem;font-weight:900;color:var(--dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.badge-verifie{background:var(--primary);color:#fff;font-size:.6rem;font-weight:900;padding:2px 7px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;flex-shrink:0}
+.shop-rating{font-size:.72rem;color:var(--mid);display:flex;align-items:center;gap:4px;margin-top:2px}
+.shop-rating .stars{color:#F59E0B;letter-spacing:-1px}
+.btn-login{background:var(--pink);color:#fff;padding:9px 16px;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;flex-shrink:0}
+
+/* NAV */
+.shop-nav{background:var(--white);border-bottom:1px solid var(--gray);padding:0 20px;overflow-x:auto;display:flex;gap:4px;position:sticky;top:67px;z-index:99;scrollbar-width:none}
+.shop-nav::-webkit-scrollbar{display:none}
+.shop-nav a{padding:12px 14px;font-size:.82rem;font-weight:700;color:var(--mid);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
+.shop-nav a:hover,.shop-nav a.active{color:var(--pink);border-bottom-color:var(--pink)}
+
+/* HERO MODE */
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--pink),var(--primary));color:#fff;text-align:center;padding:60px 24px}
+.hero.has-banniere{padding:0;min-height:480px;display:flex;align-items:center;justify-content:center}
+.hero-banniere{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45;z-index:0}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.55),rgba(0,0,0,.35));z-index:1}
+.hero-content{position:relative;z-index:2;max-width:700px;margin:0 auto;padding:40px 0}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);padding:7px 16px;border-radius:20px;font-size:.74rem;font-weight:800;letter-spacing:.4px;margin-bottom:20px}
+.hero h1{font-size:2.2rem;font-weight:900;margin-bottom:14px;line-height:1.15;text-shadow:0 2px 12px rgba(0,0,0,.2)}
+.hero p{font-size:.95rem;opacity:.95;line-height:1.7;max-width:520px;margin:0 auto 28px}
+.hero-cta{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--pink);padding:15px 34px;border-radius:14px;font-weight:900;font-size:.98rem;text-decoration:none;box-shadow:0 12px 30px rgba(0,0,0,.25);transition:transform .2s}
+.hero-cta:hover{transform:translateY(-2px)}
+
+.hero-stats{display:flex;justify-content:center;gap:30px;margin-top:30px;flex-wrap:wrap;position:relative;z-index:2}
+.hero-stat{text-align:center}
+.hero-stat-val{font-size:1.5rem;font-weight:900;color:#fff;line-height:1}
+.hero-stat-lbl{font-size:.72rem;color:rgba(255,255,255,.85);margin-top:4px;font-weight:700;letter-spacing:.4px}
+
+.hero-contact{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:22px;position:relative;z-index:2}
+.contact-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);color:#fff;padding:9px 16px;border-radius:20px;font-size:.78rem;font-weight:700;text-decoration:none}
+.contact-btn:hover{background:rgba(255,255,255,.3)}
+
+/* TRUST */
+.trust-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;max-width:760px;margin:-30px auto 0;padding:0 20px;position:relative;z-index:10}
+.trust-item{background:var(--white);border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.08);border:1px solid var(--gray)}
+.trust-item i{font-size:1.15rem;color:var(--pink);margin-bottom:6px;display:block}
+.trust-item span{font-size:.74rem;font-weight:800;color:var(--dark);display:block}
+
+/* SECTIONS */
+.section{padding:44px 20px;max-width:1200px;margin:0 auto}
+.section-title{font-size:1.4rem;font-weight:900;color:var(--dark);text-align:center;margin-bottom:8px}
+.section-sub{font-size:.85rem;color:var(--mid);text-align:center;max-width:520px;margin:0 auto 30px;line-height:1.6}
+
+/* FILTRES MODE */
+.filters-mode{background:var(--white);border-radius:16px;padding:18px;margin-bottom:24px;border:1px solid var(--gray);box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.search-box{position:relative;margin-bottom:14px}
+.search-box i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--light)}
+.search-input{width:100%;padding:13px 14px 13px 42px;border:2px solid var(--gray);border-radius:12px;font-size:.9rem;color:var(--dark);outline:none;background:#FAFAFA;font-family:inherit}
+.search-input:focus{border-color:var(--pink);background:#fff}
+.filter-group{margin-bottom:12px}
+.filter-label{font-size:.75rem;font-weight:800;color:var(--dark);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:block}
+.filter-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.filter-tabs::-webkit-scrollbar{display:none}
+.filter-tab{padding:8px 16px;border-radius:20px;background:#F1F5F9;color:var(--mid);font-size:.78rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:all .2s}
+.filter-tab:hover{background:#E2E8F0}
+.filter-tab.active{background:linear-gradient(135deg,var(--pink),var(--primary));color:#fff;box-shadow:0 4px 12px rgba(236,72,153,.3)}
+
+/* GRILLE PRODUITS MODE */
+.produits-grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.produit-card{background:var(--white);border-radius:16px;overflow:hidden;transition:all .3s;position:relative;cursor:pointer;border:1px solid #F1F5F9}
+.produit-card:hover{transform:translateY(-5px);box-shadow:0 16px 32px rgba(0,0,0,.1)}
+.produit-img-wrap{position:relative;width:100%;aspect-ratio:3/4;background:#F1F5F9;overflow:hidden}
+.produit-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.produit-card:hover .produit-img-wrap img{transform:scale(1.08)}
+.produit-badge-promo{position:absolute;top:12px;left:12px;background:linear-gradient(135deg,#EC4899,#DB2777);color:#fff;font-size:.68rem;font-weight:900;padding:5px 11px;border-radius:10px;box-shadow:0 4px 12px rgba(236,72,153,.4);z-index:2;letter-spacing:.3px}
+.produit-badge-new{background:linear-gradient(135deg,#10B981,#059669);box-shadow:0 4px 12px rgba(16,185,129,.4)}
+.produit-quick-view{position:absolute;bottom:12px;right:12px;width:38px;height:38px;border-radius:50%;background:#fff;color:var(--pink);display:flex;align-items:center;justify-content:center;font-size:.9rem;box-shadow:0 4px 12px rgba(0,0,0,.15);opacity:0;transform:translateY(10px);transition:all .3s;z-index:2}
+.produit-card:hover .produit-quick-view{opacity:1;transform:translateY(0)}
+.produit-body{padding:14px}
+.produit-nom{font-size:.9rem;font-weight:800;color:var(--dark);line-height:1.35;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:38px}
+.produit-prix-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.produit-prix{font-size:1.1rem;font-weight:900;color:var(--pink)}
+.produit-prix small{font-size:.7rem;font-weight:700;color:var(--mid);margin-left:3px}
+.produit-prix-barre{font-size:.82rem;color:var(--light);text-decoration:line-through;font-weight:600}
+.produit-tailles{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.taille-mini{background:#F1F5F9;color:var(--mid);font-size:.68rem;font-weight:800;padding:3px 8px;border-radius:6px}
+.btn-voir{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;background:var(--dark);color:#fff;border:none;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;transition:.2s}
+.btn-voir:hover{background:var(--pink)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;max-width:900px;width:100%;position:relative;max-height:90vh;overflow-y:auto;animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-close{position:absolute;top:14px;right:16px;background:rgba(255,255,255,.9);border:none;width:38px;height:38px;border-radius:50%;font-size:1rem;cursor:pointer;color:var(--dark);z-index:10;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.modal-content{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media(max-width:768px){.modal-content{grid-template-columns:1fr}}
+.modal-img-section{padding:20px}
+.modal-img-main{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;background:#F1F5F9;margin-bottom:12px}
+.modal-thumbs{display:flex;gap:8px;overflow-x:auto}
+.modal-thumb{width:60px;height:60px;border-radius:10px;object-fit:cover;cursor:pointer;border:2px solid transparent;flex-shrink:0}
+.modal-thumb.active{border-color:var(--pink)}
+.modal-info-section{padding:20px}
+.modal-info-section h3{font-size:1.3rem;font-weight:900;color:var(--dark);margin-bottom:10px;line-height:1.3}
+.modal-prix-row{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.modal-prix{font-size:2rem;font-weight:900;color:var(--pink)}
+.modal-prix small{font-size:.85rem;color:var(--mid);font-weight:700}
+.modal-desc{font-size:.88rem;color:var(--mid);line-height:1.7;margin-bottom:20px}
+.modal-section-title{font-size:.78rem;font-weight:800;color:var(--dark);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:block}
+.modal-tailles{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.taille-opt{border:2px solid var(--gray);background:#fff;color:var(--dark);font-size:.85rem;font-weight:800;padding:10px 16px;border-radius:10px;cursor:pointer;transition:.2s;min-width:48px;text-align:center}
+.taille-opt:hover{border-color:var(--pink)}
+.taille-opt.selected{background:var(--pink);color:#fff;border-color:var(--pink)}
+.modal-couleurs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.couleur-opt{width:38px;height:38px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:.2s;position:relative}
+.couleur-opt:hover{transform:scale(1.1)}
+.couleur-opt.selected{border-color:var(--dark);box-shadow:0 0 0 3px #fff inset}
+.btn-modal{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;background:linear-gradient(135deg,var(--pink),var(--primary));color:#fff;border:none;border-radius:12px;font-weight:900;font-size:.95rem;cursor:pointer;text-decoration:none;margin-bottom:10px}
+.btn-modal-outline{background:transparent;border:2px solid var(--pink);color:var(--pink)}
+.btn-modal-outline:hover{background:var(--pink);color:#fff}
+
+/* A PROPOS */
+.apropos{background:#fff;border-radius:16px;padding:26px;border:1px solid var(--gray);max-width:800px;margin:0 auto}
+.apropos h3{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.apropos h3 i{color:var(--pink)}
+.apropos p{font-size:.88rem;color:var(--mid);line-height:1.8}
+
+/* FAQ */
+.faq-item{background:#fff;border:1px solid var(--gray);border-radius:14px;padding:16px 18px;margin-bottom:10px}
+.faq-item summary{font-size:.88rem;font-weight:800;color:var(--dark);cursor:pointer;list-style:none;display:flex;justify-content:space-between}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:"+";font-size:1.3rem;color:var(--pink)}
+.faq-item[open] summary::after{content:"−"}
+.faq-item p{font-size:.82rem;color:var(--mid);line-height:1.7;margin-top:12px;padding-top:12px;border-top:1px solid var(--gray)}
+
+/* CTA */
+.cta-final{background:linear-gradient(135deg,var(--pink),var(--primary));border-radius:20px;padding:40px 24px;text-align:center;color:#fff;margin:40px auto 0;max-width:960px}
+.cta-final h2{font-size:1.35rem;font-weight:900;margin-bottom:10px}
+.cta-final p{font-size:.9rem;opacity:.92;margin-bottom:22px}
+.cta-final .btn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--pink);padding:15px 32px;border-radius:14px;font-weight:900;font-size:.95rem;text-decoration:none}
+
+/* FOOTER */
+.shop-footer{background:var(--dark);color:rgba(255,255,255,.6);text-align:center;padding:32px 20px;font-size:.78rem;line-height:1.7;margin-top:40px}
+.shop-footer .brand{color:#fff;font-weight:900;font-size:1rem;margin-bottom:8px}
+.shop-footer a{color:var(--pink);font-weight:700}
+
+/* WHATSAPP FLOAT */
+.wa-float{position:fixed;bottom:22px;right:22px;width:58px;height:58px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.7rem;box-shadow:0 8px 24px rgba(37,211,102,.5);z-index:90;text-decoration:none}
+
+.scroll-top{position:fixed;bottom:90px;right:22px;width:44px;height:44px;background:var(--pink);color:#fff;border:none;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:89}
+.scroll-top.show{display:flex}
+
+.empty-shop{text-align:center;padding:60px 24px;background:#fff;border-radius:18px;border:1px solid var(--gray)}
+.empty-shop i{font-size:2.8rem;color:var(--gray);display:block;margin-bottom:14px}
+.empty-shop h3{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:8px}
+.empty-shop p{font-size:.85rem;color:var(--mid)}
+
+@media(max-width:520px){
+  .hero{padding:40px 18px}
+  .hero h1{font-size:1.6rem}
+  .produits-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .produit-body{padding:10px}
+  .produit-nom{font-size:.82rem;min-height:34px}
+  .produit-prix{font-size:.95rem}
+  .btn-voir{font-size:.75rem;padding:9px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="shop-header">
+  <div class="shop-brand">
+    {% if boutique.logo_url %}
+    <img class="shop-logo" src="{{ boutique.logo_url }}" alt="{{ boutique.nom }}">
+    {% else %}
+    <div class="shop-logo">{{ boutique.nom[0]|upper }}</div>
+    {% endif %}
+    <div class="shop-name-wrap">
+      <div class="shop-name">
+        {{ boutique.nom }}
+        {% if boutique.badge_verifie %}<span class="badge-verifie"><i class="fas fa-check-circle"></i> VERIFIE</span>{% endif %}
+      </div>
+      {% if boutique.nb_avis > 0 %}
+      <div class="shop-rating">
+        <span class="stars">★★★★★</span>
+        <span>{{ boutique.note }}/5 · {{ boutique.nb_avis }} avis</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div>
+    {% if est_connecte %}
+    <a href="{{ url_for('dashboard.index') }}" class="btn-login"><i class="fas fa-user"></i> Mon espace</a>
+    {% else %}
+    <a href="{{ url_for('auth.connexion') }}" class="btn-login"><i class="fas fa-sign-in-alt"></i> Connexion</a>
+    {% endif %}
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="shop-nav">
+  <a href="#produits" class="active">Nouveautes</a>
+  <a href="#produits">Femme</a>
+  <a href="#produits">Homme</a>
+  <a href="#produits">Accessoires</a>
+  <a href="#contact">Contact</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero {% if boutique.banniere_url %}has-banniere{% endif %}">
+  {% if boutique.banniere_url %}
+  <img class="hero-banniere" src="{{ boutique.banniere_url }}" alt="">
+  <div class="hero-overlay"></div>
+  {% endif %}
+  <div class="hero-content">
+    <div class="hero-badge"><i class="fas fa-tshirt"></i> {{ boutique.nom }}</div>
+    <h1>{{ boutique.slogan }}</h1>
+    <p>{{ boutique.message_accueil }}</p>
+    <a href="#produits" class="hero-cta">
+      <i class="fas fa-shopping-bag"></i> Decouvrir la collection
+    </a>
+
+    {% if boutique.sections.get('stats', True) %}
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-val">+{{ stats_boutique.clients }}</div><div class="hero-stat-lbl">CLIENTS</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">{{ stats_boutique.note }}/5</div><div class="hero-stat-lbl">NOTE</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">100%</div><div class="hero-stat-lbl">QUALITE</div></div>
+    </div>
+    {% endif %}
+
+    {% if boutique.whatsapp or boutique.instagram or boutique.facebook or boutique.tiktok %}
+    <div class="hero-contact" id="contact">
+      {% if boutique.whatsapp %}<a href="https://wa.me/{{ boutique.whatsapp }}" target="_blank" class="contact-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>{% endif %}
+      {% if boutique.instagram %}<a href="{{ boutique.instagram }}" target="_blank" class="contact-btn"><i class="fab fa-instagram"></i> Instagram</a>{% endif %}
+      {% if boutique.facebook %}<a href="{{ boutique.facebook }}" target="_blank" class="contact-btn"><i class="fab fa-facebook"></i> Facebook</a>{% endif %}
+      {% if boutique.tiktok %}<a href="{{ boutique.tiktok }}" target="_blank" class="contact-btn"><i class="fab fa-tiktok"></i> TikTok</a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- TRUST -->
+<div class="trust-row">
+  <div class="trust-item"><i class="fas fa-truck"></i><span>Livraison rapide</span></div>
+  <div class="trust-item"><i class="fas fa-exchange-alt"></i><span>Echange 7 jours</span></div>
+  <div class="trust-item"><i class="fas fa-shield-halved"></i><span>Paiement securise</span></div>
+  <div class="trust-item"><i class="fas fa-headset"></i><span>Support reactif</span></div>
+</div>
+
+<!-- PRODUITS -->
+<section class="section" id="produits">
+  <h2 class="section-title">Notre collection</h2>
+  <p class="section-sub">Des pieces uniques selectionnees avec soin pour vous.</p>
+
+  {% if produits %}
+    <!-- FILTRES -->
+    <div class="filters-mode">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input class="search-input" type="text" id="searchProduit" placeholder="Rechercher un article..." oninput="filtrerProduits()">
+      </div>
+      {% if categories %}
+      <div class="filter-group" style="margin-bottom:0">
+        <span class="filter-label">Categories</span>
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="filtrerParCategorie('all', this)">Tous</button>
+          {% for c in categories %}
+          <button class="filter-tab" onclick="filtrerParCategorie('{{ c.id }}', this)">{{ c.nom }}</button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- GRILLE -->
+    <div class="produits-grid" id="produitsGrid">
+      {% for p in produits %}
+      <div class="produit-card" data-nom="{{ p.nom|lower }}" data-categorie="{{ p.categorie_id or 0 }}" onclick='ouvrirModal({{ p|tojson }})'>
+        <div class="produit-img-wrap">
+          {% if p.image_url %}
+          <img src="{{ p.image_url }}" alt="{{ p.nom }}">
+          {% else %}
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#CBD5E1;font-size:2.5rem"><i class="fas fa-tshirt"></i></div>
+          {% endif %}
+          {% if loop.index <= 3 %}<span class="produit-badge-promo produit-badge-new">NOUVEAU</span>{% endif %}
+          <div class="produit-quick-view"><i class="fas fa-eye"></i></div>
+        </div>
+        <div class="produit-body">
+          <div class="produit-nom">{{ p.nom }}</div>
+          {% if boutique.afficher_prix %}
+          <div class="produit-prix-row">
+            <span class="produit-prix">{{ "{:,.0f}".format(p.prix or 0) }}<small>FCFA</small></span>
+          </div>
+          {% endif %}
+          <div class="produit-tailles">
+            <span class="taille-mini">S</span>
+            <span class="taille-mini">M</span>
+            <span class="taille-mini">L</span>
+            <span class="taille-mini">XL</span>
+          </div>
+          <button class="btn-voir"><i class="fas fa-eye"></i> Voir le produit</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="empty-shop">
+      <i class="fas fa-tshirt"></i>
+      <h3>Notre collection arrive bientot</h3>
+      <p>Le revendeur prepare sa collection. Revenez bientot !</p>
+    </div>
+  {% endif %}
+</section>
+
+<!-- A PROPOS -->
+{% if boutique.sections.get('apropos', True) and boutique.a_propos %}
+<section class="section">
+  <div class="apropos">
+    <h3><i class="fas fa-info-circle"></i> A propos de {{ boutique.nom }}</h3>
+    <p>{{ boutique.a_propos }}</p>
+  </div>
+</section>
+{% endif %}
+
+<!-- FAQ -->
+{% if boutique.sections.get('faq', True) %}
+<section class="section">
+  <h2 class="section-title">Questions frequentes</h2>
+  <p class="section-sub">Tout ce que vous devez savoir avant de commander.</p>
+  <details class="faq-item">
+    <summary>Comment choisir ma taille ?</summary>
+    <p>Consultez notre guide des tailles en cliquant sur le produit. En cas de doute, contactez-nous sur WhatsApp.</p>
+  </details>
+  <details class="faq-item">
+    <summary>Quels sont les moyens de paiement acceptes ?</summary>
+    <p>Orange Money, MTN Mobile Money et carte bancaire.</p>
+  </details>
+  <details class="faq-item">
+    <summary>Puis-je echanger un article ?</summary>
+    <p>Oui, vous avez 7 jours pour echanger un article non porte et dans son emballage d'origine.</p>
+  </details>
+  <details class="faq-item">
+    <summary>Combien de temps pour la livraison ?</summary>
+    <p>2 a 5 jours ouvrables selon votre localisation.</p>
+  </details>
+</section>
+{% endif %}
+
+<!-- CTA -->
+<div class="cta-final">
+  <h2>Une question ?</h2>
+  <p>Notre equipe est disponible pour vous conseiller sur votre style.</p>
+  {% if boutique.whatsapp %}
+  <a href="https://wa.me/{{ boutique.whatsapp }}" target="_blank" class="btn"><i class="fab fa-whatsapp"></i> Nous contacter</a>
+  {% endif %}
+</div>
+
+<!-- FOOTER -->
+<footer class="shop-footer">
+  <div class="brand">{{ boutique.nom }}</div>
+  <div style="margin-bottom:12px">{{ boutique.slogan }}</div>
+  <div>&copy; 2026 {{ boutique.nom }} · Propulse par <a href="https://boostcentral.world" target="_blank">Boost Central</a></div>
+</footer>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="fas fa-arrow-up"></i>
+</button>
+
+{% if boutique.whatsapp_flottant and boutique.whatsapp %}
+<a href="https://wa.me/{{ boutique.whatsapp }}?text={{ ('Bonjour ' ~ boutique.nom ~ ', je viens de votre boutique.')|urlencode }}" target="_blank" class="wa-float">
+  <i class="fab fa-whatsapp"></i>
+</a>
+{% endif %}
+
+<!-- MODAL PRODUIT -->
+<div class="modal-bg" id="modalProduit">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal()">✕</button>
+    <div class="modal-content">
+      <div class="modal-img-section">
+        <img class="modal-img-main" id="modalImg" src="" alt="">
+      </div>
+      <div class="modal-info-section">
+        <h3 id="modalNom">Produit</h3>
+        <div class="modal-prix-row">
+          <span class="modal-prix" id="modalPrix">0 <small>FCFA</small></span>
+        </div>
+        <p class="modal-desc" id="modalDesc"></p>
+
+        <span class="modal-section-title">Taille</span>
+        <div class="modal-tailles" id="modalTailles">
+          <button class="taille-opt" onclick="selectTaille(this)">S</button>
+          <button class="taille-opt" onclick="selectTaille(this)">M</button>
+          <button class="taille-opt" onclick="selectTaille(this)">L</button>
+          <button class="taille-opt" onclick="selectTaille(this)">XL</button>
+        </div>
+
+        <span class="modal-section-title">Couleur</span>
+        <div class="modal-couleurs" id="modalCouleurs">
+          <div class="couleur-opt" style="background:#000" onclick="selectCouleur(this)"></div>
+          <div class="couleur-opt" style="background:#fff;border:1px solid #E2E8F0" onclick="selectCouleur(this)"></div>
+          <div class="couleur-opt" style="background:#DC2626" onclick="selectCouleur(this)"></div>
+          <div class="couleur-opt" style="background:#2563EB" onclick="selectCouleur(this)"></div>
+          <div class="couleur-opt" style="background:#059669" onclick="selectCouleur(this)"></div>
+        </div>
+
+        {% if boutique.whatsapp %}
+        <a href="#" id="modalWa" target="_blank" class="btn-modal">
+          <i class="fab fa-whatsapp"></i> Commander sur WhatsApp
+        </a>
+        {% endif %}
+        <a href="{% if est_connecte %}{{ url_for('dashboard.index') }}{% else %}{{ url_for('auth.connexion') }}{% endif %}" class="btn-modal btn-modal-outline">
+          <i class="fas fa-shopping-cart"></i> Commander en ligne
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var currentProduit = null;
+var selectedTaille = null;
+var selectedCouleur = null;
+
+function ouvrirModal(produit){
+  currentProduit = produit;
+  selectedTaille = null;
+  selectedCouleur = null;
+
+  var img = document.getElementById('modalImg');
+  if(produit.image_url){
+    img.src = produit.image_url;
+    img.style.display = 'block';
+  } else {
+    img.style.display = 'none';
+  }
+  document.getElementById('modalNom').textContent = produit.nom || '';
+  document.getElementById('modalDesc').textContent = produit.description || '';
+  document.getElementById('modalPrix').innerHTML = (produit.prix || 0).toLocaleString('fr-FR') + ' <small>FCFA</small>';
+
+  // Reset selections
+  document.querySelectorAll('.taille-opt').forEach(t => t.classList.remove('selected'));
+  document.querySelectorAll('.couleur-opt').forEach(c => c.classList.remove('selected'));
+
+  majLienWa();
+
+  document.getElementById('modalProduit').classList.add('open');
+}
+
+function fermerModal(){
+  document.getElementById('modalProduit').classList.remove('open');
+}
+
+document.getElementById('modalProduit').addEventListener('click', function(e){
+  if(e.target === this) fermerModal();
+});
+
+function selectTaille(el){
+  document.querySelectorAll('.taille-opt').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTaille = el.textContent.trim();
+  majLienWa();
+}
+
+function selectCouleur(el){
+  document.querySelectorAll('.couleur-opt').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCouleur = el.style.background;
+  majLienWa();
+}
+
+function majLienWa(){
+  var waLink = document.getElementById('modalWa');
+  if(!waLink || !currentProduit) return;
+  var msg = 'Bonjour {{ boutique.nom }}, je veux commander : ' + currentProduit.nom;
+  if(selectedTaille) msg += '\nTaille : ' + selectedTaille;
+  if(selectedCouleur) msg += '\nCouleur : selectionnee';
+  msg += '\nPrix : ' + (currentProduit.prix || 0).toLocaleString('fr-FR') + ' FCFA';
+  waLink.href = 'https://wa.me/{{ boutique.whatsapp }}?text=' + encodeURIComponent(msg);
+}
+
+function filtrerProduits(){
+  var q = document.getElementById('searchProduit').value.toLowerCase();
+  document.querySelectorAll('.produit-card').forEach(function(c){
+    var nom = c.getAttribute('data-nom') || '';
+    c.style.display = nom.includes(q) ? '' : 'none';
+  });
+}
+
+function filtrerParCategorie(catId, btn){
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.produit-card').forEach(function(c){
+    if(catId === 'all') c.style.display = '';
+    else c.style.display = (c.getAttribute('data-categorie') === catId) ? '' : 'none';
+  });
+}
+
+window.addEventListener('scroll', function(){
+  var btn = document.getElementById('scrollTop');
+  if(window.scrollY > 400) btn.classList.add('show');
+  else btn.classList.remove('show');
+});
+</script>
+
+</body>
+</html>
