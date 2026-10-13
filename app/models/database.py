@@ -148,6 +148,21 @@ def get_all_revendeurs(limit=200):
         return []
 
 
+def incrementer_visite_boutique(revendeur_id):
+    """Incremente le compteur de visites d'une boutique."""
+    try:
+        r = requests.get(_url(f"profiles?id=eq.{revendeur_id}&select=boutique_visites"), headers=_headers(True))
+        data = r.json()
+        if data:
+            actuel = (data[0].get("boutique_visites") or 0) + 1
+            requests.patch(_url(f"profiles?id=eq.{revendeur_id}"), json={"boutique_visites": actuel}, headers=_headers(True))
+            return actuel
+        return 0
+    except Exception as e:
+        logger.error(f"incrementer_visite_boutique: {e}")
+        return 0
+
+
 # ═══════════════════════════════════════════════════════════════
 # SERVICES
 # ═══════════════════════════════════════════════════════════════
