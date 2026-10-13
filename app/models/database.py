@@ -487,3 +487,92 @@ def delete_categorie(cat_id):
     except Exception as e:
         logger.error(f"delete_categorie: {e}")
         return False
+
+# ═══════════════════════════════════════════════════════════════
+# BANNIÈRES
+# ═══════════════════════════════════════════════════════════════
+
+def get_bannieres_revendeur(revendeur_id, only_active=False):
+    try:
+        url = f"boutique_bannieres?revendeur_id=eq.{revendeur_id}&order=ordre,created_at.desc"
+        if only_active:
+            url += "&actif=eq.true"
+        r = requests.get(_url(url), headers=_headers(True))
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_bannieres_revendeur: {e}")
+        return []
+
+
+def create_banniere(data):
+    try:
+        r = requests.post(_url("boutique_bannieres"), json=data, headers=_headers(True))
+        result = r.json()
+        return result[0] if isinstance(result, list) and result else None
+    except Exception as e:
+        logger.error(f"create_banniere: {e}")
+        return None
+
+
+def update_banniere(banniere_id, data):
+    try:
+        r = requests.patch(_url(f"boutique_bannieres?id=eq.{banniere_id}"), json=data, headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"update_banniere: {e}")
+        return False
+
+
+def delete_banniere(banniere_id):
+    try:
+        r = requests.delete(_url(f"boutique_bannieres?id=eq.{banniere_id}"), headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"delete_banniere: {e}")
+        return False
+
+
+# ═══════════════════════════════════════════════════════════════
+# ATTRIBUTS
+# ═══════════════════════════════════════════════════════════════
+
+def get_attributs_revendeur(revendeur_id, only_active=False):
+    try:
+        url = f"boutique_attributs?revendeur_id=eq.{revendeur_id}&order=ordre,created_at"
+        if only_active:
+            url += "&actif=eq.true"
+        r = requests.get(_url(url), headers=_headers(True))
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_attributs_revendeur: {e}")
+        return []
+
+
+def create_attribut(data):
+    try:
+        r = requests.post(_url("boutique_attributs"), json=data, headers=_headers(True))
+        result = r.json()
+        return result[0] if isinstance(result, list) and result else None
+    except Exception as e:
+        logger.error(f"create_attribut: {e}")
+        return None
+
+
+def update_attribut(attribut_id, data):
+    try:
+        r = requests.patch(_url(f"boutique_attributs?id=eq.{attribut_id}"), json=data, headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"update_attribut: {e}")
+        return False
+
+
+def delete_attribut(attribut_id):
+    try:
+        r = requests.delete(_url(f"boutique_attributs?id=eq.{attribut_id}"), headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"delete_attribut: {e}")
+        return False
