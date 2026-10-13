@@ -1,6 +1,5 @@
 """
 Boutique publique d'un revendeur : /r/<slug>
-Le template est choisi automatiquement selon le type de boutique.
 """
 import logging
 from flask import Blueprint, render_template, redirect, url_for, session, flash
@@ -11,6 +10,9 @@ from app.models.database import (
     incrementer_visite_boutique,
     get_produits_revendeur,
     get_categories_par_type,
+    get_bannieres_revendeur,
+    get_avis_revendeur,
+    get_attributs_revendeur,
 )
 
 logger = logging.getLogger(__name__)
@@ -27,18 +29,10 @@ THEMES = {
 
 
 def _template_pour_type(type_code):
-    """
-    Retourne le nom du template selon le type de boutique.
-    - digital : services + prix
-    - formations : formations avec modules
-    - restauration : menu restaurant
-    - Tous les autres : boutique_produits.html (e-commerce universel)
-    """
     templates = {
         "digital":      "boutique.html",
         "formations":   "boutique_formations.html",
         "restauration": "boutique_restauration.html",
-        # Tous les autres types utilisent le template e-commerce
         "mode":         "boutique_produits.html",
         "beaute":       "boutique_produits.html",
         "ebooks":       "boutique_produits.html",
@@ -74,7 +68,6 @@ def visiter(slug):
 
     type_code = revendeur.get("boutique_type") or "digital"
 
-    # Theme
     theme = revendeur.get("boutique_theme") or "bleu"
     couleur_principale, couleur_secondaire = THEMES.get(theme, THEMES["bleu"])
     if revendeur.get("boutique_couleur_principale"):
@@ -82,7 +75,6 @@ def visiter(slug):
     if revendeur.get("boutique_couleur_secondaire"):
         couleur_secondaire = revendeur["boutique_couleur_secondaire"]
 
-    # Dictionnaire boutique
     boutique = {
         "nom": revendeur.get("boutique_nom") or f"Boutique {slug.capitalize()}",
         "slogan": revendeur.get("boutique_slogan") or "Decouvrez notre boutique",
@@ -124,8 +116,24 @@ def visiter(slug):
     est_connecte = "user_id" in session
 
     # ═══════════════════════════════════════════════════════════════
-    # DIGITAL : services + prix
+    # BANNIÈRES + AVIS + ATTRIBUTS (nouveaux)
     # ═══════════════════════════════════════════════════════════════
+    try:
+        bannieres = get_bannieres_revendeur(revendeur["id"], only_active=True)
+    except Exception:
+        bannieres = []
+
+    try:
+        avis_approuves = get_avis_revendeur(revendeur["id"], only_approuve=True)
+    except Exception:
+        avis_approuves = []
+
+    try:
+        attributs = get_attributs_revendeur(revendeur["id"], only_active=True)
+    except Exception:
+        attributs = []
+
+    # =============== DIGITAL ===============
     if type_code == "digital":
         services = get_active_services()
         modele = revendeur.get("revendeur_modele")
@@ -155,27 +163,25 @@ def visiter(slug):
             boutique=boutique,
             services_par_reseau=services_par_reseau,
             stats_boutique=stats_boutique,
+            bannieres=bannieres,
+            avis_approuves=avis_approuves,
+            attributs=attributs,
             slug=slug,
             est_connecte=est_connecte,
             type_code=type_code,
         )
 
-    # ═══════════════════════════════════════════════════════════════
-    # TOUS LES AUTRES TYPES : produits + catégories
-    # ═══════════════════════════════════════════════════════════════
+    # =============== AUTRES ===============
     produits = get_produits_revendeur(revendeur["id"], only_active=True)
     categories = get_categories_par_type(type_code)
 
-    # Grouper les produits par catégorie
     produits_par_categorie = {}
     for p in produits:
         cat_id = p.get("categorie_id") or 0
         produits_par_categorie.setdefault(cat_id, []).append(p)
 
-    # Choix du template
     template = _template_pour_type(type_code)
 
-    # Verifier que le template existe (fallback sur produits)
     from flask import current_app
     try:
         current_app.jinja_env.get_template(template)
@@ -185,7 +191,7 @@ def visiter(slug):
         try:
             current_app.jinja_env.get_template(template)
         except Exception:
-            logger.error("Aucun template de boutique disponible !")
+            logger.error("Aucun template disponible !")
             flash("Cette boutique est en cours de configuration.", "info")
             return redirect(url_for("home.index"))
 
@@ -197,6 +203,9 @@ def visiter(slug):
         categories=categories,
         produits_par_categorie=produits_par_categorie,
         stats_boutique=stats_boutique,
+        bannieres=bannieres,
+        avis_approuves=avis_approuves,
+        attributs=attributs,
         slug=slug,
         est_connecte=est_connecte,
         type_code=type_code,
