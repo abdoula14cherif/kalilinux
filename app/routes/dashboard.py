@@ -7,7 +7,7 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from app.models.security import login_required
 from app.models.database import (
     get_profile, update_profile, get_active_services,
-    get_revendeur_prix_all, set_revendeur_prix,
+    get_revendeur_prix_all, set_revendeur_prix, get_service_by_id,
     get_revendeur_clients_detail, get_revendeur_orders,
     get_revendeur_gains_total, slug_deja_pris,
     debit_balance, credit_balance, activer_revendeur
@@ -30,7 +30,6 @@ PRIX_ACTIVATION = 5000
 
 
 def _get_profile_ou_redirect():
-    """Recupere le profil ou redirige vers la connexion."""
     user_id = session.get("user_id")
     if not user_id:
         return None, redirect(url_for("auth.connexion"))
@@ -56,7 +55,7 @@ def index():
 
 
 # ═══════════════════════════════════════════════════════════════
-# BOUTIQUE (personnalisation)
+# BOUTIQUE
 # ═══════════════════════════════════════════════════════════════
 
 @dashboard_bp.route("/boutique")
@@ -76,6 +75,8 @@ def boutique_enregistrer():
         return redir
 
     user_id = profile["id"]
+    logger.info(f"=== SAUVEGARDE BOUTIQUE pour user {user_id} ===")
+
     data = {}
 
     # Textes
@@ -88,13 +89,13 @@ def boutique_enregistrer():
     data["boutique_whatsapp"] = request.form.get("boutique_whatsapp", "").strip() or None
     data["boutique_email"] = request.form.get("boutique_email", "").strip() or None
 
-    # Réseaux sociaux
+    # Reseaux
     data["boutique_facebook"] = request.form.get("boutique_facebook", "").strip() or None
     data["boutique_instagram"] = request.form.get("boutique_instagram", "").strip() or None
     data["boutique_tiktok"] = request.form.get("boutique_tiktok", "").strip() or None
     data["boutique_telegram"] = request.form.get("boutique_telegram", "").strip() or None
 
-    # Thème
+    # Theme
     theme = request.form.get("boutique_theme", "bleu")
     if theme in THEMES:
         data["boutique_theme"] = theme
@@ -108,20 +109,28 @@ def boutique_enregistrer():
     # Upload logo
     logo_file = request.files.get("boutique_logo")
     if logo_file and logo_file.filename:
-        logo_url = upload_image(logo_file, prefix="logo_")
-        if logo_url:
-            data["boutique_logo_url"] = logo_url
-        else:
-            flash("Erreur lors de l'upload du logo.", "warning")
+        try:
+            logo_url = upload_image(logo_file, prefix="logo_")
+            if logo_url:
+                data["boutique_logo_url"] = logo_url
+            else:
+                flash("Erreur upload logo.", "warning")
+        except Exception as e:
+            logger.error(f"Logo exception: {e}")
+            flash("Erreur upload logo.", "warning")
 
-    # Upload bannière
+    # Upload banniere
     banniere_file = request.files.get("boutique_banniere")
     if banniere_file and banniere_file.filename:
-        banniere_url = upload_image(banniere_file, prefix="banniere_")
-        if banniere_url:
-            data["boutique_banniere_url"] = banniere_url
-        else:
-            flash("Erreur lors de l'upload de la banniere.", "warning")
+        try:
+            banniere_url = upload_image(banniere_file, prefix="banniere_")
+            if banniere_url:
+                data["boutique_banniere_url"] = banniere_url
+            else:
+                flash("Erreur upload banniere.", "warning")
+        except Exception as e:
+            logger.error(f"Banniere exception: {e}")
+            flash("Erreur upload banniere.", "warning")
 
     ok = update_profile(user_id, data)
     if ok:
@@ -161,7 +170,6 @@ def publier():
     if redir:
         return redir
 
-    # Verifier que la boutique est configuree au minimum
     etapes_ok = {
         "nom": bool(profile.get("boutique_nom")),
         "whatsapp": bool(profile.get("boutique_whatsapp")),
@@ -183,12 +191,10 @@ def publier_activer():
     if redir:
         return redir
 
-    # Si deja revendeur
     if profile.get("est_revendeur"):
         flash("Votre boutique est deja publiee.", "info")
         return redirect(url_for("dashboard.index"))
 
-    # Verifier le solde
     balance = profile.get("balance", 0) or 0
     if balance < PRIX_ACTIVATION:
         flash(
@@ -198,7 +204,6 @@ def publier_activer():
         )
         return redirect(url_for("dashboard.publier"))
 
-    # Verifier le slug
     slug = request.form.get("slug", "").strip().lower()
     if not slug or len(slug) < 3 or len(slug) > 30:
         flash("Identifiant invalide : 3 a 30 caracteres.", "error")
@@ -208,24 +213,20 @@ def publier_activer():
         flash("Identifiant invalide : lettres minuscules, chiffres et tirets uniquement.", "error")
         return redirect(url_for("dashboard.publier"))
 
-    # Verifier le mode
     modele = request.form.get("modele", "")
     if modele not in ("marge", "commission"):
         flash("Choisissez un modele de gain.", "error")
         return redirect(url_for("dashboard.publier"))
 
-    # Verifier que le slug est libre
     if slug_deja_pris(slug):
         flash("Cet identifiant est deja pris. Choisissez-en un autre.", "error")
         return redirect(url_for("dashboard.publier"))
 
-    # Debiter le solde
     nouveau_solde = debit_balance(profile["id"], PRIX_ACTIVATION)
     if nouveau_solde is None:
         flash("Erreur lors du paiement. Verifiez votre solde.", "error")
         return redirect(url_for("dashboard.publier"))
 
-    # Activer le compte revendeur
     commission = 0.10 if modele == "commission" else 0.0
     ok = activer_revendeur(profile["id"], slug, modele, commission)
 
@@ -233,14 +234,13 @@ def publier_activer():
         flash(f"🎉 Felicitations ! Votre boutique est en ligne : /r/{slug}", "success")
         return redirect(url_for("dashboard.index"))
     else:
-        # Rembourser si l'activation echoue
         credit_balance(profile["id"], PRIX_ACTIVATION)
         flash("Erreur lors de l'activation. Vous avez ete rembourse.", "error")
         return redirect(url_for("dashboard.publier"))
 
 
 # ═══════════════════════════════════════════════════════════════
-# PRIX (personnalisation des tarifs - mode marge)
+# PRIX
 # ═══════════════════════════════════════════════════════════════
 
 @dashboard_bp.route("/prix")
@@ -285,7 +285,6 @@ def prix_enregistrer():
         flash("Valeurs invalides.", "error")
         return redirect(url_for("dashboard.prix"))
 
-    from app.models.database import get_service_by_id
     service = get_service_by_id(service_id)
     if not service:
         flash("Service introuvable.", "error")
