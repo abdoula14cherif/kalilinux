@@ -28,21 +28,24 @@ THEMES = {
 def visiter(slug):
     """
     Boutique publique d'un revendeur.
-    Si le visiteur n'est pas connecte, on le redirige vers l'inscription
-    Boost Central en memorisant le slug pour le rattachement automatique.
     """
     revendeur = get_profile_by_slug(slug)
     if not revendeur:
         flash("Cette boutique n'existe pas ou n'est plus active.", "error")
         return redirect(url_for("home.index"))
 
-    # Memoriser le slug en session pour rattacher le client a l'inscription
-    session["revendeur_slug"] = slug
-
-    # Si le revendeur n'a pas encore active son compte → boutique privee
+    # Verifier que le compte est bien active
     if not revendeur.get("est_revendeur"):
         flash("Cette boutique n'est pas encore publiee.", "info")
         return redirect(url_for("home.index"))
+
+    # Verifier si l'admin a desactive la boutique
+    if not revendeur.get("boutique_active", True):
+        boutique_nom = revendeur.get("boutique_nom") or slug.capitalize()
+        return render_template("boutique_desactivee.html", boutique_nom=boutique_nom), 403
+
+    # Memoriser le slug en session pour rattachement
+    session["revendeur_slug"] = slug
 
     # Recuperer les services
     services = get_active_services()
@@ -69,7 +72,7 @@ def visiter(slug):
         net = s["reseau"]
         services_par_reseau.setdefault(net, []).append(s)
 
-    # Construire le dict "boutique" avec fallback
+    # Theme et couleurs
     theme = revendeur.get("boutique_theme") or "bleu"
     couleur_principale, couleur_secondaire = THEMES.get(theme, THEMES["bleu"])
 
@@ -99,7 +102,6 @@ def visiter(slug):
         "whatsapp_flottant": revendeur.get("boutique_whatsapp_flottant", True),
     }
 
-    # Verifier si le client est connecte
     est_connecte = "user_id" in session
 
     return render_template(
