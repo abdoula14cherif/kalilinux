@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="{{ boutique.couleur_principale }}">
+<title>Commande confirmee — {{ boutique.nom }}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:{{ boutique.couleur_principale }};--primary-d:{{ boutique.couleur_secondaire }};--dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;--white:#fff;--gray:#E2E8F0;--green:#10B981;--orange:#F59E0B}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--off);color:var(--mid);min-height:100vh;line-height:1.5}
+a{color:inherit;text-decoration:none}
+.header{background:var(--white);border-bottom:1px solid var(--gray);padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:10px}
+.header-logo{width:38px;height:38px;border-radius:10px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--primary-d));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:.95rem}
+.header-name{font-size:1.05rem;font-weight:900;color:var(--dark)}
+main{max-width:600px;margin:0 auto;padding:30px 20px 60px}
+.success-card{background:linear-gradient(135deg,#10B981,#059669);border-radius:20px;padding:36px 24px;text-align:center;color:#fff;margin-bottom:20px;box-shadow:0 12px 30px rgba(16,185,129,.25)}
+.success-ico{width:80px;height:80px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 18px;backdrop-filter:blur(10px)}
+.success-card h1{font-size:1.5rem;font-weight:900;margin-bottom:10px}
+.success-card p{font-size:.9rem;opacity:.95;line-height:1.6;max-width:400px;margin:0 auto}
+.ref-badge{display:inline-block;background:rgba(255,255,255,.25);padding:10px 20px;border-radius:12px;font-family:monospace;font-size:1rem;font-weight:900;margin-top:16px;letter-spacing:1px}
+
+.card{background:var(--white);border-radius:16px;padding:22px;border:1px solid var(--gray);margin-bottom:16px;box-shadow:0 4px 14px rgba(0,0,0,.04)}
+.card-title{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:16px;display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--gray)}
+.card-title i{color:var(--primary)}
+.info-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px dashed var(--gray);font-size:.85rem;gap:12px}
+.info-row:last-child{border-bottom:none}
+.info-lbl{color:var(--mid);font-weight:600}
+.info-val{color:var(--dark);font-weight:700;text-align:right;word-break:break-word;max-width:60%}
+.produit-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray);align-items:center}
+.produit-item:last-child{border-bottom:none;padding-bottom:0}
+.produit-item:first-child{padding-top:0}
+.produit-img{width:60px;height:60px;border-radius:10px;object-fit:cover;background:var(--off);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--light);font-size:1.5rem;overflow:hidden}
+.produit-img img{width:100%;height:100%;object-fit:cover}
+.produit-info{flex:1;min-width:0}
+.produit-nom{font-size:.88rem;font-weight:700;color:var(--dark);margin-bottom:4px}
+.produit-meta{font-size:.75rem;color:var(--mid)}
+.produit-prix{font-size:.92rem;font-weight:900;color:var(--primary);flex-shrink:0}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0 0;border-top:2px solid var(--gray);margin-top:12px}
+.total-lbl{font-size:.95rem;font-weight:800;color:var(--dark)}
+.total-val{font-size:1.4rem;font-weight:900;color:var(--primary)}
+.btn-wa{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;background:#25D366;color:#fff;border:none;border-radius:14px;font-weight:900;font-size:.95rem;text-decoration:none;margin-bottom:12px;box-shadow:0 6px 18px rgba(37,211,102,.3)}
+.btn-retour{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;background:var(--white);border:2px solid var(--primary);color:var(--primary);border-radius:14px;font-weight:900;font-size:.95rem;text-decoration:none}
+.statut-badge{display:inline-flex;align-items:center;gap:6px;background:#FEF3C7;color:#92400E;padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:900;letter-spacing:.3px}
+</style>
+</head>
+<body>
+
+<header class="header">
+  {% if boutique.logo_url %}
+  <img class="header-logo" src="{{ boutique.logo_url }}" alt="">
+  {% else %}
+  <div class="header-logo">{{ boutique.nom[0]|upper }}</div>
+  {% endif %}
+  <div class="header-name">{{ boutique.nom }}</div>
+</header>
+
+<main>
+
+  <div class="success-card">
+    <div class="success-ico">✅</div>
+    <h1>Commande confirmee !</h1>
+    <p>Merci {{ commande.client_nom }} ! Votre commande a bien ete enregistree. Le vendeur va vous contacter rapidement pour la livraison.</p>
+    <div class="ref-badge">{{ commande.reference }}</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="fas fa-info-circle"></i> Recapitulatif</div>
+
+    <div class="info-row">
+      <span class="info-lbl">Statut</span>
+      <span class="info-val"><span class="statut-badge"><i class="fas fa-clock"></i> En attente</span></span>
+    </div>
+    <div class="info-row">
+      <span class="info-lbl">Nom</span>
+      <span class="info-val">{{ commande.client_nom }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-lbl">Telephone</span>
+      <span class="info-val">{{ commande.client_telephone }}</span>
+    </div>
+    {% if commande.client_email %}
+    <div class="info-row">
+      <span class="info-lbl">Email</span>
+      <span class="info-val">{{ commande.client_email }}</span>
+    </div>
+    {% endif %}
+    {% if commande.client_adresse %}
+    <div class="info-row">
+      <span class="info-lbl">Adresse</span>
+      <span class="info-val">{{ commande.client_adresse }}{% if commande.client_ville %}, {{ commande.client_ville }}{% endif %}</span>
+    </div>
+    {% endif %}
+    <div class="info-row">
+      <span class="info-lbl">Paiement</span>
+      <span class="info-val">
+        {% if commande.mode_paiement == 'cash' %}💵 A la livraison
+        {% elif commande.mode_paiement == 'mtn' %}📱 MTN Mobile Money
+        {% elif commande.mode_paiement == 'orange' %}📱 Orange Money
+        {% else %}{{ commande.mode_paiement }}{% endif %}
+      </span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="fas fa-shopping-bag"></i> Vos produits</div>
+    {% for p in commande.produits %}
+    <div class="produit-item">
+      <div class="produit-img">
+        {% if p.image %}<img src="{{ p.image }}" alt="">{% else %}<i class="fas fa-image"></i>{% endif %}
+      </div>
+      <div class="produit-info">
+        <div class="produit-nom">{{ p.nom }}</div>
+        <div class="produit-meta">
+          Qte : {{ p.qte }}
+          {% if p.attributs %}<br>{% for k, v in p.attributs.items() %}{{ k }}: {{ v }} {% endfor %}{% endif %}
+        </div>
+      </div>
+      <div class="produit-prix">{{ "{:,.0f}".format(p.prix * p.qte) }} F</div>
+    </div>
+    {% endfor %}
+
+    <div class="total-row">
+      <span class="total-lbl">Total</span>
+      <span class="total-val">{{ "{:,.0f}".format(commande.total) }} F</span>
+    </div>
+  </div>
+
+  {% if boutique.whatsapp %}
+  <a href="https://wa.me/{{ boutique.whatsapp }}?text={{ ('Bonjour, je viens de passer la commande ' ~ commande.reference ~ '. Merci !')|urlencode }}" target="_blank" class="btn-wa">
+    <i class="fab fa-whatsapp"></i> Contacter le vendeur
+  </a>
+  {% endif %}
+
+  <a href="{{ url_for('boutique.visiter', slug=slug) }}" class="btn-retour">
+    <i class="fas fa-arrow-left"></i> Retour a la boutique
+  </a>
+
+</main>
+
+</body>
+</html>
