@@ -1,0 +1,116 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Contacts — Boost Reseller{% endblock %}
+{% block page_title %}Mes contacts{% endblock %}
+{% block page_subtitle %}{{ contacts|length }} client(s) dans votre base{% endblock %}
+
+{% block extra_css %}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat-mini{background:#fff;border-radius:14px;padding:16px;border:1px solid #E2E8F0;display:flex;align-items:center;gap:12px}
+.stat-mini-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0}
+.stat-mini-val{font-size:1.25rem;font-weight:900;color:#0F172A;line-height:1.1}
+.stat-mini-lbl{font-size:.72rem;color:#64748B;font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+
+.search-bar{background:#fff;border-radius:14px;padding:14px 16px;border:1px solid #E2E8F0;margin-bottom:18px}
+.search-input{width:100%;padding:11px 14px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#F8FAFC;font-family:inherit}
+.search-input:focus{border-color:#00BFFF;background:#fff}
+
+.contacts-list{background:#fff;border-radius:16px;border:1px solid #E2E8F0;overflow:hidden}
+.contact-item{display:flex;align-items:center;gap:14px;padding:16px;border-bottom:1px solid #E2E8F0;transition:.2s}
+.contact-item:last-child{border-bottom:none}
+.contact-item:hover{background:#F8FAFC}
+.contact-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;flex-shrink:0;text-transform:uppercase}
+.contact-info{flex:1;min-width:0}
+.contact-nom{font-size:.9rem;font-weight:800;color:#0F172A;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.contact-email{font-size:.76rem;color:#64748B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
+.contact-meta{font-size:.7rem;color:#94A3B8}
+.contact-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-action{width:38px;height:38px;border-radius:10px;border:none;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
+.btn-wa{background:#EDFFF5;color:#25D366}
+.btn-wa:hover{background:#25D366;color:#fff}
+.btn-mail{background:#E0F7FF;color:#0096C7}
+.btn-mail:hover{background:#0096C7;color:#fff}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:70px;height:70px;border-radius:50%;background:#E0F7FF;color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="stats-row">
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#E0F7FF;color:#00BFFF"><i class="fas fa-users"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ contacts|length }}</div>
+      <div class="stat-mini-lbl">Contacts</div>
+    </div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#EDFFF5;color:#059669"><i class="fas fa-wallet"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ "{:,.0f}".format(contacts|map(attribute='balance')|sum) }} F</div>
+      <div class="stat-mini-lbl">Solde cumule</div>
+    </div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#F5F3FF;color:#7C3AED"><i class="fas fa-map-marker-alt"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ contacts|map(attribute='country')|select|unique|list|length }}</div>
+      <div class="stat-mini-lbl">Pays</div>
+    </div>
+  </div>
+</div>
+
+{% if contacts %}
+<div class="search-bar">
+  <input class="search-input" type="text" id="searchContact" placeholder="Rechercher un contact (nom, email)..." oninput="filtrerContacts()">
+</div>
+
+<div class="contacts-list" id="contactsList">
+  {% for c in contacts %}
+  <div class="contact-item" data-search="{{ ((c.full_name or '') ~ ' ' ~ (c.email or ''))|lower }}">
+    <div class="contact-avatar">
+      {{ (c.full_name or c.email or '?')[0] }}
+    </div>
+    <div class="contact-info">
+      <div class="contact-nom">{{ c.full_name or 'Client' }}</div>
+      <div class="contact-email">{{ c.email }}</div>
+      <div class="contact-meta">
+        {% if c.country %}📍 {{ c.country }} · {% endif %}
+        Rattache le {{ c.rattache_le[:10] if c.rattache_le else '' }}
+      </div>
+    </div>
+    <div class="contact-actions">
+      {% if c.email %}
+      <a href="mailto:{{ c.email }}" class="btn-action btn-mail" title="Envoyer un email">
+        <i class="fas fa-envelope"></i>
+      </a>
+      {% endif %}
+      <a href="https://wa.me/?text={{ ('Bonjour ' ~ (c.full_name or '') ~ ', merci pour votre confiance !')|urlencode }}" target="_blank" class="btn-action btn-wa" title="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-users"></i></div>
+  <h3>Aucun contact pour l'instant</h3>
+  <p>Vos contacts apparaitront ici quand des clients s'inscriront via votre boutique.</p>
+</div>
+{% endif %}
+
+<script>
+function filtrerContacts(){
+  var q = document.getElementById('searchContact').value.toLowerCase();
+  document.querySelectorAll('.contact-item').forEach(function(c){
+    var s = c.getAttribute('data-search') || '';
+    c.style.display = s.includes(q) ? 'flex' : 'none';
+  });
+}
+</script>
+
+{% endblock %}
