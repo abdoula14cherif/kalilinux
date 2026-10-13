@@ -48,7 +48,6 @@ def get_profile_by_email(email):
 
 
 def get_profile_by_slug(slug):
-    """Recupere un profil revendeur par son slug (boutique publique)."""
     try:
         r = requests.get(
             _url(f"profiles?revendeur_slug=eq.{slug}&est_revendeur=eq.true&limit=1"),
@@ -62,7 +61,6 @@ def get_profile_by_slug(slug):
 
 
 def update_profile(user_id, data):
-    """Met a jour un profil."""
     try:
         r = requests.patch(_url(f"profiles?id=eq.{user_id}"), json=data, headers=_headers(True))
         return r.status_code < 300
@@ -121,7 +119,6 @@ def activer_revendeur(user_id, slug, modele, commission_pct=0.10):
 
 
 def toggle_boutique_active(revendeur_id, active):
-    """Active ou desactive une boutique (usage admin)."""
     try:
         r = requests.patch(
             _url(f"profiles?id=eq.{revendeur_id}"),
@@ -135,7 +132,6 @@ def toggle_boutique_active(revendeur_id, active):
 
 
 def get_all_revendeurs(limit=200):
-    """Liste tous les revendeurs (pour l'admin)."""
     try:
         r = requests.get(
             _url(f"profiles?est_revendeur=eq.true&order=created_at.desc&limit={limit}"),
@@ -149,7 +145,6 @@ def get_all_revendeurs(limit=200):
 
 
 def incrementer_visite_boutique(revendeur_id):
-    """Incremente le compteur de visites d'une boutique."""
     try:
         r = requests.get(_url(f"profiles?id=eq.{revendeur_id}&select=boutique_visites"), headers=_headers(True))
         data = r.json()
@@ -164,7 +159,47 @@ def incrementer_visite_boutique(revendeur_id):
 
 
 # ═══════════════════════════════════════════════════════════════
-# SERVICES
+# TYPES DE BOUTIQUES
+# ═══════════════════════════════════════════════════════════════
+
+def get_all_boutique_types(only_active=True):
+    try:
+        url = "boutique_types?order=ordre"
+        if only_active:
+            url += "&actif=eq.true"
+        r = requests.get(_url(url), headers=_headers(True))
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_all_boutique_types: {e}")
+        return []
+
+
+def get_boutique_type(code):
+    try:
+        r = requests.get(_url(f"boutique_types?code=eq.{code}&limit=1"), headers=_headers(True))
+        data = r.json()
+        return data[0] if isinstance(data, list) and data else None
+    except Exception as e:
+        logger.error(f"get_boutique_type: {e}")
+        return None
+
+
+def get_categories_par_type(type_code):
+    try:
+        r = requests.get(
+            _url(f"boutique_categories?type_code=eq.{type_code}&actif=eq.true&order=ordre"),
+            headers=_headers(True)
+        )
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_categories_par_type: {e}")
+        return []
+
+
+# ═══════════════════════════════════════════════════════════════
+# SERVICES (Digital)
 # ═══════════════════════════════════════════════════════════════
 
 def get_active_services(network=None):
@@ -190,10 +225,6 @@ def get_service_by_id(service_id):
         logger.error(f"get_service_by_id: {e}")
         return None
 
-
-# ═══════════════════════════════════════════════════════════════
-# PRIX REVENDEUR
-# ═══════════════════════════════════════════════════════════════
 
 def get_revendeur_prix_all(revendeur_id):
     try:
@@ -233,6 +264,65 @@ def set_revendeur_prix(revendeur_id, service_id, prix_fcfa):
         return r.status_code < 300
     except Exception as e:
         logger.error(f"set_revendeur_prix: {e}")
+        return False
+
+
+# ═══════════════════════════════════════════════════════════════
+# PRODUITS BOUTIQUE (autres types)
+# ═══════════════════════════════════════════════════════════════
+
+def get_produits_revendeur(revendeur_id, only_active=False):
+    try:
+        url = f"boutique_produits?revendeur_id=eq.{revendeur_id}&order=ordre,created_at.desc"
+        if only_active:
+            url += "&actif=eq.true"
+        r = requests.get(_url(url), headers=_headers(True))
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_produits_revendeur: {e}")
+        return []
+
+
+def get_produit_boutique(produit_id):
+    try:
+        r = requests.get(_url(f"boutique_produits?id=eq.{produit_id}&limit=1"), headers=_headers(True))
+        data = r.json()
+        return data[0] if isinstance(data, list) and data else None
+    except Exception as e:
+        logger.error(f"get_produit_boutique: {e}")
+        return None
+
+
+def create_produit_boutique(data):
+    try:
+        r = requests.post(_url("boutique_produits"), json=data, headers=_headers(True))
+        result = r.json()
+        return result[0] if isinstance(result, list) and result else None
+    except Exception as e:
+        logger.error(f"create_produit_boutique: {e}")
+        return None
+
+
+def update_produit_boutique(produit_id, data):
+    try:
+        r = requests.patch(
+            _url(f"boutique_produits?id=eq.{produit_id}"),
+            json=data,
+            headers=_headers(True)
+        )
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"update_produit_boutique: {e}")
+        return False
+
+
+def delete_produit_boutique(produit_id):
+    try:
+        r = requests.delete(_url(f"boutique_produits?id=eq.{produit_id}"), headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"delete_produit_boutique: {e}")
         return False
 
 
@@ -337,3 +427,27 @@ def get_revendeur_gains_total(revendeur_id):
     except Exception as e:
         logger.error(f"get_revendeur_gains_total: {e}")
         return 0
+
+
+# ═══════════════════════════════════════════════════════════════
+# PLANS & PREMIUM
+# ═══════════════════════════════════════════════════════════════
+
+def get_abonnements_plans():
+    try:
+        r = requests.get(_url("abonnements_plans?actif=eq.true&order=ordre"), headers=_headers(True))
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_abonnements_plans: {e}")
+        return []
+
+
+def get_fonctionnalites_premium():
+    try:
+        r = requests.get(_url("fonctionnalites_premium?actif=eq.true&order=ordre"), headers=_headers(True))
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_fonctionnalites_premium: {e}")
+        return []
