@@ -3,6 +3,7 @@ Dashboard revendeur — toutes les pages de l'espace revendeur.
 """
 import logging
 import re
+import json
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from app.models.security import login_required
 from app.models.database import (
@@ -102,9 +103,42 @@ def boutique_enregistrer():
         data["boutique_couleur_principale"] = THEMES[theme][0]
         data["boutique_couleur_secondaire"] = THEMES[theme][1]
 
-    # Options
+    # Options d'affichage
     data["boutique_afficher_prix"] = request.form.get("boutique_afficher_prix") == "on"
     data["boutique_whatsapp_flottant"] = request.form.get("boutique_whatsapp_flottant") == "on"
+    data["boutique_badge_verifie"] = request.form.get("boutique_badge_verifie") == "on"
+    data["boutique_slogan_anime"] = request.form.get("boutique_slogan_anime") == "on"
+
+    # Type de grille
+    type_grille = request.form.get("boutique_type_grille", "grille")
+    if type_grille in ("grille", "cartes", "liste"):
+        data["boutique_type_grille"] = type_grille
+
+    # Services par ligne
+    try:
+        spl = int(request.form.get("boutique_services_par_ligne", 3))
+        if spl in (2, 3, 4):
+            data["boutique_services_par_ligne"] = spl
+    except Exception:
+        pass
+
+    # Note et nombre d'avis
+    try:
+        note = float(request.form.get("boutique_note", 4.9))
+        data["boutique_note"] = min(5, max(0, note))
+    except Exception:
+        pass
+    try:
+        nb_avis = int(request.form.get("boutique_nb_avis", 0))
+        data["boutique_nb_avis"] = max(0, nb_avis)
+    except Exception:
+        pass
+
+    # Sections affichees (JSONB)
+    sections = {}
+    for key in ("stats", "avantages", "comment", "services", "apropos", "avis", "faq"):
+        sections[key] = request.form.get(f"section_{key}") == "on"
+    data["boutique_sections_affichees"] = sections
 
     # Upload logo
     logo_file = request.files.get("boutique_logo")
@@ -160,7 +194,7 @@ def boutique_supprimer_image():
 
 
 # ═══════════════════════════════════════════════════════════════
-# PUBLIER (activation du compte revendeur)
+# PUBLIER
 # ═══════════════════════════════════════════════════════════════
 
 @dashboard_bp.route("/publier")
@@ -169,19 +203,12 @@ def publier():
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
-
     etapes_ok = {
         "nom": bool(profile.get("boutique_nom")),
         "whatsapp": bool(profile.get("boutique_whatsapp")),
         "logo_ou_slogan": bool(profile.get("boutique_logo_url") or profile.get("boutique_slogan")),
     }
-
-    return render_template(
-        "dashboard/publier.html",
-        profile=profile,
-        prix_activation=PRIX_ACTIVATION,
-        etapes_ok=etapes_ok,
-    )
+    return render_template("dashboard/publier.html", profile=profile, prix_activation=PRIX_ACTIVATION, etapes_ok=etapes_ok)
 
 
 @dashboard_bp.route("/publier/activer", methods=["POST"])
@@ -197,34 +224,29 @@ def publier_activer():
 
     balance = profile.get("balance", 0) or 0
     if balance < PRIX_ACTIVATION:
-        flash(
-            f"Solde insuffisant. Il vous faut {PRIX_ACTIVATION:,.0f} FCFA "
-            f"(solde actuel : {balance:,.0f} FCFA). Rechargez votre compte Boost Central.",
-            "error",
-        )
+        flash(f"Solde insuffisant. Il vous faut {PRIX_ACTIVATION:,.0f} FCFA (solde : {balance:,.0f} FCFA).", "error")
         return redirect(url_for("dashboard.publier"))
 
     slug = request.form.get("slug", "").strip().lower()
     if not slug or len(slug) < 3 or len(slug) > 30:
         flash("Identifiant invalide : 3 a 30 caracteres.", "error")
         return redirect(url_for("dashboard.publier"))
-
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,28}[a-z0-9]", slug):
-        flash("Identifiant invalide : lettres minuscules, chiffres et tirets uniquement.", "error")
+        flash("Identifiant invalide.", "error")
         return redirect(url_for("dashboard.publier"))
 
     modele = request.form.get("modele", "")
     if modele not in ("marge", "commission"):
-        flash("Choisissez un modele de gain.", "error")
+        flash("Choisissez un modele.", "error")
         return redirect(url_for("dashboard.publier"))
 
     if slug_deja_pris(slug):
-        flash("Cet identifiant est deja pris. Choisissez-en un autre.", "error")
+        flash("Cet identifiant est deja pris.", "error")
         return redirect(url_for("dashboard.publier"))
 
     nouveau_solde = debit_balance(profile["id"], PRIX_ACTIVATION)
     if nouveau_solde is None:
-        flash("Erreur lors du paiement. Verifiez votre solde.", "error")
+        flash("Erreur de paiement.", "error")
         return redirect(url_for("dashboard.publier"))
 
     commission = 0.10 if modele == "commission" else 0.0
@@ -235,7 +257,7 @@ def publier_activer():
         return redirect(url_for("dashboard.index"))
     else:
         credit_balance(profile["id"], PRIX_ACTIVATION)
-        flash("Erreur lors de l'activation. Vous avez ete rembourse.", "error")
+        flash("Erreur d'activation. Rembourse.", "error")
         return redirect(url_for("dashboard.publier"))
 
 
@@ -249,7 +271,6 @@ def prix():
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
-
     services = get_active_services()
     mes_prix = {}
     try:
@@ -257,13 +278,7 @@ def prix():
             mes_prix[p["service_id"]] = p["prix_fcfa"]
     except Exception as e:
         logger.error(f"prix load: {e}")
-
-    return render_template(
-        "dashboard/prix.html",
-        profile=profile,
-        services=services,
-        mes_prix=mes_prix,
-    )
+    return render_template("dashboard/prix.html", profile=profile, services=services, mes_prix=mes_prix)
 
 
 @dashboard_bp.route("/prix/enregistrer", methods=["POST"])
@@ -272,10 +287,8 @@ def prix_enregistrer():
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
-
     service_id = request.form.get("service_id", "")
     prix_str = request.form.get("prix_fcfa", "").strip()
-
     try:
         service_id = int(service_id)
         prix_fcfa = float(prix_str)
@@ -284,26 +297,18 @@ def prix_enregistrer():
     except Exception:
         flash("Valeurs invalides.", "error")
         return redirect(url_for("dashboard.prix"))
-
     service = get_service_by_id(service_id)
     if not service:
         flash("Service introuvable.", "error")
         return redirect(url_for("dashboard.prix"))
-
     if prix_fcfa < float(service["prix_fcfa"]):
-        flash(
-            f"Votre prix doit etre superieur ou egal au prix de base "
-            f"({service['prix_fcfa']} FCFA).",
-            "error",
-        )
+        flash(f"Prix minimum : {service['prix_fcfa']} FCFA.", "error")
         return redirect(url_for("dashboard.prix"))
-
     ok = set_revendeur_prix(profile["id"], service_id, prix_fcfa)
     if ok:
         flash("Prix enregistre.", "success")
     else:
-        flash("Erreur lors de l'enregistrement.", "error")
-
+        flash("Erreur.", "error")
     return redirect(url_for("dashboard.prix"))
 
 
@@ -317,18 +322,12 @@ def clients():
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
-
     mes_clients = []
     try:
         mes_clients = get_revendeur_clients_detail(profile["id"])
     except Exception as e:
         logger.error(f"clients load: {e}")
-
-    return render_template(
-        "dashboard/clients.html",
-        profile=profile,
-        mes_clients=mes_clients,
-    )
+    return render_template("dashboard/clients.html", profile=profile, mes_clients=mes_clients)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -341,18 +340,12 @@ def commandes():
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
-
     orders = []
     try:
         orders = get_revendeur_orders(profile["id"], limit=200)
     except Exception as e:
         logger.error(f"commandes load: {e}")
-
-    return render_template(
-        "dashboard/commandes.html",
-        profile=profile,
-        orders=orders,
-    )
+    return render_template("dashboard/commandes.html", profile=profile, orders=orders)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -365,18 +358,12 @@ def gains():
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
-
     gains_total = 0
     try:
         gains_total = get_revendeur_gains_total(profile["id"])
     except Exception as e:
         logger.error(f"gains load: {e}")
-
-    return render_template(
-        "dashboard/gains.html",
-        profile=profile,
-        gains_total=gains_total,
-    )
+    return render_template("dashboard/gains.html", profile=profile, gains_total=gains_total)
 
 
 # ═══════════════════════════════════════════════════════════════
