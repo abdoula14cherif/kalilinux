@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="{{ boutique.couleur_principale }}">
+<title>{{ boutique.nom }} — Beauté & Cosmétiques</title>
+{% if boutique.logo_url %}<link rel="icon" href="{{ boutique.logo_url }}">{% endif %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:{{ boutique.couleur_principale }};--primary-d:{{ boutique.couleur_secondaire }};--dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;--white:#fff;--gray:#E2E8F0;--green:#059669;--accent:#FF6600;--pink:#F472B6;--rose:#FB7185;--purple:#C084FC}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#FFF8FB;color:var(--mid);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;height:auto;display:block}
+button{font-family:inherit;cursor:pointer}
+
+/* HEADER */
+.shop-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--white);border-bottom:1px solid #FCE7F3;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(244,114,182,.08)}
+.shop-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.shop-logo{width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,var(--pink),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem}
+.shop-name-wrap{min-width:0}
+.shop-name{font-size:1rem;font-weight:900;color:var(--dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.badge-verifie{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-size:.6rem;font-weight:900;padding:2px 7px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;flex-shrink:0}
+.shop-rating{font-size:.72rem;color:var(--mid);display:flex;align-items:center;gap:4px;margin-top:2px}
+.shop-rating .stars{color:#F59E0B;letter-spacing:-1px}
+.btn-login{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;padding:9px 16px;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;flex-shrink:0}
+
+/* NAV */
+.shop-nav{background:var(--white);border-bottom:1px solid #FCE7F3;padding:0 20px;overflow-x:auto;display:flex;gap:4px;position:sticky;top:67px;z-index:99;scrollbar-width:none}
+.shop-nav::-webkit-scrollbar{display:none}
+.shop-nav a{padding:12px 14px;font-size:.82rem;font-weight:700;color:var(--mid);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
+.shop-nav a:hover,.shop-nav a.active{color:var(--pink);border-bottom-color:var(--pink)}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;text-align:center;padding:60px 24px}
+.hero.has-banniere{padding:0;min-height:500px;display:flex;align-items:center;justify-content:center}
+.hero-banniere{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;z-index:0}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.55),rgba(0,0,0,.35));z-index:1}
+.hero-content{position:relative;z-index:2;max-width:720px;margin:0 auto;padding:40px 0}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.22);backdrop-filter:blur(10px);padding:7px 16px;border-radius:20px;font-size:.74rem;font-weight:800;letter-spacing:.4px;margin-bottom:20px}
+.hero h1{font-size:2.2rem;font-weight:900;margin-bottom:14px;line-height:1.15;text-shadow:0 2px 12px rgba(0,0,0,.2)}
+.hero p{font-size:.95rem;opacity:.95;line-height:1.7;max-width:520px;margin:0 auto 28px}
+.hero-cta{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--pink);padding:15px 34px;border-radius:14px;font-weight:900;font-size:.98rem;text-decoration:none;box-shadow:0 12px 30px rgba(0,0,0,.25);transition:transform .2s}
+.hero-cta:hover{transform:translateY(-2px)}
+
+.hero-stats{display:flex;justify-content:center;gap:30px;margin-top:30px;flex-wrap:wrap;position:relative;z-index:2}
+.hero-stat{text-align:center}
+.hero-stat-val{font-size:1.5rem;font-weight:900;color:#fff;line-height:1}
+.hero-stat-lbl{font-size:.72rem;color:rgba(255,255,255,.85);margin-top:4px;font-weight:700;letter-spacing:.4px}
+
+.hero-contact{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:22px;position:relative;z-index:2}
+.contact-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);color:#fff;padding:9px 16px;border-radius:20px;font-size:.78rem;font-weight:700;text-decoration:none}
+.contact-btn:hover{background:rgba(255,255,255,.3)}
+
+/* TRUST */
+.trust-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;max-width:760px;margin:-30px auto 0;padding:0 20px;position:relative;z-index:10}
+.trust-item{background:var(--white);border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 6px 20px rgba(244,114,182,.12);border:1px solid #FCE7F3}
+.trust-item i{font-size:1.15rem;background:linear-gradient(135deg,var(--pink),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px;display:block;font-size:1.3rem}
+.trust-item span{font-size:.74rem;font-weight:800;color:var(--dark);display:block}
+
+/* SECTIONS */
+.section{padding:50px 20px;max-width:1100px;margin:0 auto}
+.section-title{font-size:1.5rem;font-weight:900;color:var(--dark);text-align:center;margin-bottom:8px}
+.section-sub{font-size:.85rem;color:var(--mid);text-align:center;max-width:520px;margin:0 auto 30px;line-height:1.6}
+
+/* CATEGORIES PILLS */
+.cat-pills{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
+.cat-pill{padding:11px 22px;border-radius:30px;background:#fff;border:2px solid #FCE7F3;color:var(--mid);font-size:.83rem;font-weight:700;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:8px}
+.cat-pill:hover{border-color:var(--pink);color:var(--pink)}
+.cat-pill.active{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;border-color:transparent;box-shadow:0 6px 18px rgba(244,114,182,.3)}
+.cat-pill i{font-size:.9rem}
+
+/* GRILLE PRODUITS BEAUTE */
+.produits-grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+.produit-card{background:#fff;border-radius:18px;overflow:hidden;transition:all .3s;position:relative;cursor:pointer;border:1px solid #FCE7F3}
+.produit-card:hover{transform:translateY(-5px);box-shadow:0 20px 40px rgba(244,114,182,.15)}
+.produit-img-wrap{position:relative;width:100%;aspect-ratio:1;background:linear-gradient(135deg,#FCE7F3,#F3E8FF);overflow:hidden;display:flex;align-items:center;justify-content:center;color:rgba(244,114,182,.4);font-size:3rem}
+.produit-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.produit-card:hover .produit-img-wrap img{transform:scale(1.08)}
+.produit-badge{position:absolute;top:12px;left:12px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;font-size:.68rem;font-weight:900;padding:5px 11px;border-radius:10px;box-shadow:0 4px 12px rgba(245,158,11,.4);z-index:2;letter-spacing:.3px}
+.produit-badge.new{background:linear-gradient(135deg,#10B981,#059669);box-shadow:0 4px 12px rgba(16,185,129,.4)}
+.produit-badge.bio{background:linear-gradient(135deg,#84CC16,#65A30D);box-shadow:0 4px 12px rgba(132,204,22,.4)}
+.produit-fav{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;color:var(--pink);box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:2;transition:.2s}
+.produit-fav:hover{background:var(--pink);color:#fff}
+.produit-body{padding:16px}
+.produit-marque{font-size:.68rem;font-weight:900;color:var(--pink);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.produit-nom{font-size:.92rem;font-weight:800;color:var(--dark);line-height:1.35;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:38px}
+.produit-rating{display:flex;align-items:center;gap:4px;margin-bottom:10px;font-size:.72rem;color:var(--mid)}
+.produit-rating .stars{color:#F59E0B;letter-spacing:-1px}
+.produit-prix-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.produit-prix{font-size:1.15rem;font-weight:900;color:var(--pink)}
+.produit-prix small{font-size:.7rem;color:var(--mid);font-weight:700;margin-left:3px}
+.produit-prix-barre{font-size:.82rem;color:var(--light);text-decoration:line-through;font-weight:600}
+.btn-voir{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;border:none;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;transition:.2s}
+.btn-voir:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(244,114,182,.35)}
+
+/* AVANTAGES */
+.avantages-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:1000px;margin:0 auto}
+.avantage-card{background:#fff;border-radius:16px;padding:24px 20px;text-align:center;border:1px solid #FCE7F3;transition:all .25s}
+.avantage-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(244,114,182,.12)}
+.avantage-ico{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto 14px}
+.avantage-card h3{font-size:.95rem;font-weight:900;color:var(--dark);margin-bottom:8px}
+.avantage-card p{font-size:.78rem;color:var(--mid);line-height:1.6}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;max-width:900px;width:100%;position:relative;max-height:90vh;overflow-y:auto;animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-close{position:absolute;top:14px;right:16px;background:rgba(255,255,255,.95);border:none;width:38px;height:38px;border-radius:50%;font-size:1rem;cursor:pointer;color:var(--dark);z-index:10;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.modal-content{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media(max-width:768px){.modal-content{grid-template-columns:1fr}}
+.modal-img-section{padding:20px;background:linear-gradient(135deg,#FCE7F3,#F3E8FF)}
+.modal-img-main{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.modal-info-section{padding:24px 20px}
+.modal-marque{font-size:.72rem;font-weight:900;color:var(--pink);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.modal-info-section h3{font-size:1.35rem;font-weight:900;color:var(--dark);margin-bottom:10px;line-height:1.3}
+.modal-rating{display:flex;align-items:center;gap:6px;margin-bottom:14px;font-size:.8rem;color:var(--mid)}
+.modal-rating .stars{color:#F59E0B;font-size:.9rem}
+.modal-desc{font-size:.85rem;color:var(--mid);line-height:1.7;margin-bottom:20px}
+.modal-section-title{font-size:.75rem;font-weight:900;color:var(--dark);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:block}
+.modal-options{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.option-opt{border:2px solid #FCE7F3;background:#fff;color:var(--dark);font-size:.82rem;font-weight:700;padding:10px 16px;border-radius:10px;cursor:pointer;transition:.2s}
+.option-opt:hover{border-color:var(--pink)}
+.option-opt.selected{background:var(--pink);color:#fff;border-color:var(--pink)}
+.modal-prix-section{background:linear-gradient(135deg,#FCE7F3,#F3E8FF);border-radius:14px;padding:18px;text-align:center;margin-bottom:16px;border:2px solid var(--pink)}
+.modal-prix{font-size:1.8rem;font-weight:900;color:var(--pink);line-height:1}
+.modal-prix small{font-size:.82rem;color:var(--mid);font-weight:700}
+.btn-modal{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;border:none;border-radius:12px;font-weight:900;font-size:.95rem;cursor:pointer;text-decoration:none;margin-bottom:10px}
+.btn-modal-outline{background:transparent;border:2px solid var(--pink);color:var(--pink)}
+
+/* A PROPOS */
+.apropos{background:#fff;border-radius:16px;padding:26px;border:1px solid #FCE7F3;max-width:800px;margin:0 auto}
+.apropos h3{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.apropos h3 i{color:var(--pink)}
+.apropos p{font-size:.88rem;color:var(--mid);line-height:1.8}
+
+/* FAQ */
+.faq-item{background:#fff;border:1px solid #FCE7F3;border-radius:14px;padding:16px 18px;margin-bottom:10px}
+.faq-item summary{font-size:.88rem;font-weight:800;color:var(--dark);cursor:pointer;list-style:none;display:flex;justify-content:space-between}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:"+";font-size:1.3rem;color:var(--pink)}
+.faq-item[open] summary::after{content:"−"}
+.faq-item p{font-size:.82rem;color:var(--mid);line-height:1.7;margin-top:12px;padding-top:12px;border-top:1px solid #FCE7F3}
+
+/* CTA */
+.cta-final{background:linear-gradient(135deg,var(--pink),var(--purple));border-radius:20px;padding:40px 24px;text-align:center;color:#fff;margin:40px auto 0;max-width:960px}
+.cta-final h2{font-size:1.35rem;font-weight:900;margin-bottom:10px}
+.cta-final p{font-size:.9rem;opacity:.92;margin-bottom:22px}
+.cta-final .btn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--pink);padding:15px 32px;border-radius:14px;font-weight:900;font-size:.95rem;text-decoration:none}
+
+/* FOOTER */
+.shop-footer{background:var(--dark);color:rgba(255,255,255,.6);text-align:center;padding:32px 20px;font-size:.78rem;line-height:1.7;margin-top:40px}
+.shop-footer .brand{color:#fff;font-weight:900;font-size:1rem;margin-bottom:8px}
+.shop-footer a{color:var(--pink);font-weight:700}
+
+.wa-float{position:fixed;bottom:22px;right:22px;width:58px;height:58px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.7rem;box-shadow:0 8px 24px rgba(37,211,102,.5);z-index:90;text-decoration:none}
+
+.scroll-top{position:fixed;bottom:90px;right:22px;width:44px;height:44px;background:var(--pink);color:#fff;border:none;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:89}
+.scroll-top.show{display:flex}
+
+.empty-shop{text-align:center;padding:60px 24px;background:#fff;border-radius:18px;border:1px solid #FCE7F3}
+.empty-shop i{font-size:2.8rem;color:#FBCFE8;display:block;margin-bottom:14px}
+.empty-shop h3{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:8px}
+.empty-shop p{font-size:.85rem;color:var(--mid)}
+
+@media(max-width:520px){
+  .hero{padding:40px 18px}
+  .hero h1{font-size:1.6rem}
+  .produits-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .produit-body{padding:12px}
+  .produit-nom{font-size:.82rem;min-height:34px}
+  .produit-prix{font-size:.95rem}
+  .btn-voir{font-size:.75rem;padding:9px}
+  .modal-content{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="shop-header">
+  <div class="shop-brand">
+    {% if boutique.logo_url %}
+    <img class="shop-logo" src="{{ boutique.logo_url }}" alt="{{ boutique.nom }}">
+    {% else %}
+    <div class="shop-logo">{{ boutique.nom[0]|upper }}</div>
+    {% endif %}
+    <div class="shop-name-wrap">
+      <div class="shop-name">
+        {{ boutique.nom }}
+        {% if boutique.badge_verifie %}<span class="badge-verifie"><i class="fas fa-check-circle"></i> VERIFIE</span>{% endif %}
+      </div>
+      {% if boutique.nb_avis > 0 %}
+      <div class="shop-rating">
+        <span class="stars">★★★★★</span>
+        <span>{{ boutique.note }}/5 · {{ boutique.nb_avis }} avis</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div>
+    {% if est_connecte %}
+    <a href="{{ url_for('dashboard.index') }}" class="btn-login"><i class="fas fa-user"></i> Mon espace</a>
+    {% else %}
+    <a href="{{ url_for('auth.connexion') }}" class="btn-login"><i class="fas fa-sign-in-alt"></i> Connexion</a>
+    {% endif %}
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="shop-nav">
+  <a href="#produits" class="active">Produits</a>
+  <a href="#avantages">Avantages</a>
+  {% if boutique.a_propos %}<a href="#apropos">A propos</a>{% endif %}
+  {% if boutique.sections.get('faq', True) %}<a href="#faq">FAQ</a>{% endif %}
+  <a href="#contact">Contact</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero {% if boutique.banniere_url %}has-banniere{% endif %}">
+  {% if boutique.banniere_url %}
+  <img class="hero-banniere" src="{{ boutique.banniere_url }}" alt="">
+  <div class="hero-overlay"></div>
+  {% endif %}
+  <div class="hero-content">
+    <div class="hero-badge"><i class="fas fa-spa"></i> {{ boutique.nom }}</div>
+    <h1>{{ boutique.slogan }}</h1>
+    <p>{{ boutique.message_accueil }}</p>
+    <a href="#produits" class="hero-cta">
+      <i class="fas fa-sparkles"></i> Decouvrir nos produits
+    </a>
+
+    {% if boutique.sections.get('stats', True) %}
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-val">{{ produits|length }}</div><div class="hero-stat-lbl">PRODUITS</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">+{{ stats_boutique.clients }}</div><div class="hero-stat-lbl">CLIENTES</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">{{ stats_boutique.note }}/5</div><div class="hero-stat-lbl">NOTE</div></div>
+    </div>
+    {% endif %}
+
+    {% if boutique.whatsapp or boutique.instagram or boutique.facebook or boutique.tiktok %}
+    <div class="hero-contact" id="contact">
+      {% if boutique.whatsapp %}<a href="https://wa.me/{{ boutique.whatsapp }}" target="_blank" class="contact-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>{% endif %}
+      {% if boutique.instagram %}<a href="{{ boutique.instagram }}" target="_blank" class="contact-btn"><i class="fab fa-instagram"></i> Instagram</a>{% endif %}
+      {% if boutique.facebook %}<a href="{{ boutique.facebook }}" target="_blank" class="contact-btn"><i class="fab fa-facebook"></i> Facebook</a>{% endif %}
+      {% if boutique.tiktok %}<a href="{{ boutique.tiktok }}" target="_blank" class="contact-btn"><i class="fab fa-tiktok"></i> TikTok</a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- TRUST -->
+<div class="trust-row">
+  <div class="trust-item"><i class="fas fa-leaf"></i><span>Produits naturels</span></div>
+  <div class="trust-item"><i class="fas fa-certificate"></i><span>100% authentique</span></div>
+  <div class="trust-item"><i class="fas fa-truck"></i><span>Livraison rapide</span></div>
+  <div class="trust-item"><i class="fas fa-gem"></i><span>Qualite premium</span></div>
+</div>
+
+<!-- PRODUITS -->
+<section class="section" id="produits">
+  <h2 class="section-title">Notre collection</h2>
+  <p class="section-sub">Des produits de beaute selectionnes avec soin pour vous sublimer.</p>
+
+  {% if produits %}
+    {% if categories %}
+    <div class="cat-pills">
+      <button class="cat-pill active" onclick="filtrerProduits('all', this)">
+        <i class="fas fa-th"></i> Tous
+      </button>
+      {% for c in categories %}
+      <button class="cat-pill" onclick="filtrerProduits('{{ c.id }}', this)">
+        {{ c.nom }}
+      </button>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="produits-grid">
+      {% for p in produits %}
+      <div class="produit-card" data-categorie="{{ p.categorie_id or 0 }}" onclick='ouvrirModal({{ p|tojson }})'>
+        <div class="produit-img-wrap">
+          {% if p.image_url %}
+          <img src="{{ p.image_url }}" alt="{{ p.nom }}">
+          {% else %}
+          <i class="fas fa-spa"></i>
+          {% endif %}
+          {% if loop.index <= 2 %}<span class="produit-badge">🔥 POPULAIRE</span>{% endif %}
+          {% if loop.index == 3 %}<span class="produit-badge new">✨ NOUVEAU</span>{% endif %}
+          {% if loop.index == 4 %}<span class="produit-badge bio">🌿 BIO</span>{% endif %}
+          <div class="produit-fav"><i class="fas fa-heart"></i></div>
+        </div>
+        <div class="produit-body">
+          <div class="produit-marque">{{ boutique.nom }}</div>
+          <div class="produit-nom">{{ p.nom }}</div>
+          <div class="produit-rating">
+            <span class="stars">★★★★★</span>
+            <span>4.8 ({{ (loop.index * 7) + 12 }})</span>
+          </div>
+          {% if boutique.afficher_prix %}
+          <div class="produit-prix-row">
+            <span class="produit-prix">{{ "{:,.0f}".format(p.prix or 0) }}<small>FCFA</small></span>
+          </div>
+          {% else %}
+          <div class="produit-prix-row">
+            <span class="produit-prix" style="font-size:.85rem;color:var(--mid)">Prix sur demande</span>
+          </div>
+          {% endif %}
+          <button class="btn-voir"><i class="fas fa-eye"></i> Voir le produit</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="empty-shop">
+      <i class="fas fa-spa"></i>
+      <h3>La collection arrive bientot</h3>
+      <p>La boutique prepare ses produits. Revenez bientot !</p>
+    </div>
+  {% endif %}
+</section>
+
+<!-- AVANTAGES -->
+<section class="section" id="avantages" style="background:#fff">
+  <h2 class="section-title">Pourquoi nous choisir ?</h2>
+  <p class="section-sub">Des produits de qualite pour prendre soin de vous.</p>
+
+  <div class="avantages-grid">
+    <div class="avantage-card">
+      <div class="avantage-ico"><i class="fas fa-leaf"></i></div>
+      <h3>100% Naturel</h3>
+      <p>Des formules douces et respectueuses de votre peau.</p>
+    </div>
+    <div class="avantage-card">
+      <div class="avantage-ico"><i class="fas fa-certificate"></i></div>
+      <h3>Authentique</h3>
+      <p>Produits originaux, jamais de contrefacon.</p>
+    </div>
+    <div class="avantage-card">
+      <div class="avantage-ico"><i class="fas fa-truck"></i></div>
+      <h3>Livraison rapide</h3>
+      <p>Recevez vos produits en 24-48h.</p>
+    </div>
+    <div class="avantage-card">
+      <div class="avantage-ico"><i class="fas fa-headset"></i></div>
+      <h3>Conseil personnalise</h3>
+      <p>Notre equipe vous conseille sur vos choix.</p>
+    </div>
+  </div>
+</section>
+
+<!-- A PROPOS -->
+{% if boutique.a_propos %}
+<section class="section" id="apropos">
+  <div class="apropos">
+    <h3><i class="fas fa-spa"></i> A propos de {{ boutique.nom }}</h3>
+    <p>{{ boutique.a_propos }}</p>
+  </div>
+</section>
+{% endif %}
+
+<!-- FAQ -->
+{% if boutique.sections.get('faq', True) %}
+<section class="section" id="faq">
+  <h2 class="section-title">Questions frequentes</h2>
+  <p class="section-sub">Tout ce que vous devez savoir avant de commander.</p>
+  <details class="faq-item">
+    <summary>Les produits sont-ils authentiques ?</summary>
+    <p>Oui, tous nos produits sont 100% originaux et verifies.</p>
+  </details>
+  <details class="faq-item">
+    <summary>Comment passer une commande ?</summary>
+    <p>Cliquez sur le produit, choisissez vos options, et validez. Vous pouvez aussi commander via WhatsApp.</p>
+  </details>
+  <details class="faq-item">
+    <summary>Quels sont les moyens de paiement acceptes ?</summary>
+    <p>Orange Money, MTN Mobile Money et carte bancaire.</p>
+  </details>
+  <details class="faq-item">
+    <summary>Puis-je retourner un produit ?</summary>
+    <p>Oui, vous avez 7 jours pour retourner un produit non ouvert.</p>
+  </details>
+</section>
+{% endif %}
+
+<!-- CTA -->
+<div class="cta-final">
+  <h2>Prenez soin de vous ✨</h2>
+  <p>Decouvrez notre collection et sublimez votre beaute naturelle.</p>
+  {% if boutique.whatsapp %}
+  <a href="https://wa.me/{{ boutique.whatsapp }}" target="_blank" class="btn"><i class="fab fa-whatsapp"></i> Nous contacter</a>
+  {% endif %}
+</div>
+
+<!-- FOOTER -->
+<footer class="shop-footer">
+  <div class="brand">{{ boutique.nom }}</div>
+  <div style="margin-bottom:12px">{{ boutique.slogan }}</div>
+  <div>&copy; 2026 {{ boutique.nom }} · Propulse par <a href="https://boostcentral.world" target="_blank">Boost Central</a></div>
+</footer>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="fas fa-arrow-up"></i>
+</button>
+
+{% if boutique.whatsapp_flottant and boutique.whatsapp %}
+<a href="https://wa.me/{{ boutique.whatsapp }}?text={{ ('Bonjour ' ~ boutique.nom ~ ', je viens de votre boutique.')|urlencode }}" target="_blank" class="wa-float">
+  <i class="fab fa-whatsapp"></i>
+</a>
+{% endif %}
+
+<!-- MODAL PRODUIT -->
+<div class="modal-bg" id="modalProduit">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal()">✕</button>
+    <div class="modal-content">
+      <div class="modal-img-section">
+        <img class="modal-img-main" id="modalImg" src="" alt="">
+      </div>
+      <div class="modal-info-section">
+        <div class="modal-marque">{{ boutique.nom }}</div>
+        <h3 id="modalNom">Produit</h3>
+        <div class="modal-rating">
+          <span class="stars">★★★★★</span>
+          <span>4.8 · Excellent</span>
+        </div>
+        <p class="modal-desc" id="modalDesc"></p>
+
+        <span class="modal-section-title">Format</span>
+        <div class="modal-options">
+          <button class="option-opt selected" onclick="selectOption(this, 'Standard')">Standard</button>
+          <button class="option-opt" onclick="selectOption(this, 'Grand format')">Grand format</button>
+        </div>
+
+        <div class="modal-prix-section">
+          <div class="modal-prix" id="modalPrix">0 <small>FCFA</small></div>
+        </div>
+
+        {% if boutique.whatsapp %}
+        <a href="#" id="modalWa" target="_blank" class="btn-modal">
+          <i class="fab fa-whatsapp"></i> Commander sur WhatsApp
+        </a>
+        {% endif %}
+        <a href="{% if est_connecte %}{{ url_for('dashboard.index') }}{% else %}{{ url_for('auth.connexion') }}{% endif %}" class="btn-modal btn-modal-outline">
+          <i class="fas fa-shopping-cart"></i> Commander en ligne
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var currentProduit = null;
+var currentOption = 'Standard';
+
+function ouvrirModal(produit){
+  currentProduit = produit;
+  currentOption = 'Standard';
+
+  var img = document.getElementById('modalImg');
+  if(produit.image_url){
+    img.src = produit.image_url;
+    img.style.display = 'block';
+  } else {
+    img.style.display = 'none';
+  }
+  document.getElementById('modalNom').textContent = produit.nom || '';
+  document.getElementById('modalDesc').textContent = produit.description || 'Produit de beaute premium selectionne avec soin pour sublimer votre beaute naturelle.';
+  document.getElementById('modalPrix').innerHTML = (produit.prix || 0).toLocaleString('fr-FR') + ' <small>FCFA</small>';
+
+  document.querySelectorAll('.option-opt').forEach(function(o){
+    o.classList.remove('selected');
+    if(o.textContent.trim() === 'Standard') o.classList.add('selected');
+  });
+
+  majLienWa();
+  document.getElementById('modalProduit').classList.add('open');
+}
+
+function fermerModal(){
+  document.getElementById('modalProduit').classList.remove('open');
+}
+
+document.getElementById('modalProduit').addEventListener('click', function(e){
+  if(e.target === this) fermerModal();
+});
+
+function selectOption(el, option){
+  document.querySelectorAll('.option-opt').forEach(function(o){ o.classList.remove('selected'); });
+  el.classList.add('selected');
+  currentOption = option;
+  majLienWa();
+}
+
+function majLienWa(){
+  var waLink = document.getElementById('modalWa');
+  if(!waLink || !currentProduit) return;
+  var msg = 'Bonjour {{ boutique.nom }}, je veux commander : ' + currentProduit.nom + ' (' + currentOption + ')';
+  msg += '\nPrix : ' + (currentProduit.prix || 0).toLocaleString('fr-FR') + ' FCFA';
+  waLink.href = 'https://wa.me/{{ boutique.whatsapp }}?text=' + encodeURIComponent(msg);
+}
+
+function filtrerProduits(catId, btn){
+  document.querySelectorAll('.cat-pill').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+  document.querySelectorAll('.produit-card').forEach(function(c){
+    if(catId === 'all') c.style.display = '';
+    else c.style.display = (c.getAttribute('data-categorie') === catId) ? '' : 'none';
+  });
+}
+
+window.addEventListener('scroll', function(){
+  var btn = document.getElementById('scrollTop');
+  if(window.scrollY > 400) btn.classList.add('show');
+  else btn.classList.remove('show');
+});
+</script>
+
+</body>
+</html>
