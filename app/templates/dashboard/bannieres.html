@@ -1,0 +1,220 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Bannieres — Boost Reseller{% endblock %}
+{% block page_title %}Mes bannieres{% endblock %}
+{% block page_subtitle %}{{ bannieres|length }} banniere(s) pour votre boutique{% endblock %}
+
+{% block topbar_actions %}
+<button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-plus"></i> Ajouter une banniere
+</button>
+{% endblock %}
+
+{% block extra_css %}
+.info-banner{background:linear-gradient(135deg,#E0F7FF,#F0FAFF);border-left:4px solid #00BFFF;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#0F172A;line-height:1.6}
+.info-banner i{color:#00BFFF;margin-right:6px}
+.info-banner strong{color:#0096C7}
+
+.bannieres-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.banniere-card{background:#fff;border-radius:16px;overflow:hidden;border:1px solid #E2E8F0;transition:all .25s;position:relative}
+.banniere-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.1);border-color:#00BFFF}
+.banniere-img{width:100%;height:160px;object-fit:cover;background:#F1F5F9;display:flex;align-items:center;justify-content:center;color:#CBD5E1;font-size:2.5rem;position:relative}
+.banniere-img img{width:100%;height:100%;object-fit:cover}
+.banniere-badge-statut{position:absolute;top:10px;left:10px;font-size:.68rem;font-weight:900;padding:4px 10px;border-radius:10px;letter-spacing:.3px}
+.b-statut-actif{background:#EDFFF5;color:#059669}
+.b-statut-inactif{background:#FEE2E2;color:#991B1B}
+.banniere-body{padding:16px}
+.banniere-titre{font-size:.92rem;font-weight:800;color:#0F172A;margin-bottom:6px;line-height:1.3}
+.banniere-sous{font-size:.78rem;color:#64748B;line-height:1.5;margin-bottom:10px}
+.banniere-lien{font-size:.72rem;color:#00BFFF;font-weight:700;margin-bottom:12px;word-break:break-all}
+.banniere-actions{display:flex;gap:6px}
+.btn-action{flex:1;padding:8px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:4px}
+.btn-mod{background:#E0F7FF;color:#0096C7}
+.btn-mod:hover{background:#0096C7;color:#fff}
+.btn-off{background:#FEF3C7;color:#92400E}
+.btn-off:hover{background:#92400E;color:#fff}
+.btn-del{background:#FEE2E2;color:#991B1B}
+.btn-del:hover{background:#991B1B;color:#fff}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:70px;height:70px;border-radius:50%;background:#E0F7FF;color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px 22px;max-width:480px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94A3B8}
+.modal h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal h3 i{color:#00BFFF}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.inp,.txta,.sel{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus,.txta:focus,.sel:focus{border-color:#00BFFF}
+.txta{min-height:70px;resize:vertical}
+.upload-box{border:2px dashed #CBD5E1;border-radius:12px;padding:18px;text-align:center;cursor:pointer;position:relative;overflow:hidden;background:#F8FAFC;transition:.2s}
+.upload-box:hover{border-color:#00BFFF;background:#F0FAFF}
+.upload-box input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-box i{font-size:1.5rem;color:#94A3B8;display:block;margin-bottom:6px}
+.upload-box span{font-size:.78rem;color:#64748B;font-weight:600}
+.preview-img{max-width:100%;max-height:140px;border-radius:10px;margin-top:10px;object-fit:cover}
+.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,191,255,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+.btn-save:hover{transform:translateY(-1px)}
+.color-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.color-input{width:100%;height:44px;border:2px solid #E2E8F0;border-radius:11px;cursor:pointer;background:#fff}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="info-banner">
+  <i class="fas fa-images"></i>
+  Les <strong>bannieres</strong> apparaissent en haut de votre boutique avec un slider automatique. Ajoutez des visuels accrocheurs pour mettre en avant vos promotions.
+</div>
+
+{% if bannieres %}
+<div class="bannieres-grid">
+  {% for b in bannieres %}
+  <div class="banniere-card">
+    <div class="banniere-img">
+      {% if b.image_url %}
+      <img src="{{ b.image_url }}" alt="{{ b.titre or 'Banniere' }}">
+      {% else %}
+      <i class="fas fa-image"></i>
+      {% endif %}
+      {% if b.actif %}
+      <span class="banniere-badge-statut b-statut-actif">● ACTIVE</span>
+      {% else %}
+      <span class="banniere-badge-statut b-statut-inactif">● INACTIVE</span>
+      {% endif %}
+    </div>
+    <div class="banniere-body">
+      {% if b.titre %}<div class="banniere-titre">{{ b.titre }}</div>{% endif %}
+      {% if b.sous_titre %}<div class="banniere-sous">{{ b.sous_titre }}</div>{% endif %}
+      {% if b.lien %}<div class="banniere-lien"><i class="fas fa-link"></i> {{ b.lien[:40] }}{% if b.lien|length > 40 %}...{% endif %}</div>{% endif %}
+      <div class="banniere-actions">
+        <button class="btn-action btn-mod" onclick='ouvrirModif({{ b|tojson }})'>
+          <i class="fas fa-edit"></i> Modifier
+        </button>
+        <form method="POST" action="{{ url_for('dashboard.bannieres_toggle') }}" style="flex:1">
+          <input type="hidden" name="banniere_id" value="{{ b.id }}">
+          <input type="hidden" name="actif" value="{{ '1' if b.actif else '0' }}">
+          <button type="submit" class="btn-action btn-off" style="width:100%">
+            <i class="fas fa-{% if b.actif %}eye-slash{% else %}eye{% endif %}"></i>
+          </button>
+        </form>
+        <form method="POST" action="{{ url_for('dashboard.bannieres_supprimer') }}" style="flex:1" onsubmit="return confirm('Supprimer cette banniere ?')">
+          <input type="hidden" name="banniere_id" value="{{ b.id }}">
+          <button type="submit" class="btn-action btn-del" style="width:100%">
+            <i class="fas fa-trash"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-images"></i></div>
+  <h3>Aucune banniere pour l'instant</h3>
+  <p>Ajoutez votre premiere banniere pour mettre en avant vos promotions et vos produits phares.</p>
+  <button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:12px 24px;font-size:.88rem">
+    <i class="fas fa-plus"></i> Ajouter ma premiere banniere
+  </button>
+</div>
+{% endif %}
+
+<!-- MODAL AJOUT -->
+<div class="modal-bg" id="modalAjout">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalAjout')">✕</button>
+    <h3><i class="fas fa-plus-circle"></i> Nouvelle banniere</h3>
+    <form method="POST" action="{{ url_for('dashboard.bannieres_ajouter') }}" enctype="multipart/form-data">
+      <div class="fg">
+        <label>Image de la banniere *</label>
+        <div class="upload-box">
+          <input type="file" name="image" accept="image/*" required onchange="previewImg(this, 'previewAjout')">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <span>Cliquez pour uploader (recommande : 1200x400px)</span>
+        </div>
+        <img id="previewAjout" class="preview-img" style="display:none">
+      </div>
+      <div class="fg">
+        <label>Titre (optionnel)</label>
+        <input class="inp" type="text" name="titre" placeholder="Ex: PROMO -50%" maxlength="80">
+      </div>
+      <div class="fg">
+        <label>Sous-titre (optionnel)</label>
+        <input class="inp" type="text" name="sous_titre" placeholder="Ex: Offre limitee" maxlength="120">
+      </div>
+      <div class="fg">
+        <label>Lien (optionnel)</label>
+        <input class="inp" type="url" name="lien" placeholder="https://...">
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-check"></i> Ajouter la banniere</button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL MODIF -->
+<div class="modal-bg" id="modalModif">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalModif')">✕</button>
+    <h3><i class="fas fa-edit"></i> Modifier la banniere</h3>
+    <form method="POST" action="{{ url_for('dashboard.bannieres_modifier') }}" enctype="multipart/form-data">
+      <input type="hidden" name="banniere_id" id="m_id">
+      <div class="fg">
+        <label>Remplacer l'image (optionnel)</label>
+        <div class="upload-box">
+          <input type="file" name="image" accept="image/*" onchange="previewImg(this, 'previewModif')">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <span>Cliquez pour changer l'image</span>
+        </div>
+        <img id="previewModif" class="preview-img" style="display:none">
+      </div>
+      <div class="fg">
+        <label>Titre</label>
+        <input class="inp" type="text" name="titre" id="m_titre" maxlength="80">
+      </div>
+      <div class="fg">
+        <label>Sous-titre</label>
+        <input class="inp" type="text" name="sous_titre" id="m_sous_titre" maxlength="120">
+      </div>
+      <div class="fg">
+        <label>Lien</label>
+        <input class="inp" type="url" name="lien" id="m_lien">
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-save"></i> Enregistrer</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function ouvrirAjout(){ document.getElementById('modalAjout').classList.add('open'); }
+function ouvrirModif(b){
+  document.getElementById('m_id').value = b.id || '';
+  document.getElementById('m_titre').value = b.titre || '';
+  document.getElementById('m_sous_titre').value = b.sous_titre || '';
+  document.getElementById('m_lien').value = b.lien || '';
+  document.getElementById('modalModif').classList.add('open');
+}
+function fermerModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('open');
+  });
+});
+function previewImg(input, targetId){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = document.getElementById(targetId);
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+</script>
+
+{% endblock %}
