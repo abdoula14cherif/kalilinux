@@ -27,20 +27,27 @@ THEMES = {
 
 
 def _template_pour_type(type_code):
-    """Retourne le nom du template selon le type de boutique."""
+    """
+    Retourne le nom du template selon le type de boutique.
+    - digital : services + prix
+    - formations : formations avec modules
+    - restauration : menu restaurant
+    - Tous les autres : boutique_produits.html (e-commerce universel)
+    """
     templates = {
         "digital":      "boutique.html",
-        "mode":         "boutique_mode.html",
-        "beaute":       "boutique_beaute.html",
         "formations":   "boutique_formations.html",
-        "ebooks":       "boutique_ebooks.html",
         "restauration": "boutique_restauration.html",
-        "electronique": "boutique_electronique.html",
-        "immobilier":   "boutique_immobilier.html",
-        "art":          "boutique_art.html",
-        "general":      "boutique_general.html",
+        # Tous les autres types utilisent le template e-commerce
+        "mode":         "boutique_produits.html",
+        "beaute":       "boutique_produits.html",
+        "ebooks":       "boutique_produits.html",
+        "electronique": "boutique_produits.html",
+        "immobilier":   "boutique_produits.html",
+        "art":          "boutique_produits.html",
+        "general":      "boutique_produits.html",
     }
-    return templates.get(type_code, "boutique_general.html")
+    return templates.get(type_code, "boutique_produits.html")
 
 
 @boutique_bp.route("/r/<slug>")
@@ -60,16 +67,14 @@ def visiter(slug):
 
     session["revendeur_slug"] = slug
 
-    # Incrementer le compteur de visites
     try:
         incrementer_visite_boutique(revendeur["id"])
     except Exception:
         pass
 
-    # Type de boutique
     type_code = revendeur.get("boutique_type") or "digital"
 
-    # Theme et couleurs
+    # Theme
     theme = revendeur.get("boutique_theme") or "bleu"
     couleur_principale, couleur_secondaire = THEMES.get(theme, THEMES["bleu"])
     if revendeur.get("boutique_couleur_principale"):
@@ -77,7 +82,7 @@ def visiter(slug):
     if revendeur.get("boutique_couleur_secondaire"):
         couleur_secondaire = revendeur["boutique_couleur_secondaire"]
 
-    # Dictionnaire boutique commun
+    # Dictionnaire boutique
     boutique = {
         "nom": revendeur.get("boutique_nom") or f"Boutique {slug.capitalize()}",
         "slogan": revendeur.get("boutique_slogan") or "Decouvrez notre boutique",
@@ -109,7 +114,6 @@ def visiter(slug):
         "slogan_anime": revendeur.get("boutique_slogan_anime", False),
     }
 
-    # Stats pour le hero
     stats_boutique = {
         "visites": revendeur.get("boutique_visites", 0) or 0,
         "clients": revendeur.get("referral_count", 0) or 0,
@@ -120,10 +124,8 @@ def visiter(slug):
     est_connecte = "user_id" in session
 
     # ═══════════════════════════════════════════════════════════════
-    # CHOIX DU TEMPLATE SELON LE TYPE
+    # DIGITAL : services + prix
     # ═══════════════════════════════════════════════════════════════
-
-    # Type DIGITAL : services + prix (systeme existant)
     if type_code == "digital":
         services = get_active_services()
         modele = revendeur.get("revendeur_modele")
@@ -158,43 +160,44 @@ def visiter(slug):
             type_code=type_code,
         )
 
-    # Autres types : produits + catégories
-    else:
-        produits = get_produits_revendeur(revendeur["id"], only_active=True)
-        categories = get_categories_par_type(type_code)
+    # ═══════════════════════════════════════════════════════════════
+    # TOUS LES AUTRES TYPES : produits + catégories
+    # ═══════════════════════════════════════════════════════════════
+    produits = get_produits_revendeur(revendeur["id"], only_active=True)
+    categories = get_categories_par_type(type_code)
 
-        # Grouper les produits par catégorie
-        produits_par_categorie = {}
-        for p in produits:
-            cat_id = p.get("categorie_id") or 0
-            produits_par_categorie.setdefault(cat_id, []).append(p)
+    # Grouper les produits par catégorie
+    produits_par_categorie = {}
+    for p in produits:
+        cat_id = p.get("categorie_id") or 0
+        produits_par_categorie.setdefault(cat_id, []).append(p)
 
-        # Trouver le template selon le type
-        template = _template_pour_type(type_code)
+    # Choix du template
+    template = _template_pour_type(type_code)
 
-        # Verifier que le template existe (fallback sur general)
-        from flask import current_app
+    # Verifier que le template existe (fallback sur produits)
+    from flask import current_app
+    try:
+        current_app.jinja_env.get_template(template)
+    except Exception:
+        logger.warning(f"Template {template} introuvable, fallback sur boutique_produits.html")
+        template = "boutique_produits.html"
         try:
             current_app.jinja_env.get_template(template)
         except Exception:
-            logger.warning(f"Template {template} introuvable, fallback sur boutique_general.html")
-            template = "boutique_general.html"
-            try:
-                current_app.jinja_env.get_template(template)
-            except Exception:
-                logger.error("Aucun template de boutique disponible !")
-                flash("Cette boutique est en cours de configuration.", "info")
-                return redirect(url_for("home.index"))
+            logger.error("Aucun template de boutique disponible !")
+            flash("Cette boutique est en cours de configuration.", "info")
+            return redirect(url_for("home.index"))
 
-        return render_template(
-            template,
-            revendeur=revendeur,
-            boutique=boutique,
-            produits=produits,
-            categories=categories,
-            produits_par_categorie=produits_par_categorie,
-            stats_boutique=stats_boutique,
-            slug=slug,
-            est_connecte=est_connecte,
-            type_code=type_code,
-        )
+    return render_template(
+        template,
+        revendeur=revendeur,
+        boutique=boutique,
+        produits=produits,
+        categories=categories,
+        produits_par_categorie=produits_par_categorie,
+        stats_boutique=stats_boutique,
+        slug=slug,
+        est_connecte=est_connecte,
+        type_code=type_code,
+    )
