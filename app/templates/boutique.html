@@ -9,23 +9,27 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{--primary:{{ boutique.couleur_principale }};--primary-d:{{ boutique.couleur_secondaire }};--dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;--white:#fff;--gray:#E2E8F0;--green:#059669;--accent:#FF6600}
+:root{--primary:{{ boutique.couleur_principale }};--primary-d:{{ boutique.couleur_secondaire }};--dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;--white:#fff;--gray:#E2E8F0;--green:#059669;--accent:#FF6600;--cols:{{ boutique.services_par_ligne }}}
 html{scroll-behavior:smooth}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--off);color:var(--mid);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;height:auto;display:block}
 button{font-family:inherit;cursor:pointer}
-input,textarea{font-family:inherit;outline:none}
 
 /* HEADER */
 .shop-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--white);border-bottom:1px solid var(--gray);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.03)}
 .shop-brand{display:flex;align-items:center;gap:10px;min-width:0}
-.shop-logo{width:40px;height:40px;border-radius:10px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--primary-d));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem}
-.shop-name{font-size:1rem;font-weight:900;color:var(--dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.btn-login{background:var(--primary);color:#fff;padding:9px 16px;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px}
+.shop-logo{width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--primary-d));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem}
+.shop-name-wrap{min-width:0}
+.shop-name{font-size:1rem;font-weight:900;color:var(--dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.badge-verifie{background:var(--primary);color:#fff;font-size:.6rem;font-weight:900;padding:2px 7px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;flex-shrink:0}
+.shop-rating{font-size:.72rem;color:var(--mid);display:flex;align-items:center;gap:4px;margin-top:2px}
+.shop-rating .stars{color:#F59E0B;letter-spacing:-1px}
+.btn-login{background:var(--primary);color:#fff;padding:9px 16px;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.btn-login:hover{opacity:.92}
 
 /* NAV */
-.shop-nav{background:var(--white);border-bottom:1px solid var(--gray);padding:0 20px;overflow-x:auto;display:flex;gap:4px;position:sticky;top:65px;z-index:99;scrollbar-width:none}
+.shop-nav{background:var(--white);border-bottom:1px solid var(--gray);padding:0 20px;overflow-x:auto;display:flex;gap:4px;position:sticky;top:67px;z-index:99;scrollbar-width:none}
 .shop-nav::-webkit-scrollbar{display:none}
 .shop-nav a{padding:12px 14px;font-size:.82rem;font-weight:700;color:var(--mid);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
 .shop-nav a:hover{color:var(--primary)}
@@ -33,68 +37,109 @@ input,textarea{font-family:inherit;outline:none}
 
 /* HERO */
 .hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;text-align:center;padding:56px 24px}
-.hero.has-banniere{padding:0;min-height:400px;display:flex;align-items:center;justify-content:center}
-.hero-banniere{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;z-index:0}
+.hero.has-banniere{padding:0;min-height:420px;display:flex;align-items:center;justify-content:center}
+.hero-banniere{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;z-index:0}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.6),rgba(0,0,0,.4));z-index:1}
 .hero-content{position:relative;z-index:2;max-width:680px;margin:0 auto;padding:40px 0}
 .hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);padding:7px 16px;border-radius:20px;font-size:.74rem;font-weight:800;letter-spacing:.4px;margin-bottom:20px}
 .hero h1{font-size:2rem;font-weight:900;margin-bottom:14px;line-height:1.2;text-shadow:0 2px 12px rgba(0,0,0,.2)}
+.hero .typing-cursor{display:inline-block;width:3px;background:#fff;animation:blink 1s infinite;margin-left:2px;vertical-align:middle;height:1em}
+@keyframes blink{50%{opacity:0}}
 .hero p{font-size:.95rem;opacity:.95;line-height:1.7;max-width:520px;margin:0 auto 28px;text-shadow:0 2px 8px rgba(0,0,0,.2)}
 .hero-cta{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--primary);padding:15px 32px;border-radius:14px;font-weight:900;font-size:.98rem;text-decoration:none;box-shadow:0 12px 30px rgba(0,0,0,.25);transition:transform .2s}
 .hero-cta:hover{transform:translateY(-2px)}
 
-/* STATS HERO */
 .hero-stats{display:flex;justify-content:center;gap:26px;margin-top:28px;flex-wrap:wrap;position:relative;z-index:2}
 .hero-stat{text-align:center}
 .hero-stat-val{font-size:1.5rem;font-weight:900;color:#fff;line-height:1}
 .hero-stat-lbl{font-size:.72rem;color:rgba(255,255,255,.85);margin-top:4px;font-weight:700;letter-spacing:.4px}
 
-/* CONTACT */
 .hero-contact{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:22px;position:relative;z-index:2}
 .contact-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);color:#fff;padding:9px 16px;border-radius:20px;font-size:.78rem;font-weight:700;text-decoration:none;transition:background .2s}
 .contact-btn:hover{background:rgba(255,255,255,.3)}
 
 /* TRUST */
-.trust-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;max-width:720px;margin:-30px auto 0;padding:0 20px;position:relative;z-index:10}
+.trust-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;max-width:760px;margin:-30px auto 0;padding:0 20px;position:relative;z-index:10}
 .trust-item{background:var(--white);border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.08);border:1px solid var(--gray)}
 .trust-item i{font-size:1.15rem;color:var(--primary);margin-bottom:6px;display:block}
 .trust-item span{font-size:.74rem;font-weight:800;color:var(--dark);display:block;line-height:1.3}
 
 /* SECTIONS */
-.section{padding:40px 20px;max-width:960px;margin:0 auto}
-.section-title{font-size:1.25rem;font-weight:900;color:var(--dark);text-align:center;margin-bottom:8px}
-.section-sub{font-size:.85rem;color:var(--mid);text-align:center;max-width:480px;margin:0 auto 28px;line-height:1.6}
+.section{padding:44px 20px;max-width:1100px;margin:0 auto}
+.section-title{font-size:1.35rem;font-weight:900;color:var(--dark);text-align:center;margin-bottom:8px}
+.section-sub{font-size:.85rem;color:var(--mid);text-align:center;max-width:520px;margin:0 auto 30px;line-height:1.6}
 
 /* AVANTAGES */
 .feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
 .feat-card{background:var(--white);border-radius:14px;padding:22px;text-align:center;border:1px solid var(--gray);transition:all .25s}
-.feat-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.08)}
+.feat-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.08);border-color:var(--primary)}
 .feat-ico{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 14px}
 .feat-card h3{font-size:.92rem;font-weight:900;color:var(--dark);margin-bottom:8px}
 .feat-card p{font-size:.78rem;color:var(--mid);line-height:1.6}
 
 /* COMMENT COMMANDER */
-.steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;position:relative}
-.step{text-align:center;padding:20px;position:relative}
+.steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px}
+.step{text-align:center;padding:20px}
 .step-num{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;font-size:1.2rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 8px 20px rgba(0,0,0,.15)}
 .step h3{font-size:.92rem;font-weight:900;color:var(--dark);margin-bottom:6px}
 .step p{font-size:.8rem;color:var(--mid);line-height:1.6}
 
-/* SERVICES */
-.reseau-section{margin-bottom:28px}
-.reseau-title{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:14px;display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:2px solid var(--gray)}
-.reseau-title i{font-size:1.2rem}
-.svc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-.svc-card{background:var(--white);border-radius:14px;padding:18px;border:1px solid var(--gray);transition:all .25s;position:relative;overflow:hidden}
-.svc-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.08);border-color:var(--primary)}
+/* FILTRES */
+.filters-wrap{background:var(--white);border-radius:16px;padding:16px;margin-bottom:22px;border:1px solid var(--gray);box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.search-box{position:relative;margin-bottom:12px}
+.search-box i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--light);font-size:.9rem}
+.search-input{width:100%;padding:13px 14px 13px 42px;border:2px solid var(--gray);border-radius:12px;font-size:.9rem;color:var(--dark);outline:none;background:var(--off);font-family:inherit;transition:border-color .2s}
+.search-input:focus{border-color:var(--primary);background:var(--white)}
+.filter-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.filter-tabs::-webkit-scrollbar{display:none}
+.filter-tab{padding:8px 15px;border-radius:20px;background:var(--off);color:var(--mid);font-size:.78rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+.filter-tab:hover{background:#E2E8F0}
+.filter-tab.active{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+
+/* SERVICES - GRILLE */
+.svc-container{display:grid;gap:14px;margin-bottom:20px}
+.svc-container.grille{grid-template-columns:repeat(var(--cols),1fr)}
+.svc-container.cartes{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.svc-container.liste{grid-template-columns:1fr}
+@media(max-width:720px){.svc-container.grille{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.svc-container.grille{grid-template-columns:1fr}}
+
+/* CARTE SERVICE */
+.svc-card{background:var(--white);border-radius:14px;padding:16px;border:1px solid var(--gray);transition:all .25s;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.svc-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.08);border-color:var(--primary)}
 .svc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--primary-d))}
-.svc-name{font-size:.88rem;font-weight:800;color:var(--dark);margin-bottom:12px;line-height:1.4;min-height:38px}
-.svc-price{font-size:1.3rem;font-weight:900;color:var(--primary);line-height:1}
-.svc-price small{font-size:.72rem;font-weight:700;color:var(--mid);margin-left:4px}
-.svc-unit{font-size:.72rem;color:var(--light);margin-top:4px;font-weight:600}
-.svc-badge{display:inline-block;font-size:.68rem;font-weight:800;padding:3px 9px;border-radius:10px;background:#EDFFF5;color:var(--green);margin-top:10px}
-.btn-commander{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:12px;padding:10px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border:none;border-radius:10px;font-weight:800;font-size:.82rem;text-decoration:none;transition:transform .2s}
-.btn-commander:hover{transform:translateY(-1px)}
+.svc-reseau-tag{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:800;padding:3px 9px;border-radius:10px;background:var(--off);color:var(--mid);margin-bottom:10px;align-self:flex-start}
+.svc-name{font-size:.88rem;font-weight:800;color:var(--dark);margin-bottom:10px;line-height:1.4;flex:1}
+.svc-price{font-size:1.35rem;font-weight:900;color:var(--primary);line-height:1;margin-bottom:4px}
+.svc-price small{font-size:.72rem;font-weight:700;color:var(--mid);margin-left:3px}
+.svc-unit{font-size:.72rem;color:var(--light);font-weight:600;margin-bottom:10px}
+.svc-badge{display:inline-block;font-size:.66rem;font-weight:800;padding:3px 9px;border-radius:10px;background:#EDFFF5;color:var(--green);margin-bottom:10px;align-self:flex-start}
+.svc-badge.hot{background:#FEF3C7;color:#D97706}
+.btn-commander{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border:none;border-radius:10px;font-weight:800;font-size:.84rem;text-decoration:none;transition:transform .2s;cursor:pointer;margin-top:auto}
+.btn-commander:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.15)}
+
+/* VUE LISTE */
+.svc-container.liste .svc-card{flex-direction:row;align-items:center;gap:16px;padding:14px 18px}
+.svc-container.liste .svc-card::before{width:3px;height:100%;top:0;left:0;right:auto}
+.svc-container.liste .svc-name{margin-bottom:0;min-width:200px}
+.svc-container.liste .svc-price{font-size:1.15rem;margin-bottom:0}
+.svc-container.liste .svc-unit{margin-bottom:0}
+.svc-container.liste .btn-commander{width:auto;padding:11px 20px;margin-left:auto;margin-top:0}
+@media(max-width:720px){
+  .svc-container.liste .svc-card{flex-direction:column;align-items:flex-start;padding:16px}
+  .svc-container.liste .svc-name{min-width:0;margin-bottom:10px}
+  .svc-container.liste .btn-commander{width:100%;margin-top:10px}
+}
+
+/* AVIS */
+.avis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.avis-card{background:var(--white);border:1px solid var(--gray);border-radius:14px;padding:20px;position:relative}
+.avis-card .stars{color:#F59E0B;font-size:.88rem;margin-bottom:10px}
+.avis-card p{font-size:.85rem;color:var(--mid);line-height:1.7;margin-bottom:14px;font-style:italic}
+.avis-auteur{display:flex;align-items:center;gap:10px}
+.avis-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;flex-shrink:0}
+.avis-nom{font-size:.82rem;font-weight:800;color:var(--dark)}
+.avis-role{font-size:.72rem;color:var(--light);font-weight:600}
 
 /* FAQ */
 .faq-item{background:var(--white);border:1px solid var(--gray);border-radius:14px;padding:16px 18px;margin-bottom:10px}
@@ -105,15 +150,15 @@ input,textarea{font-family:inherit;outline:none}
 .faq-item p{font-size:.82rem;color:var(--mid);line-height:1.7;margin-top:12px;padding-top:12px;border-top:1px solid var(--gray)}
 
 /* A PROPOS */
-.apropos{background:var(--white);border-radius:16px;padding:24px;border:1px solid var(--gray)}
-.apropos h3{font-size:.95rem;font-weight:900;color:var(--dark);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.apropos{background:var(--white);border-radius:16px;padding:26px;border:1px solid var(--gray);max-width:800px;margin:0 auto}
+.apropos h3{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .apropos h3 i{color:var(--primary)}
-.apropos p{font-size:.85rem;color:var(--mid);line-height:1.7}
+.apropos p{font-size:.88rem;color:var(--mid);line-height:1.8}
 
 /* CTA FINAL */
-.cta-final{background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:20px;padding:38px 24px;text-align:center;color:#fff;position:relative;overflow:hidden;margin:40px auto 0;max-width:960px}
+.cta-final{background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:20px;padding:40px 24px;text-align:center;color:#fff;position:relative;overflow:hidden;margin:40px auto 0;max-width:960px}
 .cta-final::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 65%);pointer-events:none}
-.cta-final h2{font-size:1.3rem;font-weight:900;margin-bottom:10px;position:relative}
+.cta-final h2{font-size:1.35rem;font-weight:900;margin-bottom:10px;position:relative}
 .cta-final p{font-size:.9rem;opacity:.92;margin-bottom:22px;position:relative;line-height:1.6}
 .cta-final .btn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--primary);padding:15px 32px;border-radius:14px;font-weight:900;font-size:.95rem;text-decoration:none;box-shadow:0 10px 24px rgba(0,0,0,.2);position:relative}
 
@@ -126,9 +171,23 @@ input,textarea{font-family:inherit;outline:none}
 .wa-float{position:fixed;bottom:22px;right:22px;width:58px;height:58px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.7rem;box-shadow:0 8px 24px rgba(37,211,102,.5);z-index:90;text-decoration:none;animation:waPulse 2s infinite}
 @keyframes waPulse{0%,100%{box-shadow:0 8px 24px rgba(37,211,102,.5)}50%{box-shadow:0 8px 34px rgba(37,211,102,.8)}}
 
-/* SCROLL TOP */
 .scroll-top{position:fixed;bottom:90px;right:22px;width:44px;height:44px;background:var(--primary);color:#fff;border:none;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:89}
 .scroll-top.show{display:flex}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex}
+.modal{background:var(--white);border-radius:20px;padding:26px 22px;max-width:420px;width:100%;position:relative;animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--light)}
+.modal h3{font-size:1.1rem;font-weight:900;color:var(--dark);margin-bottom:6px}
+.modal .modal-reseau{font-size:.78rem;color:var(--mid);margin-bottom:16px;display:flex;align-items:center;gap:6px}
+.modal .modal-prix{font-size:1.8rem;font-weight:900;color:var(--primary);margin-bottom:6px}
+.modal .modal-prix small{font-size:.8rem;color:var(--mid);font-weight:700}
+.modal .modal-unit{font-size:.76rem;color:var(--light);margin-bottom:20px}
+.modal .btn-modal{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border:none;border-radius:12px;font-weight:800;font-size:.92rem;cursor:pointer;text-decoration:none;margin-bottom:10px}
+.modal .btn-modal-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
+.modal-info{background:var(--off);border-radius:12px;padding:14px;margin-bottom:16px;font-size:.8rem;color:var(--mid);line-height:1.6}
 
 /* EMPTY */
 .empty-shop{text-align:center;padding:60px 24px;background:var(--white);border-radius:18px;border:1px solid var(--gray)}
@@ -141,10 +200,9 @@ input,textarea{font-family:inherit;outline:none}
   .hero h1{font-size:1.5rem}
   .hero-stats{gap:18px}
   .hero-stat-val{font-size:1.2rem}
-  .svc-grid{grid-template-columns:1fr}
-  .section{padding:28px 14px}
+  .section{padding:30px 14px}
   .shop-name{font-size:.9rem}
-  .shop-logo{width:36px;height:36px}
+  .shop-logo{width:38px;height:38px}
 }
 </style>
 </head>
@@ -158,7 +216,18 @@ input,textarea{font-family:inherit;outline:none}
     {% else %}
     <div class="shop-logo">{{ boutique.nom[0]|upper }}</div>
     {% endif %}
-    <div class="shop-name">{{ boutique.nom }}</div>
+    <div class="shop-name-wrap">
+      <div class="shop-name">
+        {{ boutique.nom }}
+        {% if boutique.badge_verifie %}<span class="badge-verifie"><i class="fas fa-check-circle"></i> VERIFIE</span>{% endif %}
+      </div>
+      {% if boutique.nb_avis > 0 %}
+      <div class="shop-rating">
+        <span class="stars">★★★★★</span>
+        <span>{{ boutique.note }}/5 · {{ boutique.nb_avis }} avis</span>
+      </div>
+      {% endif %}
+    </div>
   </div>
   <div>
     {% if est_connecte %}
@@ -171,11 +240,12 @@ input,textarea{font-family:inherit;outline:none}
 
 <!-- NAV -->
 <nav class="shop-nav">
-  <a href="#services">Services</a>
-  <a href="#avantages">Avantages</a>
-  <a href="#comment">Comment commander</a>
-  {% if boutique.a_propos %}<a href="#apropos">A propos</a>{% endif %}
-  <a href="#faq">FAQ</a>
+  {% if boutique.sections.get('services', True) %}<a href="#services">Services</a>{% endif %}
+  {% if boutique.sections.get('avantages', True) %}<a href="#avantages">Avantages</a>{% endif %}
+  {% if boutique.sections.get('comment', True) %}<a href="#comment">Comment commander</a>{% endif %}
+  {% if boutique.sections.get('apropos', True) and boutique.a_propos %}<a href="#apropos">A propos</a>{% endif %}
+  {% if boutique.sections.get('avis', True) and boutique.nb_avis > 0 %}<a href="#avis">Avis</a>{% endif %}
+  {% if boutique.sections.get('faq', True) %}<a href="#faq">FAQ</a>{% endif %}
   <a href="#contact">Contact</a>
 </nav>
 
@@ -193,11 +263,13 @@ input,textarea{font-family:inherit;outline:none}
       <i class="fas fa-rocket"></i> {% if est_connecte %}Acceder a mon espace{% else %}Creer mon compte gratuit{% endif %}
     </a>
 
+    {% if boutique.sections.get('stats', True) %}
     <div class="hero-stats">
-      <div class="hero-stat"><div class="hero-stat-val">+{{ revendeur.get('referral_count', 0) or 0 }}</div><div class="hero-stat-lbl">CLIENTS</div></div>
-      <div class="hero-stat"><div class="hero-stat-val">100%</div><div class="hero-stat-lbl">SECURISE</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">+{{ stats_boutique.clients }}</div><div class="hero-stat-lbl">CLIENTS</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">{{ stats_boutique.note }}/5</div><div class="hero-stat-lbl">NOTE</div></div>
       <div class="hero-stat"><div class="hero-stat-val">24/7</div><div class="hero-stat-lbl">SUPPORT</div></div>
     </div>
+    {% endif %}
 
     {% if boutique.whatsapp or boutique.facebook or boutique.instagram or boutique.tiktok or boutique.telegram %}
     <div class="hero-contact" id="contact">
@@ -220,10 +292,10 @@ input,textarea{font-family:inherit;outline:none}
 </div>
 
 <!-- AVANTAGES -->
+{% if boutique.sections.get('avantages', True) %}
 <section class="section" id="avantages">
   <h2 class="section-title">Pourquoi nous choisir ?</h2>
   <p class="section-sub">Des milliers de clients nous font deja confiance pour booster leur presence en ligne.</p>
-
   <div class="feat-grid">
     <div class="feat-card">
       <div class="feat-ico"><i class="fas fa-rocket"></i></div>
@@ -247,12 +319,13 @@ input,textarea{font-family:inherit;outline:none}
     </div>
   </div>
 </section>
+{% endif %}
 
 <!-- COMMENT COMMANDER -->
+{% if boutique.sections.get('comment', True) %}
 <section class="section" id="comment">
   <h2 class="section-title">Comment commander ?</h2>
   <p class="section-sub">Seulement 3 etapes pour booster vos reseaux sociaux.</p>
-
   <div class="steps-grid">
     <div class="step">
       <div class="step-num">1</div>
@@ -271,8 +344,10 @@ input,textarea{font-family:inherit;outline:none}
     </div>
   </div>
 </section>
+{% endif %}
 
 <!-- SERVICES -->
+{% if boutique.sections.get('services', True) %}
 <section class="section" id="services">
   <h2 class="section-title">Nos services</h2>
   <p class="section-sub">Des tarifs competitifs pour tous vos reseaux preferes.</p>
@@ -295,31 +370,55 @@ input,textarea{font-family:inherit;outline:none}
       'audiomack': '#FFA200', 'kick': '#53FC18', 'deezer': '#A238FF'
     } %}
 
+    <!-- FILTRES -->
+    <div class="filters-wrap">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input class="search-input" type="text" id="searchSvc" placeholder="Rechercher un service..." oninput="filtrerServices()">
+      </div>
+      <div class="filter-tabs" id="filterTabs">
+        <button class="filter-tab active" data-reseau="all" onclick="filtrerParReseau('all', this)">
+          <i class="fas fa-th"></i> Tous
+        </button>
+        {% for reseau in services_par_reseau.keys() %}
+        <button class="filter-tab" data-reseau="{{ reseau }}" onclick="filtrerParReseau('{{ reseau }}', this)">
+          <i class="{{ icons.get(reseau, 'fas fa-share-alt') }}" style="color:{{ colors.get(reseau, 'var(--primary)') }}"></i>
+          {{ reseau|capitalize }}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- SERVICES -->
     {% for reseau, liste in services_par_reseau.items() %}
-    <div class="reseau-section">
-      <div class="reseau-title">
-        <i class="{{ icons.get(reseau, 'fas fa-share-alt') }}" style="color:{{ colors.get(reseau, boutique.couleur_principale) }}"></i>
+    <div class="reseau-block" data-reseau="{{ reseau }}">
+      <div style="font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:14px;display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:2px solid var(--gray)">
+        <i class="{{ icons.get(reseau, 'fas fa-share-alt') }}" style="color:{{ colors.get(reseau, 'var(--primary)') }};font-size:1.2rem"></i>
         {{ reseau|capitalize }}
       </div>
-      <div class="svc-grid">
+      <div class="svc-container {{ boutique.type_grille }}">
         {% for s in liste %}
-        <div class="svc-card">
+        <div class="svc-card" data-nom="{{ s.categorie|lower }}" data-reseau="{{ reseau }}">
+          <span class="svc-reseau-tag">
+            <i class="{{ icons.get(reseau, 'fas fa-share-alt') }}"></i> {{ reseau|capitalize }}
+          </span>
           <div class="svc-name">{{ s.categorie }}</div>
           {% if boutique.afficher_prix %}
           <div class="svc-price">{{ "{:,.0f}".format(s.prix_affiche) }}<small>FCFA</small></div>
           <div class="svc-unit">par unite · min {{ "{:,}".format(s.min_qte) }}</div>
-          <div class="svc-badge"><i class="fas fa-bolt"></i> Livraison rapide</div>
+          {% if loop.index == 1 %}<span class="svc-badge hot"><i class="fas fa-fire"></i> Populaire</span>{% endif %}
           {% else %}
-          <div class="svc-price" style="font-size:.95rem;color:var(--mid);font-weight:700">Prix sur demande</div>
+          <div class="svc-price" style="font-size:.9rem;color:var(--mid);font-weight:700;margin-bottom:14px">Prix sur demande</div>
           {% endif %}
-          <a href="{% if est_connecte %}{{ url_for('dashboard.index') }}{% else %}{{ url_for('auth.connexion') }}{% endif %}" class="btn-commander">
+          <button class="btn-commander" onclick="ouvrirModal('{{ s.categorie|e }}', '{{ reseau }}', {{ s.prix_affiche if boutique.afficher_prix else 0 }}, {{ s.min_qte }})">
             <i class="fas fa-shopping-cart"></i> Commander
-          </a>
+          </button>
         </div>
         {% endfor %}
       </div>
     </div>
     {% endfor %}
+
   {% else %}
     <div class="empty-shop">
       <i class="fas fa-store-slash"></i>
@@ -328,9 +427,10 @@ input,textarea{font-family:inherit;outline:none}
     </div>
   {% endif %}
 </section>
+{% endif %}
 
 <!-- A PROPOS -->
-{% if boutique.a_propos %}
+{% if boutique.sections.get('apropos', True) and boutique.a_propos %}
 <section class="section" id="apropos">
   <div class="apropos">
     <h3><i class="fas fa-info-circle"></i> A propos de {{ boutique.nom }}</h3>
@@ -339,11 +439,45 @@ input,textarea{font-family:inherit;outline:none}
 </section>
 {% endif %}
 
+<!-- AVIS -->
+{% if boutique.sections.get('avis', True) and boutique.nb_avis > 0 %}
+<section class="section" id="avis">
+  <h2 class="section-title">Ils nous font confiance</h2>
+  <p class="section-sub">Decouvrez ce que nos clients disent de nous.</p>
+  <div class="avis-grid">
+    <div class="avis-card">
+      <div class="stars">★★★★★</div>
+      <p>"Service impeccable et livraison ultra rapide ! Je recommande vivement."</p>
+      <div class="avis-auteur">
+        <div class="avis-avatar">A</div>
+        <div><div class="avis-nom">Abdou</div><div class="avis-role">Client verifie</div></div>
+      </div>
+    </div>
+    <div class="avis-card">
+      <div class="stars">★★★★★</div>
+      <p>"Toujours satisfaite, les prix sont imbattables. Merci {{ boutique.nom }} !"</p>
+      <div class="avis-auteur">
+        <div class="avis-avatar">M</div>
+        <div><div class="avis-nom">Marie</div><div class="avis-role">Cliente verifiee</div></div>
+      </div>
+    </div>
+    <div class="avis-card">
+      <div class="stars">★★★★★</div>
+      <p>"Equipe reactive, service au top. Mes reseaux ont explose !"</p>
+      <div class="avis-auteur">
+        <div class="avis-avatar">J</div>
+        <div><div class="avis-nom">Jean</div><div class="avis-role">Client verifie</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <!-- FAQ -->
+{% if boutique.sections.get('faq', True) %}
 <section class="section" id="faq">
   <h2 class="section-title">Questions frequentes</h2>
   <p class="section-sub">Tout ce que vous devez savoir avant de commander.</p>
-
   <details class="faq-item">
     <summary>Comment creer mon compte ?</summary>
     <p>Cliquez sur "Creer mon compte" en haut de la page. L'inscription est gratuite et prend moins de 30 secondes.</p>
@@ -361,6 +495,7 @@ input,textarea{font-family:inherit;outline:none}
     <p>Contactez-nous via WhatsApp. Notre equipe traitera votre demande dans les plus brefs delais.</p>
   </details>
 </section>
+{% endif %}
 
 <!-- CTA FINAL -->
 <div class="cta-final">
@@ -391,17 +526,74 @@ input,textarea{font-family:inherit;outline:none}
 
 <!-- WHATSAPP FLOAT -->
 {% if boutique.whatsapp_flottant and boutique.whatsapp %}
-<a href="https://wa.me/{{ boutique.whatsapp }}?text={{ ('Bonjour ' ~ boutique.nom ~ ', je viens de votre boutique et je voudrais des informations.')|urlencode }}"
-   target="_blank" class="wa-float">
+<a href="https://wa.me/{{ boutique.whatsapp }}?text={{ ('Bonjour ' ~ boutique.nom ~ ', je viens de votre boutique.')|urlencode }}" target="_blank" class="wa-float">
   <i class="fab fa-whatsapp"></i>
 </a>
 {% endif %}
 
+<!-- MODAL COMMANDER -->
+<div class="modal-bg" id="modalSvc">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal()">✕</button>
+    <h3 id="modalTitre">Service</h3>
+    <div class="modal-reseau" id="modalReseau"></div>
+    <div class="modal-prix" id="modalPrix">0 <small>FCFA</small></div>
+    <div class="modal-unit" id="modalUnit">par unite</div>
+    <div class="modal-info">
+      <i class="fas fa-info-circle" style="color:var(--primary)"></i>
+      Creez votre compte gratuitement pour commander ce service en quelques clics.
+    </div>
+    <a href="{% if est_connecte %}{{ url_for('dashboard.index') }}{% else %}{{ url_for('auth.connexion') }}{% endif %}" class="btn-modal">
+      <i class="fas fa-rocket"></i> Commander maintenant
+    </a>
+    {% if boutique.whatsapp %}
+    <a href="https://wa.me/{{ boutique.whatsapp }}" target="_blank" class="btn-modal btn-modal-outline">
+      <i class="fab fa-whatsapp"></i> Demander sur WhatsApp
+    </a>
+    {% endif %}
+  </div>
+</div>
+
 <script>
+function ouvrirModal(nom, reseau, prix, min){
+  document.getElementById('modalTitre').textContent = nom;
+  document.getElementById('modalReseau').innerHTML = '<i class="fas fa-share-alt"></i> ' + reseau.charAt(0).toUpperCase() + reseau.slice(1);
+  document.getElementById('modalPrix').innerHTML = prix.toLocaleString('fr-FR') + ' <small>FCFA</small>';
+  document.getElementById('modalUnit').textContent = 'par unite · min ' + min.toLocaleString('fr-FR');
+  document.getElementById('modalSvc').classList.add('open');
+}
+function fermerModal(){
+  document.getElementById('modalSvc').classList.remove('open');
+}
+document.getElementById('modalSvc').addEventListener('click', function(e){
+  if(e.target === this) fermerModal();
+});
+
+function filtrerServices(){
+  var q = document.getElementById('searchSvc').value.toLowerCase();
+  document.querySelectorAll('.svc-card').forEach(function(c){
+    var nom = c.getAttribute('data-nom') || '';
+    c.style.display = nom.includes(q) ? '' : 'none';
+  });
+}
+
+function filtrerParReseau(reseau, btn){
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.reseau-block').forEach(function(block){
+    if(reseau === 'all' || block.getAttribute('data-reseau') === reseau){
+      block.style.display = 'block';
+    } else {
+      block.style.display = 'none';
+    }
+  });
+}
+
 window.addEventListener('scroll', function(){
   var btn = document.getElementById('scrollTop');
   if(window.scrollY > 400){ btn.classList.add('show'); } else { btn.classList.remove('show'); }
 });
+
 document.querySelectorAll('.shop-nav a').forEach(function(a){
   a.addEventListener('click', function(e){
     var href = this.getAttribute('href');
