@@ -768,3 +768,79 @@ def delete_coupon(coupon_id):
     except Exception as e:
         logger.error(f"delete_coupon: {e}")
         return False
+
+# ═══════════════════════════════════════════════════════════════
+# COMMANDES BOUTIQUE
+# ═══════════════════════════════════════════════════════════════
+
+def create_commande_boutique(data):
+    """Cree une commande boutique (checkout invite)."""
+    try:
+        r = requests.post(_url("boutique_commandes"), json=data, headers=_headers(True))
+        result = r.json()
+        return result[0] if isinstance(result, list) and result else None
+    except Exception as e:
+        logger.error(f"create_commande_boutique: {e}")
+        return None
+
+
+def get_commande_boutique_by_reference(reference):
+    try:
+        r = requests.get(
+            _url(f"boutique_commandes?reference=eq.{reference}&limit=1"),
+            headers=_headers(True)
+        )
+        data = r.json()
+        return data[0] if isinstance(data, list) and data else None
+    except Exception as e:
+        logger.error(f"get_commande_boutique_by_reference: {e}")
+        return None
+
+
+def get_commandes_boutique_revendeur(revendeur_id, limit=100, statut=None):
+    """Recupere les commandes d'une boutique."""
+    try:
+        url = f"boutique_commandes?revendeur_id=eq.{revendeur_id}&order=created_at.desc&limit={limit}"
+        if statut:
+            url += f"&statut=eq.{statut}"
+        r = requests.get(_url(url), headers=_headers(True))
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_commandes_boutique_revendeur: {e}")
+        return []
+
+
+def update_commande_boutique(commande_id, data):
+    try:
+        r = requests.patch(_url(f"boutique_commandes?id=eq.{commande_id}"), json=data, headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"update_commande_boutique: {e}")
+        return False
+
+
+def get_produit_by_id(produit_id):
+    try:
+        r = requests.get(_url(f"boutique_produits?id=eq.{produit_id}&limit=1"), headers=_headers(True))
+        data = r.json()
+        return data[0] if isinstance(data, list) and data else None
+    except Exception as e:
+        logger.error(f"get_produit_by_id: {e}")
+        return None
+
+
+def decrementer_stock(produit_id, quantite):
+    """Decremente le stock d'un produit apres une commande."""
+    try:
+        produit = get_produit_by_id(produit_id)
+        if not produit:
+            return False
+        stock_actuel = produit.get("stock", -1)
+        if stock_actuel is None or stock_actuel < 0:
+            return True  # Stock illimite
+        nouveau_stock = max(0, stock_actuel - quantite)
+        return update_produit_boutique(produit_id, {"stock": nouveau_stock})
+    except Exception as e:
+        logger.error(f"decrementer_stock: {e}")
+        return False
