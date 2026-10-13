@@ -451,3 +451,39 @@ def get_fonctionnalites_premium():
     except Exception as e:
         logger.error(f"get_fonctionnalites_premium: {e}")
         return []
+
+# ═══════════════════════════════════════════════════════════════
+# CATEGORIES BOUTIQUE
+# ═══════════════════════════════════════════════════════════════
+
+def create_categorie(type_code, nom, description=None):
+    try:
+        r = requests.post(_url("boutique_categories"), json={
+            "type_code": type_code,
+            "nom": nom,
+            "description": description,
+            "actif": True,
+        }, headers=_headers(True))
+        result = r.json()
+        return result[0] if isinstance(result, list) and result else None
+    except Exception as e:
+        logger.error(f"create_categorie: {e}")
+        return None
+
+
+def update_categorie(cat_id, data):
+    try:
+        r = requests.patch(_url(f"boutique_categories?id=eq.{cat_id}"), json=data, headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"update_categorie: {e}")
+        return False
+
+
+def delete_categorie(cat_id):
+    try:
+        r = requests.delete(_url(f"boutique_categories?id=eq.{cat_id}"), headers=_headers(True))
+        return r.status_code < 300
+    except Exception as e:
+        logger.error(f"delete_categorie: {e}")
+        return False
