@@ -1,0 +1,78 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Premium — Boost Reseller{% endblock %}
+{% block page_title %}Fonctionnalités Premium{% endblock %}
+{% block page_subtitle %}Boostez votre boutique avec des fonctionnalités exclusives{% endblock %}
+
+{% block extra_css %}
+.info-banner{background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-left:4px solid #7C3AED;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#5B21B6;line-height:1.6}
+.info-banner i{color:#7C3AED;margin-right:6px}
+
+.features-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.feat-card{background:#fff;border-radius:18px;border:2px solid #E2E8F0;padding:22px;transition:all .25s;position:relative;overflow:hidden}
+.feat-card:hover{transform:translateY(-4px);box-shadow:0 14px 32px rgba(0,0,0,.1);border-color:#7C3AED}
+.feat-card.actif{border-color:#10B981;background:linear-gradient(135deg,#fff,#F0FDF4)}
+.feat-ico{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#fff;margin-bottom:16px;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+.feat-nom{font-size:1.05rem;font-weight:900;color:#0F172A;margin-bottom:8px;line-height:1.3}
+.feat-desc{font-size:.82rem;color:#64748B;line-height:1.6;margin-bottom:16px;min-height:52px}
+.feat-prix{font-size:1.4rem;font-weight:900;color:#7C3AED;line-height:1;margin-bottom:4px}
+.feat-prix small{font-size:.75rem;font-weight:700;color:#64748B}
+.feat-periode{font-size:.72rem;color:#94A3B8;font-weight:600;margin-bottom:16px}
+.feat-badge{position:absolute;top:14px;right:14px;background:#10B981;color:#fff;font-size:.68rem;font-weight:900;padding:4px 10px;border-radius:10px;letter-spacing:.3px;display:flex;align-items:center;gap:4px}
+.btn-activer{width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;font-weight:900;font-size:.88rem;cursor:pointer;box-shadow:0 6px 18px rgba(124,58,237,.3);display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .2s}
+.btn-activer:hover{transform:translateY(-1px)}
+.btn-activer:disabled{opacity:.5;cursor:not-allowed;transform:none;background:#94A3B8;box-shadow:none}
+.btn-actif{width:100%;padding:13px;border:2px solid #10B981;border-radius:12px;background:#F0FDF4;color:#059669;font-weight:900;font-size:.88rem;cursor:default;display:flex;align-items:center;justify-content:center;gap:8px}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:70px;height:70px;border-radius:50%;background:#F5F3FF;color:#7C3AED;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="info-banner">
+  <i class="fas fa-crown"></i>
+  Débloquez des <strong>fonctionnalités premium</strong> pour faire passer votre boutique au niveau supérieur.
+</div>
+
+{% if features %}
+<div class="features-grid">
+  {% for f in features %}
+  {% set est_actif = profile.get('feature_' ~ f.code, False) %}
+  <div class="feat-card {% if est_actif %}actif{% endif %}">
+    {% if est_actif %}
+    <span class="feat-badge"><i class="fas fa-check"></i> ACTIF</span>
+    {% endif %}
+    <div class="feat-ico" style="background:linear-gradient(135deg,{{ f.couleur }},{{ f.couleur }}cc)">
+      <i class="{{ f.icone }}"></i>
+    </div>
+    <div class="feat-nom">{{ f.nom }}</div>
+    <div class="feat-desc">{{ f.description }}</div>
+    <div class="feat-prix">{{ "{:,.0f}".format(f.prix_mensuel) }} <small>FCFA</small></div>
+    <div class="feat-periode">par mois</div>
+    {% if est_actif %}
+    <button class="btn-actif"><i class="fas fa-check-circle"></i> Activé</button>
+    {% else %}
+    <button class="btn-activer" onclick="return activerPremium('{{ f.code }}', '{{ f.nom }}', {{ f.prix_mensuel }})">
+      <i class="fas fa-rocket"></i> Activer
+    </button>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-crown"></i></div>
+  <h3>Aucune fonctionnalité premium disponible</h3>
+  <p>Revenez bientôt pour découvrir nos offres premium.</p>
+</div>
+{% endif %}
+
+<script>
+function activerPremium(code, nom, prix){
+  alert('🔒 Fonctionnalité Premium : ' + nom + '\n\nPrix : ' + prix.toLocaleString('fr-FR') + ' FCFA / mois\n\n💡 Le système de paiement sera bientôt disponible. Contactez le support pour activer cette fonctionnalité.');
+  return false;
+}
+</script>
+
+{% endblock %}
