@@ -88,6 +88,12 @@
       <a href="{{ url_for('dashboard.categories') }}" class="nav-item {% if request.endpoint == 'dashboard.categories' %}active{% endif %}">
         <i class="fas fa-folder"></i> Categories
       </a>
+      <a href="{{ url_for('dashboard.bannieres') }}" class="nav-item {% if request.endpoint == 'dashboard.bannieres' %}active{% endif %}">
+        <i class="fas fa-images"></i> Bannieres
+      </a>
+      <a href="{{ url_for('dashboard.attributs') }}" class="nav-item {% if request.endpoint == 'dashboard.attributs' %}active{% endif %}">
+        <i class="fas fa-tags"></i> Attributs
+      </a>
       {% endif %}
 
       <a href="{{ url_for('dashboard.commandes') }}" class="nav-item {% if request.endpoint == 'dashboard.commandes' %}active{% endif %}">
