@@ -37,7 +37,6 @@ PRIX_ACTIVATION = 5000
 
 
 def _get_profile_ou_redirect(check_type=True):
-    """Recupere le profil ou redirige. Verifie aussi que le type est choisi."""
     user_id = session.get("user_id")
     if not user_id:
         return None, redirect(url_for("auth.connexion"))
@@ -47,7 +46,6 @@ def _get_profile_ou_redirect(check_type=True):
         clear_session()
         return None, redirect(url_for("auth.connexion"))
 
-    # Verifier le type (sauf pour la route choisir_type elle-meme)
     if check_type and not profile.get("boutique_type"):
         if request.endpoint != "dashboard.choisir_type":
             return None, redirect(url_for("dashboard.choisir_type"))
@@ -56,7 +54,7 @@ def _get_profile_ou_redirect(check_type=True):
 
 
 # ═══════════════════════════════════════════════════════════════
-# CHOISIR TYPE (obligatoire)
+# CHOISIR TYPE
 # ═══════════════════════════════════════════════════════════════
 
 @dashboard_bp.route("/choisir-type", methods=["GET", "POST"])
@@ -87,7 +85,7 @@ def choisir_type():
 
 
 # ═══════════════════════════════════════════════════════════════
-# ACCUEIL DASHBOARD
+# ACCUEIL
 # ═══════════════════════════════════════════════════════════════
 
 @dashboard_bp.route("/")
@@ -99,12 +97,7 @@ def index():
 
     type_boutique = get_boutique_type(profile["boutique_type"]) or {}
 
-    stats = {
-        "nb_produits": 0,
-        "nb_commandes": 0,
-        "revenus": 0,
-        "nb_clients": 0,
-    }
+    stats = {"nb_produits": 0, "nb_commandes": 0, "revenus": 0, "nb_clients": 0}
 
     if profile["boutique_type"] == "digital":
         mes_prix = get_revendeur_prix_all(profile["id"]) if profile.get("est_revendeur") else []
@@ -330,7 +323,7 @@ def publier_activer():
 
 
 # ═══════════════════════════════════════════════════════════════
-# PRIX (Digital uniquement)
+# PRIX (Digital)
 # ═══════════════════════════════════════════════════════════════
 
 @dashboard_bp.route("/prix")
@@ -687,9 +680,7 @@ def premium():
     if redir:
         return redir
     features = get_fonctionnalites_premium()
-    return render_template("dashboard/premium.html",
-                          profile=profile,
-                          features=features)
+    return render_template("dashboard/premium.html", profile=profile, features=features)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -703,9 +694,7 @@ def abonnement():
     if redir:
         return redir
     plans = get_abonnements_plans()
-    return render_template("dashboard/abonnement.html",
-                          profile=profile,
-                          plans=plans)
+    return render_template("dashboard/abonnement.html", profile=profile, plans=plans)
 
 
 # ═══════════════════════════════════════════════════════════════
