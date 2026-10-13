@@ -23,13 +23,13 @@
 .inp:focus,.txta:focus{border-color:#00BFFF}
 .txta{min-height:90px;resize:vertical;line-height:1.6}
 
-.themes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-top:10px}
+.themes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-top:10px}
 .theme-item{position:relative;cursor:pointer;border:3px solid #E2E8F0;border-radius:14px;overflow:hidden;transition:all .2s}
-.theme-item:hover{transform:translateY(-3px);border-color:#CBD5E1}
+.theme-item:hover{transform:translateY(-3px)}
 .theme-item.actif{border-color:#00BFFF;box-shadow:0 0 0 4px rgba(0,191,255,.15)}
 .theme-item input{position:absolute;opacity:0;pointer-events:none}
-.theme-preview{height:58px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem}
-.theme-label{text-align:center;font-size:.76rem;font-weight:700;color:#0F172A;padding:7px 4px;background:#fff}
+.theme-preview{height:54px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem}
+.theme-label{text-align:center;font-size:.74rem;font-weight:700;color:#0F172A;padding:6px 4px;background:#fff}
 
 .upload-box{border:2px dashed #CBD5E1;border-radius:12px;padding:18px;text-align:center;cursor:pointer;position:relative;overflow:hidden;transition:all .2s;background:#F8FAFC}
 .upload-box:hover{border-color:#00BFFF;background:#F0FAFF}
@@ -38,7 +38,7 @@
 .upload-box span{font-size:.78rem;color:#64748B;font-weight:600}
 .preview-img{max-width:100%;max-height:120px;border-radius:10px;margin-top:12px;object-fit:cover;border:1px solid #E2E8F0}
 .preview-banniere{max-width:100%;max-height:90px;border-radius:10px;margin-top:12px;object-fit:cover;border:1px solid #E2E8F0;width:100%}
-.btn-suppr{display:inline-flex;align-items:center;gap:5px;background:#FEE2E2;color:#991B1B;padding:6px 12px;border-radius:9px;font-size:.74rem;font-weight:700;border:none;cursor:pointer;margin-top:8px;text-decoration:none}
+.btn-suppr{display:inline-flex;align-items:center;gap:5px;background:#FEE2E2;color:#991B1B;padding:6px 12px;border-radius:9px;font-size:.74rem;font-weight:700;border:none;cursor:pointer;margin-top:8px}
 
 .reseau-item{display:flex;align-items:center;gap:12px;padding:14px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;margin-bottom:10px}
 .reseau-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;flex-shrink:0}
@@ -61,12 +61,27 @@
 input:checked + .slider{background:#00BFFF}
 input:checked + .slider:before{transform:translateX(18px)}
 
-/* BARRE DE SAUVEGARDE */
+/* CHOIX GRILLE */
+.grid-options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.grid-opt{border:2px solid #E2E8F0;border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
+.grid-opt:hover{border-color:#00BFFF}
+.grid-opt.actif{border-color:#00BFFF;background:#F0FAFF}
+.grid-opt input{position:absolute;opacity:0}
+.grid-opt-visu{height:40px;display:flex;gap:3px;justify-content:center;align-items:center;margin-bottom:6px}
+.grid-opt-visu div{background:#00BFFF;border-radius:3px;height:24px}
+.grid-opt-lbl{font-size:.76rem;font-weight:700;color:#0F172A}
+
+/* SECTIONS TOGGLE */
+.section-toggle{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #E2E8F0}
+.section-toggle:last-child{border-bottom:none}
+.section-toggle-lbl{font-size:.85rem;font-weight:600;color:#0F172A;display:flex;align-items:center;gap:8px}
+.section-toggle-lbl i{color:#00BFFF;width:18px;text-align:center}
+
 .save-bar{position:fixed;bottom:0;left:250px;right:0;background:#fff;border-top:2px solid #E2E8F0;padding:14px 22px;display:flex;gap:10px;justify-content:flex-end;box-shadow:0 -4px 12px rgba(0,0,0,.06);z-index:80}
 @media(max-width:900px){.save-bar{left:0}}
 .btn-save{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;padding:14px 28px;border-radius:12px;border:none;font-weight:800;font-size:.92rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,191,255,.3);display:inline-flex;align-items:center;gap:8px;transition:transform .2s}
-.btn-save:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,191,255,.4)}
-.btn-save:active{transform:translateY(0)}
+.btn-save:hover{transform:translateY(-1px)}
+.btn-save:disabled{opacity:.6;cursor:not-allowed}
 {% endblock %}
 
 {% block dashboard_content %}
@@ -88,6 +103,7 @@ input:checked + .slider:before{transform:translateX(18px)}
 
   <form method="POST" action="{{ url_for('dashboard.boutique_enregistrer') }}" enctype="multipart/form-data" id="formBoutique">
 
+    <!-- IDENTITE -->
     <div class="card">
       <div class="card-title"><i class="fas fa-store"></i> Identite de la boutique</div>
       <div class="fg">
@@ -104,9 +120,9 @@ input:checked + .slider:before{transform:translateX(18px)}
       </div>
     </div>
 
+    <!-- APPARENCE -->
     <div class="card">
       <div class="card-title"><i class="fas fa-image"></i> Apparence</div>
-
       <div class="fg">
         <label>Logo de la boutique</label>
         <div class="upload-box">
@@ -121,7 +137,6 @@ input:checked + .slider:before{transform:translateX(18px)}
         </div>
         {% endif %}
       </div>
-
       <div class="fg" style="margin-bottom:0">
         <label>Banniere</label>
         <div class="upload-box">
@@ -138,6 +153,7 @@ input:checked + .slider:before{transform:translateX(18px)}
       </div>
     </div>
 
+    <!-- THEME -->
     <div class="card">
       <div class="card-title"><i class="fas fa-palette"></i> Theme de couleurs</div>
       <div class="themes-grid">
@@ -151,6 +167,112 @@ input:checked + .slider:before{transform:translateX(18px)}
       </div>
     </div>
 
+    <!-- ⭐ AFFICHAGE DES SERVICES (NOUVEAU) -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-th-large"></i> Affichage des services</div>
+
+      <div class="fg">
+        <label>Type de grille</label>
+        <div class="grid-options">
+          <label class="grid-opt {% if (profile.boutique_type_grille or 'grille') == 'grille' %}actif{% endif %}">
+            <input type="radio" name="boutique_type_grille" value="grille" {% if (profile.boutique_type_grille or 'grille') == 'grille' %}checked{% endif %} onchange="selectGrid(this)">
+            <div class="grid-opt-visu">
+              <div style="width:12px"></div><div style="width:12px"></div><div style="width:12px"></div>
+            </div>
+            <div class="grid-opt-lbl">Grille</div>
+          </label>
+          <label class="grid-opt {% if profile.boutique_type_grille == 'cartes' %}actif{% endif %}">
+            <input type="radio" name="boutique_type_grille" value="cartes" {% if profile.boutique_type_grille == 'cartes' %}checked{% endif %} onchange="selectGrid(this)">
+            <div class="grid-opt-visu">
+              <div style="width:24px"></div><div style="width:24px"></div>
+            </div>
+            <div class="grid-opt-lbl">Cartes</div>
+          </label>
+          <label class="grid-opt {% if profile.boutique_type_grille == 'liste' %}actif{% endif %}">
+            <input type="radio" name="boutique_type_grille" value="liste" {% if profile.boutique_type_grille == 'liste' %}checked{% endif %} onchange="selectGrid(this)">
+            <div class="grid-opt-visu">
+              <div style="width:50px"></div>
+            </div>
+            <div class="grid-opt-lbl">Liste</div>
+          </label>
+        </div>
+      </div>
+
+      <div class="fg" style="margin-bottom:0">
+        <label>Services par ligne (mode Grille)</label>
+        <select class="inp" name="boutique_services_par_ligne">
+          <option value="2" {% if profile.boutique_services_par_ligne == 2 %}selected{% endif %}>2 par ligne</option>
+          <option value="3" {% if (profile.boutique_services_par_ligne or 3) == 3 %}selected{% endif %}>3 par ligne (recommande)</option>
+          <option value="4" {% if profile.boutique_services_par_ligne == 4 %}selected{% endif %}>4 par ligne</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ⭐ SECTIONS A AFFICHER (NOUVEAU) -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-eye"></i> Sections a afficher sur la boutique</div>
+      <div class="hint" style="margin-bottom:12px;font-size:.75rem;color:#64748B">Activez ou desactivez chaque section de votre boutique publique.</div>
+
+      {% set sections = profile.boutique_sections_affichees or {} %}
+      {% set secs = [
+        ('stats', 'Statistiques', 'fas fa-chart-bar'),
+        ('avantages', 'Pourquoi nous choisir', 'fas fa-star'),
+        ('comment', 'Comment commander', 'fas fa-list-check'),
+        ('services', 'Catalogue des services', 'fas fa-store'),
+        ('apropos', 'A propos', 'fas fa-info-circle'),
+        ('avis', 'Avis clients', 'fas fa-comments'),
+        ('faq', 'FAQ', 'fas fa-question-circle')
+      ] %}
+
+      {% for key, label, ico in secs %}
+      <div class="section-toggle">
+        <div class="section-toggle-lbl"><i class="{{ ico }}"></i> {{ label }}</div>
+        <label class="switch">
+          <input type="checkbox" name="section_{{ key }}" {% if sections.get(key, True) %}checked{% endif %}>
+          <span class="slider"></span>
+        </label>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- ⭐ CONFIANCE (NOUVEAU) -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-shield-halved"></i> Signes de confiance</div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-lbl">Badge "Verifie"</div>
+          <div class="toggle-desc">Affiche un badge de confiance sur votre boutique</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" name="boutique_badge_verifie" {% if profile.boutique_badge_verifie %}checked{% endif %}>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-lbl">Slogan anime</div>
+          <div class="toggle-desc">Effet de frappe sur le slogan</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" name="boutique_slogan_anime" {% if profile.boutique_slogan_anime %}checked{% endif %}>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="fg" style="margin-top:14px">
+        <label>Note de la boutique (sur 5)</label>
+        <input class="inp" type="number" name="boutique_note" step="0.1" min="0" max="5" value="{{ profile.boutique_note or 4.9 }}" placeholder="4.9">
+      </div>
+
+      <div class="fg" style="margin-bottom:0">
+        <label>Nombre d'avis</label>
+        <input class="inp" type="number" name="boutique_nb_avis" min="0" value="{{ profile.boutique_nb_avis or 0 }}" placeholder="0">
+      </div>
+    </div>
+
+    <!-- CONTACT -->
     <div class="card">
       <div class="card-title"><i class="fas fa-address-book"></i> Contact</div>
       <div class="fg">
@@ -164,38 +286,28 @@ input:checked + .slider:before{transform:translateX(18px)}
       </div>
     </div>
 
+    <!-- RESEAUX -->
     <div class="card">
       <div class="card-title"><i class="fas fa-share-alt"></i> Reseaux sociaux</div>
-
       <div class="reseau-item">
         <div class="reseau-icon reseau-fb"><i class="fab fa-facebook-f"></i></div>
-        <div class="reseau-content">
-          <input class="reseau-input" type="url" name="boutique_facebook" value="{{ profile.boutique_facebook or '' }}" placeholder="https://facebook.com/mapage">
-        </div>
+        <div class="reseau-content"><input class="reseau-input" type="url" name="boutique_facebook" value="{{ profile.boutique_facebook or '' }}" placeholder="https://facebook.com/mapage"></div>
       </div>
-
       <div class="reseau-item">
         <div class="reseau-icon reseau-ig"><i class="fab fa-instagram"></i></div>
-        <div class="reseau-content">
-          <input class="reseau-input" type="url" name="boutique_instagram" value="{{ profile.boutique_instagram or '' }}" placeholder="https://instagram.com/moncompte">
-        </div>
+        <div class="reseau-content"><input class="reseau-input" type="url" name="boutique_instagram" value="{{ profile.boutique_instagram or '' }}" placeholder="https://instagram.com/moncompte"></div>
       </div>
-
       <div class="reseau-item">
         <div class="reseau-icon reseau-tt"><i class="fab fa-tiktok"></i></div>
-        <div class="reseau-content">
-          <input class="reseau-input" type="url" name="boutique_tiktok" value="{{ profile.boutique_tiktok or '' }}" placeholder="https://tiktok.com/@moncompte">
-        </div>
+        <div class="reseau-content"><input class="reseau-input" type="url" name="boutique_tiktok" value="{{ profile.boutique_tiktok or '' }}" placeholder="https://tiktok.com/@moncompte"></div>
       </div>
-
       <div class="reseau-item" style="margin-bottom:0">
         <div class="reseau-icon reseau-tg"><i class="fab fa-telegram"></i></div>
-        <div class="reseau-content">
-          <input class="reseau-input" type="url" name="boutique_telegram" value="{{ profile.boutique_telegram or '' }}" placeholder="https://t.me/moncanal">
-        </div>
+        <div class="reseau-content"><input class="reseau-input" type="url" name="boutique_telegram" value="{{ profile.boutique_telegram or '' }}" placeholder="https://t.me/moncanal"></div>
       </div>
     </div>
 
+    <!-- A PROPOS -->
     <div class="card">
       <div class="card-title"><i class="fas fa-info-circle"></i> A propos</div>
       <div class="fg" style="margin-bottom:0">
@@ -204,6 +316,7 @@ input:checked + .slider:before{transform:translateX(18px)}
       </div>
     </div>
 
+    <!-- OPTIONS -->
     <div class="card">
       <div class="card-title"><i class="fas fa-cog"></i> Options d'affichage</div>
       <div class="toggle-row">
@@ -228,7 +341,6 @@ input:checked + .slider:before{transform:translateX(18px)}
       </div>
     </div>
 
-    <!-- BARRE DE SAUVEGARDE FIXE -->
     <div class="save-bar">
       <button type="submit" class="btn-save" id="btnSave">
         <i class="fas fa-save"></i> Enregistrer les modifications
@@ -237,7 +349,6 @@ input:checked + .slider:before{transform:translateX(18px)}
 
   </form>
 
-  <!-- FORM SEPARE POUR SUPPRESSION IMAGE (hors du form principal) -->
   <form method="POST" action="{{ url_for('dashboard.boutique_supprimer_image') }}" id="formSupprImage" style="display:none">
     <input type="hidden" name="type" id="supprType">
   </form>
@@ -249,19 +360,19 @@ function selectTheme(el){
   document.querySelectorAll('.theme-item').forEach(t => t.classList.remove('actif'));
   el.closest('.theme-item').classList.add('actif');
 }
-
+function selectGrid(el){
+  document.querySelectorAll('.grid-opt').forEach(t => t.classList.remove('actif'));
+  el.closest('.grid-opt').classList.add('actif');
+}
 function supprimerImage(type){
   if(!confirm('Supprimer cette image ?')) return;
   document.getElementById('supprType').value = type;
   document.getElementById('formSupprImage').submit();
 }
-
-// Feedback visuel lors du submit
 document.getElementById('formBoutique').addEventListener('submit', function(e){
   var btn = document.getElementById('btnSave');
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
   btn.disabled = true;
-  // Le formulaire va se soumettre naturellement
 });
 </script>
 {% endblock %}
