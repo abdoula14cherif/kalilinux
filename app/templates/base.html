@@ -22,9 +22,7 @@ img{max-width:100%;height:auto;display:block}
 button{font-family:inherit;cursor:pointer}
 input,textarea,select{font-family:inherit}
 
-/* ═══════════════════════════════════════════════════════════════ */
-/* SYSTEME DE FLASH MESSAGES (notifications)                       */
-/* ═══════════════════════════════════════════════════════════════ */
+/* Flash messages */
 .flash-container{
   position:fixed;top:20px;right:20px;z-index:99999;
   display:flex;flex-direction:column;gap:10px;
@@ -45,37 +43,17 @@ input,textarea,select{font-family:inherit}
   from{opacity:0;transform:translateX(30px)}
   to{opacity:1;transform:translateX(0)}
 }
-.flash-msg .flash-icon{
-  font-size:1.1rem;flex-shrink:0;margin-top:1px;
-}
-.flash-msg .flash-text{
-  flex:1;min-width:0;
-}
-.flash-msg .flash-close{
-  background:none;border:none;cursor:pointer;
-  opacity:.5;font-size:.95rem;margin-left:auto;
-  color:inherit;padding:0;line-height:1;flex-shrink:0;
-}
+.flash-msg .flash-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.flash-msg .flash-text{flex:1;min-width:0}
+.flash-msg .flash-close{background:none;border:none;cursor:pointer;opacity:.5;font-size:.95rem;margin-left:auto;color:inherit;padding:0;line-height:1;flex-shrink:0}
 .flash-msg .flash-close:hover{opacity:1}
-
-.flash-success{
-  background:#ECFDF5;color:#065F46;border-color:#10B981;
-}
-.flash-error{
-  background:#FEF2F2;color:#991B1B;border-color:#DC2626;
-}
-.flash-warning{
-  background:#FFFBEB;color:#92400E;border-color:#F59E0B;
-}
-.flash-info{
-  background:#EFF6FF;color:#1E40AF;border-color:#3B82F6;
-}
-
+.flash-success{background:#ECFDF5;color:#065F46;border-color:#10B981}
+.flash-error{background:#FEF2F2;color:#991B1B;border-color:#DC2626}
+.flash-warning{background:#FFFBEB;color:#92400E;border-color:#F59E0B}
+.flash-info{background:#EFF6FF;color:#1E40AF;border-color:#3B82F6}
 .flash-container.hidden{opacity:0;transition:opacity .5s;pointer-events:none}
 
-/* ═══════════════════════════════════════════════════════════════ */
-/* THEME SOMBRE TOGGLE                                             */
-/* ═══════════════════════════════════════════════════════════════ */
+/* Theme toggle */
 .theme-toggle{
   position:fixed;bottom:24px;left:24px;width:50px;height:50px;
   background:var(--white);border:2px solid var(--gray);
@@ -90,9 +68,7 @@ input,textarea,select{font-family:inherit}
   --off:#0F1420;--white:#1A2233;--gray:#2A3550;
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/* BOUTONS GENERIQUES                                              */
-/* ═══════════════════════════════════════════════════════════════ */
+/* Boutons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:12px;font-weight:700;font-size:.95rem;border:none;cursor:pointer;transition:all .25s;text-decoration:none}
 .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;box-shadow:0 6px 18px rgba(0,191,255,.3)}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,191,255,.4)}
@@ -101,35 +77,20 @@ input,textarea,select{font-family:inherit}
 .btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
 .btn-outline:hover{background:var(--primary);color:#fff}
 
-/* ═══════════════════════════════════════════════════════════════ */
-/* HEADER PUBLIC                                                   */
-/* ═══════════════════════════════════════════════════════════════ */
+/* Header public */
 .pub-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--white);border-bottom:1px solid var(--gray);position:sticky;top:0;z-index:100}
 .pub-logo{font-size:1.15rem;font-weight:900;background:linear-gradient(90deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
 .pub-nav{display:flex;gap:10px;align-items:center}
 
-/* ═══════════════════════════════════════════════════════════════ */
-/* SECTIONS                                                        */
-/* ═══════════════════════════════════════════════════════════════ */
+/* Sections */
 .section{padding:60px 20px}
 .container{max-width:1100px;margin:0 auto}
 
-/* ═══════════════════════════════════════════════════════════════ */
-/* TITRES                                                          */
-/* ═══════════════════════════════════════════════════════════════ */
 h1,h2,h3,h4{color:var(--dark);line-height:1.25}
 
-/* ═══════════════════════════════════════════════════════════════ */
-/* RESPONSIVE                                                      */
-/* ═══════════════════════════════════════════════════════════════ */
 @media(max-width:640px){
-  .flash-container{
-    top:16px;right:16px;left:16px;
-    max-width:100%;width:auto;
-  }
-  .flash-msg{
-    padding:12px 14px;font-size:.84rem;
-  }
+  .flash-container{top:16px;right:16px;left:16px;max-width:100%;width:auto}
+  .flash-msg{padding:12px 14px;font-size:.84rem}
 }
 
 {% block extra_css %}{% endblock %}
@@ -137,9 +98,6 @@ h1,h2,h3,h4{color:var(--dark);line-height:1.25}
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- FLASH MESSAGES (succes, erreurs, warnings, infos)              -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% if messages %}
 <div class="flash-container" id="flashContainer">
@@ -157,7 +115,6 @@ h1,h2,h3,h4{color:var(--dark);line-height:1.25}
   {% endfor %}
 </div>
 <script>
-  // Auto-hide les flash apres 6 secondes
   setTimeout(function(){
     var c = document.getElementById('flashContainer');
     if(c){
@@ -169,13 +126,11 @@ h1,h2,h3,h4{color:var(--dark);line-height:1.25}
 {% endif %}
 {% endwith %}
 
-<!-- THEME TOGGLE -->
 <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Changer de theme">
   <i class="fas fa-moon" id="themeIcon"></i>
 </button>
 
 <script>
-  // Restaurer le theme
   (function(){
     try{
       var saved = localStorage.getItem('reseller-theme');
@@ -192,12 +147,28 @@ h1,h2,h3,h4{color:var(--dark);line-height:1.25}
     if(icon){ icon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon'; }
   }
 
-  // Initialiser l'icone
   (function(){
     var current = document.documentElement.getAttribute('data-theme') || 'light';
     var icon = document.getElementById('themeIcon');
     if(icon){ icon.className = current === 'dark' ? 'fas fa-sun' : 'fas fa-moon'; }
   })();
+</script>
+
+<script>
+// Injection automatique du token CSRF dans tous les formulaires POST
+document.addEventListener('DOMContentLoaded', function(){
+  var token = '{{ csrf_token() }}';
+  document.querySelectorAll('form').forEach(function(f){
+    var method = (f.getAttribute('method') || 'GET').toUpperCase();
+    if(method === 'POST' && !f.querySelector('input[name="csrf_token"]')){
+      var inp = document.createElement('input');
+      inp.type = 'hidden';
+      inp.name = 'csrf_token';
+      inp.value = token;
+      f.appendChild(inp);
+    }
+  });
+});
 </script>
 
 {% block nav %}{% endblock %}
