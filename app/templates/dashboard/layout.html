@@ -66,7 +66,6 @@
         <i class="fas fa-home"></i> Accueil
       </a>
 
-      <!-- ⭐ TYPE DE BOUTIQUE -->
       <a href="{{ url_for('dashboard.choisir_type') }}" class="nav-item {% if request.endpoint == 'dashboard.choisir_type' %}active{% endif %}">
         <i class="fas fa-store-alt"></i> Type de boutique
       </a>
@@ -118,7 +117,6 @@
 
       <div class="nav-separator"></div>
 
-      <!-- ⭐ NOTIFICATIONS -->
       <a href="{{ url_for('dashboard.notifications_prefs') }}" class="nav-item {% if request.endpoint == 'dashboard.notifications_prefs' %}active{% endif %}">
         <i class="fas fa-bell"></i> Notifications
       </a>
