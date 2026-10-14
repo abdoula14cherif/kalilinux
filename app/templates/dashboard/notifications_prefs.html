@@ -52,9 +52,8 @@ input:checked + .slider:before{transform:translateX(22px)}
   Choisissez les <strong>notifications email</strong> que vous voulez recevoir. Vous pourrez les activer/desactiver a tout moment.
 </div>
 
-<form method="POST" action="{{ url_for('dashboard.notifications_prefs') }}">
+<form method="POST" action="{{ url_for('dashboard_shop.notifications_prefs') }}">
 
-  <!-- EMAIL DE NOTIFICATION -->
   <div class="notif-card">
     <h3><i class="fas fa-envelope"></i> Adresse email de reception</h3>
     <p class="sous">Par defaut, nous utilisons l'email de votre compte. Vous pouvez le changer ici.</p>
@@ -65,12 +64,10 @@ input:checked + .slider:before{transform:translateX(22px)}
     </div>
   </div>
 
-  <!-- NOTIFICATIONS -->
   <div class="notif-card">
     <h3><i class="fas fa-bell"></i> Types de notifications</h3>
     <p class="sous">Activez ou desactivez chaque type de notification.</p>
 
-    <!-- Commande -->
     <div class="notif-item">
       <div class="notif-info">
         <div class="notif-ico ico-commande"><i class="fas fa-shopping-bag"></i></div>
@@ -85,7 +82,6 @@ input:checked + .slider:before{transform:translateX(22px)}
       </label>
     </div>
 
-    <!-- Paiement -->
     <div class="notif-item">
       <div class="notif-info">
         <div class="notif-ico ico-paiement"><i class="fas fa-coins"></i></div>
@@ -100,7 +96,6 @@ input:checked + .slider:before{transform:translateX(22px)}
       </label>
     </div>
 
-    <!-- Avis -->
     <div class="notif-item">
       <div class="notif-info">
         <div class="notif-ico ico-avis"><i class="fas fa-star"></i></div>
@@ -115,7 +110,6 @@ input:checked + .slider:before{transform:translateX(22px)}
       </label>
     </div>
 
-    <!-- Client -->
     <div class="notif-item">
       <div class="notif-info">
         <div class="notif-ico ico-client"><i class="fas fa-user-plus"></i></div>
@@ -130,7 +124,6 @@ input:checked + .slider:before{transform:translateX(22px)}
       </label>
     </div>
 
-    <!-- Resume -->
     <div class="notif-item">
       <div class="notif-info">
         <div class="notif-ico ico-resume"><i class="fas fa-chart-line"></i></div>
@@ -145,7 +138,6 @@ input:checked + .slider:before{transform:translateX(22px)}
       </label>
     </div>
 
-    <!-- Stock bas -->
     <div class="notif-item">
       <div class="notif-info">
         <div class="notif-ico ico-stock"><i class="fas fa-exclamation-triangle"></i></div>
