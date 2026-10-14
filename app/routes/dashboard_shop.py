@@ -17,6 +17,7 @@ from app.models.database import (
     get_abonnements_plans, get_fonctionnalites_premium,
     get_all_boutique_types
 )
+from app.models.serializers import avis_safe, coupon_safe, commande_safe
 
 logger = logging.getLogger(__name__)
 dashboard_shop_bp = Blueprint("dashboard_shop", __name__)
@@ -70,7 +71,8 @@ def commandes():
 
     commandes_boutique = []
     try:
-        commandes_boutique = get_commandes_boutique_revendeur(profile["id"], limit=200)
+        raw = get_commandes_boutique_revendeur(profile["id"], limit=200)
+        commandes_boutique = [commande_safe(c) for c in raw]
     except Exception as e:
         logger.error(f"commandes boutique load: {type(e).__name__}")
 
@@ -159,7 +161,8 @@ def reviews():
     if redir:
         return redir
     liste = get_avis_revendeur(profile["id"])
-    return render_template("dashboard/reviews.html", profile=profile, avis=liste)
+    return render_template("dashboard/reviews.html", profile=profile,
+                          avis=[avis_safe(a) for a in liste])
 
 
 @dashboard_shop_bp.route("/reviews/ajouter", methods=["POST"])
@@ -247,7 +250,6 @@ def reviews_supprimer():
     return redirect(url_for("dashboard_shop.reviews"))
 
 
-
 @dashboard_shop_bp.route("/coupons")
 @login_required
 def coupons():
@@ -255,7 +257,8 @@ def coupons():
     if redir:
         return redir
     liste = get_coupons_revendeur(profile["id"])
-    return render_template("dashboard/coupons.html", profile=profile, coupons=liste)
+    return render_template("dashboard/coupons.html", profile=profile,
+                          coupons=[coupon_safe(c) for c in liste])
 
 
 @dashboard_shop_bp.route("/coupons/ajouter", methods=["POST"])
@@ -371,7 +374,6 @@ def coupons_supprimer():
     return redirect(url_for("dashboard_shop.coupons"))
 
 
-
 @dashboard_shop_bp.route("/notifications-prefs", methods=["GET", "POST"])
 @login_required
 @limiter.limit("20 per hour")
@@ -415,7 +417,11 @@ def _get_plan_actuel(profile):
     import requests
     code = profile.get("abonnement_niveau") or "gratuit"
     try:
-        r = requests.get(_url(f"abonnements_plans?code=eq.{code}&limit=1"), headers=_headers(True), timeout=10)
+        r = requests.get(
+            _url(f"abonnements_plans?code=eq.{code}&limit=1"),
+            headers=_headers(True),
+            timeout=10
+        )
         data = r.json()
         return data[0] if isinstance(data, list) and data else None
     except Exception:
@@ -433,7 +439,11 @@ def abonnement():
     import requests
 
     try:
-        r = requests.get(_url("abonnements_plans?actif=eq.true&order=ordre"), headers=_headers(True), timeout=10)
+        r = requests.get(
+            _url("abonnements_plans?actif=eq.true&order=ordre"),
+            headers=_headers(True),
+            timeout=10
+        )
         plans = r.json() if r.status_code < 300 else []
     except Exception:
         plans = []
@@ -478,7 +488,11 @@ def abonnement_choisir():
     import requests
 
     try:
-        r = requests.get(_url(f"abonnements_plans?code=eq.{plan_code}&limit=1"), headers=_headers(True), timeout=10)
+        r = requests.get(
+            _url(f"abonnements_plans?code=eq.{plan_code}&limit=1"),
+            headers=_headers(True),
+            timeout=10
+        )
         data = r.json()
         plan = data[0] if isinstance(data, list) and data else None
     except Exception:
