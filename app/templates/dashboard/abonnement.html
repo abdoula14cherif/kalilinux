@@ -1,10 +1,10 @@
 {% extends "dashboard/layout.html" %}
-{% block title %}Mon abonnement — Boost Reseller{% endblock %}
+{% block title %}Abonnement — Boost Reseller{% endblock %}
 {% block page_title %}Mon abonnement{% endblock %}
-{% block page_subtitle %}Choisissez le plan qui vous convient{% endblock %}
+{% block page_subtitle %}Choisissez le plan adapte a votre activite{% endblock %}
 
 {% block extra_css %}
-.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-bottom:24px}
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:24px}
 .plan-card{background:#fff;border-radius:20px;border:2px solid #E2E8F0;padding:26px 22px;transition:all .25s;position:relative;display:flex;flex-direction:column}
 .plan-card:hover{transform:translateY(-4px);box-shadow:0 14px 32px rgba(0,0,0,.1)}
 .plan-card.populaire{border-color:#00BFFF;box-shadow:0 14px 32px rgba(0,191,255,.15)}
@@ -12,27 +12,75 @@
 .plan-card.actuel{border-color:#10B981;background:linear-gradient(135deg,#fff,#F0FDF4)}
 .plan-badge-actuel{position:absolute;top:14px;right:14px;background:#10B981;color:#fff;font-size:.68rem;font-weight:900;padding:4px 10px;border-radius:10px;display:flex;align-items:center;gap:4px}
 
-.plan-ico{width:56px;height:56px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#fff;margin-bottom:14px;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+.plan-ico{width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.7rem;color:#fff;margin-bottom:16px;box-shadow:0 6px 18px rgba(0,0,0,.15)}
 .plan-nom{font-size:1.15rem;font-weight:900;color:#0F172A;margin-bottom:6px}
-.plan-desc{font-size:.82rem;color:#64748B;line-height:1.5;margin-bottom:18px;min-height:38px}
+.plan-desc{font-size:.82rem;color:#64748B;line-height:1.5;margin-bottom:20px;min-height:38px}
 .plan-prix{font-size:2rem;font-weight:900;color:#0F172A;line-height:1;margin-bottom:4px}
 .plan-prix small{font-size:.85rem;font-weight:700;color:#64748B}
 .plan-periode{font-size:.75rem;color:#94A3B8;font-weight:600;margin-bottom:20px}
 .plan-avantages{list-style:none;padding:0;margin:0 0 22px 0;flex:1}
 .plan-avantages li{font-size:.83rem;color:#475569;padding:8px 0;display:flex;align-items:flex-start;gap:9px;line-height:1.5}
 .plan-avantages li i{color:#10B981;flex-shrink:0;margin-top:3px;font-size:.85rem}
+.plan-avantages li i.fa-times{color:#DC2626}
 
 .btn-plan{width:100%;padding:14px;border:none;border-radius:12px;font-weight:900;font-size:.92rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-choisir{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;box-shadow:0 6px 18px rgba(0,191,255,.3)}
 .btn-choisir:hover{transform:translateY(-2px)}
 .btn-actuel{background:#F0FDF4;color:#059669;border:2px solid #10B981;cursor:default}
+.btn-bientot{background:#F1F5F9;color:#94A3B8;cursor:not-allowed}
 
-.info-note{background:#F8FAFC;border-radius:14px;padding:16px 18px;font-size:.82rem;color:#64748B;line-height:1.6;margin-top:20px;text-align:center}
+.usage-box{background:#fff;border-radius:16px;padding:22px;border:1px solid #E2E8F0;margin-bottom:20px}
+.usage-box h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.usage-box h3 i{color:#00BFFF}
+.usage-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px}
+.usage-item{background:#F8FAFC;border-radius:12px;padding:14px;text-align:center}
+.usage-item .lbl{font-size:.72rem;color:#64748B;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+.usage-item .val{font-size:1.2rem;font-weight:900;color:#0F172A}
+.usage-item .bar{height:6px;background:#E2E8F0;border-radius:4px;margin-top:8px;overflow:hidden}
+.usage-item .bar-fill{height:100%;background:linear-gradient(90deg,#00BFFF,#10B981);border-radius:4px;transition:width .3s}
+.usage-item.over .bar-fill{background:linear-gradient(90deg,#F59E0B,#DC2626)}
+
+.info-note{background:#F8FAFC;border-radius:14px;padding:16px 18px;font-size:.82rem;color:#64748B;line-height:1.6;text-align:center}
 .info-note i{color:#00BFFF;margin-right:6px}
 {% endblock %}
 
 {% block dashboard_content %}
 
+<!-- USAGE ACTUEL -->
+{% if plan_actuel %}
+<div class="usage-box">
+  <h3><i class="fas fa-chart-pie"></i> Mon utilisation actuelle (Plan {{ plan_actuel.nom }})</h3>
+  <div class="usage-grid">
+    <div class="usage-item {% if usage.produits > plan_actuel.max_produits %}over{% endif %}">
+      <div class="lbl">Produits</div>
+      <div class="val">{{ usage.produits }} / {% if plan_actuel.max_produits >= 999 %}∞{% else %}{{ plan_actuel.max_produits }}{% endif %}</div>
+      <div class="bar"><div class="bar-fill" style="width:{{ ((usage.produits / plan_actuel.max_produits * 100) if plan_actuel.max_produits < 999 else 30)|round|int }}%"></div></div>
+    </div>
+    <div class="usage-item {% if usage.categories > plan_actuel.max_categories %}over{% endif %}">
+      <div class="lbl">Categories</div>
+      <div class="val">{{ usage.categories }} / {{ plan_actuel.max_categories }}</div>
+      <div class="bar"><div class="bar-fill" style="width:{{ (usage.categories / plan_actuel.max_categories * 100)|round|int }}%"></div></div>
+    </div>
+    <div class="usage-item {% if usage.bannieres > plan_actuel.max_bannieres %}over{% endif %}">
+      <div class="lbl">Bannieres</div>
+      <div class="val">{{ usage.bannieres }} / {{ plan_actuel.max_bannieres }}</div>
+      <div class="bar"><div class="bar-fill" style="width:{{ (usage.bannieres / plan_actuel.max_bannieres * 100)|round|int }}%"></div></div>
+    </div>
+    <div class="usage-item {% if usage.attributs > plan_actuel.max_attributs %}over{% endif %}">
+      <div class="lbl">Attributs</div>
+      <div class="val">{{ usage.attributs }} / {{ plan_actuel.max_attributs }}</div>
+      <div class="bar"><div class="bar-fill" style="width:{{ (usage.attributs / plan_actuel.max_attributs * 100)|round|int }}%"></div></div>
+    </div>
+    <div class="usage-item {% if usage.coupons > plan_actuel.max_coupons %}over{% endif %}">
+      <div class="lbl">Coupons</div>
+      <div class="val">{{ usage.coupons }} / {% if plan_actuel.max_coupons == 0 %}0{% else %}{{ plan_actuel.max_coupons }}{% endif %}</div>
+      <div class="bar"><div class="bar-fill" style="width:{{ ((usage.coupons / plan_actuel.max_coupons * 100) if plan_actuel.max_coupons > 0 else 0)|round|int }}%"></div></div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- PLANS -->
 <div class="plans-grid">
   {% for p in plans %}
   {% set est_actuel = (profile.abonnement_niveau or 'gratuit') == p.code %}
@@ -46,11 +94,7 @@
     <div class="plan-nom">{{ p.nom }}</div>
     <div class="plan-desc">{{ p.description }}</div>
     <div class="plan-prix">
-      {% if p.prix_mensuel > 0 %}
-      {{ "{:,.0f}".format(p.prix_mensuel) }} <small>FCFA</small>
-      {% else %}
-      Gratuit
-      {% endif %}
+      {% if p.prix_mensuel > 0 %}{{ "{:,.0f}".format(p.prix_mensuel) }} <small>FCFA</small>{% else %}Gratuit{% endif %}
     </div>
     <div class="plan-periode">{% if p.prix_mensuel > 0 %}par mois{% else %}pour toujours{% endif %}</div>
 
@@ -64,10 +108,15 @@
 
     {% if est_actuel %}
     <button class="btn-plan btn-actuel"><i class="fas fa-check"></i> Plan actuel</button>
+    {% elif p.prix_mensuel > 0 %}
+    <button class="btn-plan btn-bientot" disabled><i class="fas fa-clock"></i> Bientot</button>
     {% else %}
-    <button class="btn-plan btn-choisir" onclick="return choisirPlan('{{ p.code }}', '{{ p.nom }}', {{ p.prix_mensuel }})">
-      <i class="fas fa-rocket"></i> Choisir ce plan
-    </button>
+    <form method="POST" action="{{ url_for('dashboard.abonnement_choisir') }}" style="width:100%">
+      <input type="hidden" name="plan_code" value="{{ p.code }}">
+      <button type="submit" class="btn-plan btn-choisir" style="width:100%">
+        <i class="fas fa-rocket"></i> Choisir ce plan
+      </button>
+    </form>
     {% endif %}
   </div>
   {% endfor %}
@@ -75,17 +124,7 @@
 
 <div class="info-note">
   <i class="fas fa-info-circle"></i>
-  Le système de paiement des abonnements sera bientôt disponible. Contactez le support pour changer de plan.
+  Le plan <strong>Gratuit</strong> est disponible immediatement. Les plans <strong>Pro</strong> et <strong>Business</strong> seront activables tres bientot.
 </div>
-
-<script>
-function choisirPlan(code, nom, prix){
-  var msg = '🔒 Abonnement : ' + nom;
-  if(prix > 0){ msg += '\n\nPrix : ' + prix.toLocaleString('fr-FR') + ' FCFA / mois'; }
-  msg += '\n\n💡 Le système de paiement sera bientôt disponible.\nContactez le support sur WhatsApp pour activer ce plan.';
-  alert(msg);
-  return false;
-}
-</script>
 
 {% endblock %}
