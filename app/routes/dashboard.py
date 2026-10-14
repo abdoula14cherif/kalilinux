@@ -6,7 +6,7 @@ import re
 from datetime import datetime, timezone
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from app import limiter
-from app.models.security import login_required
+from app.models.security import login_required, valider_url_generique
 from app.models.database import (
     get_profile, update_profile, get_active_services,
     get_revendeur_prix_all, set_revendeur_prix, get_service_by_id,
@@ -188,10 +188,10 @@ def boutique_enregistrer():
     data["boutique_a_propos"] = request.form.get("boutique_a_propos", "").strip()[:1000] or None
     data["boutique_whatsapp"] = request.form.get("boutique_whatsapp", "").strip()[:30] or None
     data["boutique_email"] = request.form.get("boutique_email", "").strip()[:150] or None
-    data["boutique_facebook"] = request.form.get("boutique_facebook", "").strip()[:300] or None
-    data["boutique_instagram"] = request.form.get("boutique_instagram", "").strip()[:300] or None
-    data["boutique_tiktok"] = request.form.get("boutique_tiktok", "").strip()[:300] or None
-    data["boutique_telegram"] = request.form.get("boutique_telegram", "").strip()[:300] or None
+    data["boutique_facebook"] = valider_url_generique(request.form.get("boutique_facebook", "").strip()[:300])
+    data["boutique_instagram"] = valider_url_generique(request.form.get("boutique_instagram", "").strip()[:300])
+    data["boutique_tiktok"] = valider_url_generique(request.form.get("boutique_tiktok", "").strip()[:300])
+    data["boutique_telegram"] = valider_url_generique(request.form.get("boutique_telegram", "").strip()[:300])
 
     theme = request.form.get("boutique_theme", "bleu")
     if theme in THEMES:
@@ -353,7 +353,6 @@ def publier_activer():
         credit_balance(profile["id"], PRIX_ACTIVATION)
         flash("Erreur lors de l'activation. Vous avez ete rembourse.", "error")
         return redirect(url_for("dashboard.publier"))
-
 
 
 @dashboard_bp.route("/prix")
@@ -596,7 +595,6 @@ def produits_toggle():
     return redirect(url_for("dashboard.produits"))
 
 
-
 @dashboard_bp.route("/categories")
 @login_required
 def categories():
@@ -712,10 +710,7 @@ def bannieres_ajouter():
 
     titre = request.form.get("titre", "").strip()[:80] or None
     sous_titre = request.form.get("sous_titre", "").strip()[:120] or None
-    lien = request.form.get("lien", "").strip()[:500] or None
-
-    if lien and not lien.startswith(("http://", "https://")):
-        lien = None
+    lien = valider_url_generique(request.form.get("lien", "").strip()[:500])
 
     image_file = request.files.get("image")
     if not image_file or not image_file.filename:
@@ -724,7 +719,7 @@ def bannieres_ajouter():
 
     image_url = upload_image(image_file, prefix="banniere_")
     if not image_url:
-        flash("Erreur upload image. Verifiez le bucket Supabase.", "error")
+        flash("Erreur upload image. Verifiez le format (PNG/JPG/GIF/WEBP) et la taille (max 5 Mo).", "error")
         return redirect(url_for("dashboard.bannieres"))
 
     result = create_banniere({
@@ -762,9 +757,7 @@ def bannieres_modifier():
         logger.warning(f"Tentative modif banniere {banniere_id} par revendeur {profile['id']}")
         return redirect(url_for("dashboard.bannieres"))
 
-    lien = request.form.get("lien", "").strip()[:500] or None
-    if lien and not lien.startswith(("http://", "https://")):
-        lien = None
+    lien = valider_url_generique(request.form.get("lien", "").strip()[:500])
 
     data = {
         "titre": request.form.get("titre", "").strip()[:80] or None,
