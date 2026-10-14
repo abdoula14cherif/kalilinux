@@ -15,24 +15,16 @@
   --accent:#FF6600;--accent-d:#E65C00;
   --green:#10B981;--green-d:#059669;--red:#DC2626;--orange:#F59E0B;
   --dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;--white:#fff;--gray:#E2E8F0;
-  --panel-bg:#ffffff;
-  --card-bg:#ffffff;
-  --page-bg:#F5F7FA;
-  --text:#0F172A;
-  --text-mid:#64748B;
-  --text-light:#94A3B8;
-  --border:#E5E9F0;
-  --soft-bg:#F1F5F9;
+  --panel-bg:#ffffff;--card-bg:#ffffff;--page-bg:#F5F7FA;
+  --text:#0F172A;--text-mid:#64748B;--text-light:#94A3B8;
+  --border:#E5E9F0;--soft-bg:#F1F5F9;
+  --banniere-radius:{% if revendeur.get('boutique_banniere_arrondie', True) %}18px{% else %}0{% endif %};
+  --banniere-flou:{% if revendeur.get('boutique_banniere_flou', True) %}{{ revendeur.get('boutique_banniere_flou_intensite', 0.45) }}{% else %}0{% endif %};
 }
 [data-theme="dark"]{
-  --panel-bg:#0F172A;
-  --card-bg:#1E293B;
-  --page-bg:#0F172A;
-  --text:#F1F5F9;
-  --text-mid:#94A3B8;
-  --text-light:#64748B;
-  --border:rgba(255,255,255,.1);
-  --soft-bg:#1E293B;
+  --panel-bg:#0F172A;--card-bg:#1E293B;--page-bg:#0F172A;
+  --text:#F1F5F9;--text-mid:#94A3B8;--text-light:#64748B;
+  --border:rgba(255,255,255,.1);--soft-bg:#1E293B;
 }
 html{scroll-behavior:smooth}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--page-bg);color:var(--text-mid);min-height:100vh;padding-bottom:80px;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
@@ -40,31 +32,29 @@ a{color:inherit;text-decoration:none}
 img{max-width:100%;height:auto;display:block}
 button{font-family:inherit;cursor:pointer}
 
-/* HEADER */
 .shop-header{background:var(--panel-bg);border-bottom:1px solid var(--border);padding:10px 14px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:10px}
 .header-logo{width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--primary-d));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:.95rem}
 .header-name{flex:1;font-size:1rem;font-weight:900;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.header-icon{width:38px;height:38px;border-radius:50%;background:var(--soft-bg);color:var(--text-mid);display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;border:none;cursor:pointer;transition:.2s}
+.header-icon{width:38px;height:38px;border-radius:50%;background:var(--soft-bg);color:var(--text-mid);display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;border:none;cursor:pointer;transition:.2s;position:relative}
 .header-icon:hover{background:var(--primary);color:#fff}
-.header-icon.cart{position:relative}
-.header-icon .badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:.6rem;font-weight:900;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;display:none}
-.header-icon .badge.show{display:block}
+.header-icon.cart .badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:.6rem;font-weight:900;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;display:none}
+.header-icon.cart .badge.show{display:block}
 
-/* BANNIERE SLIDER */
-.banniere-slider{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--primary-d));min-height:220px}
-.banniere-slide{display:none;padding:36px 20px;text-align:center;color:#fff;min-height:220px;flex-direction:column;align-items:center;justify-content:center;position:relative}
-.banniere-slide.active{display:flex;animation:fadeSlide .5s ease}
+/* BANNIERE ARRONDIE + FLOU CONFIGURABLE */
+.banniere-wrap{padding:10px 12px}
+.banniere-slider{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:var(--banniere-radius);min-height:{{ revendeur.get('boutique_banniere_hauteur', 220) }}px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.banniere-slide{display:none;padding:36px 20px;text-align:center;color:#fff;min-height:{{ revendeur.get('boutique_banniere_hauteur', 220) }}px;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.banniere-slide.active{display:flex;animation:fadeSlide .6s ease}
 @keyframes fadeSlide{from{opacity:0}to{opacity:1}}
-.banniere-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45;z-index:0}
-.banniere-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.5),rgba(0,0,0,.3));z-index:1}
+.banniere-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:var(--banniere-flou);z-index:0}
+.banniere-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.4),rgba(0,0,0,.2));z-index:1}
 .banniere-content{position:relative;z-index:2}
-.banniere-slide h2{font-size:1.3rem;font-weight:900;margin-bottom:8px;line-height:1.2;text-shadow:0 2px 8px rgba(0,0,0,.3)}
-.banniere-slide p{font-size:.85rem;opacity:.95;max-width:400px;margin:0 auto;text-shadow:0 1px 4px rgba(0,0,0,.3)}
+.banniere-slide h2{font-size:1.4rem;font-weight:900;margin-bottom:8px;line-height:1.2;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+.banniere-slide p{font-size:.88rem;opacity:.95;max-width:400px;margin:0 auto;text-shadow:0 1px 6px rgba(0,0,0,.4)}
 .banniere-dots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:3}
 .banniere-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer;transition:.3s;border:none}
 .banniere-dot.active{background:#fff;width:22px;border-radius:4px}
 
-/* CATEGORIES */
 .cat-scroll{background:var(--panel-bg);padding:14px;overflow-x:auto;display:flex;gap:14px;border-bottom:1px solid var(--border);scrollbar-width:none}
 .cat-scroll::-webkit-scrollbar{display:none}
 .cat-item{flex-shrink:0;text-align:center;cursor:pointer;min-width:64px;background:none;border:none}
@@ -73,7 +63,6 @@ button{font-family:inherit;cursor:pointer}
 .cat-item.active .cat-item-ico{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff}
 .cat-item-lbl{font-size:.72rem;color:var(--text);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px}
 
-/* TITRE + VUE */
 .section-hd{padding:18px 14px 10px}
 .section-hd h2{font-size:1.3rem;font-weight:900;color:var(--text)}
 .vue-filtres{display:flex;gap:8px;padding:0 14px 14px;align-items:center;flex-wrap:wrap}
@@ -81,20 +70,13 @@ button{font-family:inherit;cursor:pointer}
 .vue-btn:hover{border-color:var(--primary);color:var(--primary)}
 .vue-btn.active{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border-color:transparent}
 
-/* PRODUITS */
 .produits-wrap{padding:0 14px 30px}
 .produits-container{display:grid;gap:12px}
 .produits-container.grille{grid-template-columns:repeat(2,1fr)}
 .produits-container.liste{grid-template-columns:1fr}
 .produits-container.compacte{grid-template-columns:1fr;gap:8px}
-@media(min-width:600px){
-  .produits-container.grille{grid-template-columns:repeat(3,1fr)}
-  .produits-container.liste{grid-template-columns:repeat(2,1fr)}
-}
-@media(min-width:900px){
-  .produits-container.grille{grid-template-columns:repeat(4,1fr)}
-  .produits-container.liste{grid-template-columns:repeat(3,1fr)}
-}
+@media(min-width:600px){.produits-container.grille{grid-template-columns:repeat(3,1fr)}.produits-container.liste{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:900px){.produits-container.grille{grid-template-columns:repeat(4,1fr)}.produits-container.liste{grid-template-columns:repeat(3,1fr)}}
 .produit-card{background:var(--card-bg);border-radius:12px;overflow:hidden;border:1px solid var(--border);transition:.25s;display:flex;flex-direction:column;cursor:pointer;position:relative}
 .produit-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.1);border-color:var(--primary)}
 .produit-img{width:100%;aspect-ratio:1;background:var(--soft-bg);object-fit:cover;display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:2.5rem;overflow:hidden;position:relative}
@@ -119,13 +101,11 @@ button{font-family:inherit;cursor:pointer}
 .produits-container.compacte .produit-nom{font-size:.82rem;min-height:0;margin-bottom:4px;flex:1}
 .produits-container.compacte .btn-panier{width:auto;padding:8px 14px;margin-top:0;font-size:.72rem;flex-shrink:0}
 
-/* AVIS */
 .avis-sec{padding:40px 14px;background:var(--panel-bg);border-top:1px solid var(--border)}
 .avis-sec h2{text-align:center;font-size:1.3rem;font-weight:900;color:var(--text);margin-bottom:8px}
 .avis-sec .sous{text-align:center;font-size:.85rem;color:var(--text-mid);margin-bottom:24px}
 .avis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;max-width:1000px;margin:0 auto}
-.avis-card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:20px;transition:.2s}
-.avis-card:hover{border-color:var(--primary);transform:translateY(-2px)}
+.avis-card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:20px}
 .avis-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .avis-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1rem;flex-shrink:0;text-transform:uppercase}
 .avis-nom{font-size:.9rem;font-weight:900;color:var(--text)}
@@ -133,7 +113,6 @@ button{font-family:inherit;cursor:pointer}
 .avis-stars{color:#F59E0B;font-size:.85rem;margin-bottom:10px}
 .avis-texte{font-size:.85rem;color:var(--text-mid);line-height:1.6;font-style:italic}
 
-/* NAV BAS */
 .nav-bas{position:fixed;bottom:0;left:0;right:0;background:var(--panel-bg);border-top:1px solid var(--border);display:flex;z-index:90;padding:8px 0;box-shadow:0 -4px 12px rgba(0,0,0,.05)}
 .nav-item-bas{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text-mid);font-size:.7rem;font-weight:700;text-decoration:none;padding:6px 0;position:relative;background:none;border:none;cursor:pointer;font-family:inherit}
 .nav-item-bas i{font-size:1.2rem}
@@ -141,7 +120,6 @@ button{font-family:inherit;cursor:pointer}
 .nav-item-bas .badge-count{position:absolute;top:2px;right:calc(50% - 20px);background:var(--red);color:#fff;font-size:.6rem;font-weight:900;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center;display:none}
 .nav-item-bas .badge-count.show{display:block}
 
-/* MODALS */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
 .modal-bg.open{display:flex}
 .modal-content{background:var(--panel-bg);width:100%;max-width:500px;border-radius:20px 20px 0 0;padding:22px 18px 30px;animation:slideUp .3s ease;max-height:85vh;overflow-y:auto}
@@ -150,12 +128,16 @@ button{font-family:inherit;cursor:pointer}
 .modal-header h3{font-size:1.05rem;font-weight:900;color:var(--text)}
 .modal-close{background:none;border:none;font-size:1.3rem;color:var(--text-mid);cursor:pointer}
 
-.vue-option{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;cursor:pointer;transition:.2s;background:none;width:100%;font-family:inherit;text-align:left}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:6px}
+.fg .inp,.fg .sel,.fg textarea{width:100%;padding:12px;border:2px solid var(--border);border-radius:11px;font-size:.9rem;color:var(--text);outline:none;background:var(--soft-bg);font-family:inherit}
+.fg .inp:focus,.fg .sel:focus,.fg textarea:focus{border-color:var(--primary);background:var(--card-bg)}
+
+.vue-option{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;cursor:pointer;background:none;width:100%;font-family:inherit;text-align:left;color:var(--text)}
 .vue-option:hover,.vue-option.active{border-color:var(--primary);background:rgba(0,191,255,.05)}
 .vue-option-ico{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--primary)}
 .vue-option-lbl{font-size:.9rem;font-weight:700;color:var(--text);flex:1}
 
-/* CHARIOT */
 .chariot-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:center}
 .chariot-item:last-child{border-bottom:none}
 .chariot-img{width:60px;height:60px;border-radius:8px;object-fit:cover;background:var(--soft-bg);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:1.5rem;overflow:hidden}
@@ -172,7 +154,6 @@ button{font-family:inherit;cursor:pointer}
 .empty-chariot{text-align:center;padding:40px 20px;color:var(--text-mid)}
 .empty-chariot i{font-size:3rem;color:var(--border);display:block;margin-bottom:14px}
 
-/* MODAL PRODUIT */
 .modal-produit{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
 .modal-produit.open{display:flex}
 .modal-produit-content{background:var(--panel-bg);width:100%;max-width:500px;border-radius:20px;padding:0;max-height:90vh;overflow-y:auto;animation:pop .3s ease;position:relative}
@@ -195,48 +176,20 @@ button{font-family:inherit;cursor:pointer}
 .btn-ajouter{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border:none;border-radius:12px;font-weight:900;font-size:.95rem;cursor:pointer;margin-bottom:10px;box-shadow:0 6px 18px rgba(0,191,255,.3)}
 .btn-wa-outline{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;background:transparent;border:2px solid #25D366;color:#25D366;border-radius:12px;font-weight:900;font-size:.92rem;cursor:pointer;text-decoration:none}
 
-/* FOOTER */
 .shop-footer{background:#0F172A;color:rgba(255,255,255,.6);text-align:center;padding:30px 20px;font-size:.78rem;line-height:1.7;margin-bottom:60px}
 .shop-footer .brand{color:#fff;font-weight:900;font-size:1rem;margin-bottom:8px}
 .shop-footer a{color:var(--primary);font-weight:700}
 
 .wa-float{position:fixed;bottom:95px;right:16px;width:54px;height:54px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;box-shadow:0 8px 24px rgba(37,211,102,.5);z-index:85;text-decoration:none}
 
-/* TOAST - FIXE : ne cache plus les boutons, disparait bien */
-.toast{
-  position:fixed;
-  bottom:90px;
-  left:50%;
-  transform:translateX(-50%) translateY(120px);
-  background:#0F172A;
-  color:#fff;
-  padding:12px 24px;
-  border-radius:30px;
-  font-size:.85rem;
-  font-weight:700;
-  z-index:500;
-  transition:transform .35s ease,opacity .35s ease;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  pointer-events:none;
-  max-width:88%;
-  text-align:center;
-  box-shadow:0 10px 30px rgba(0,0,0,.35);
-  opacity:0;
-  white-space:nowrap;
-}
-.toast.show{
-  transform:translateX(-50%) translateY(0);
-  opacity:1;
-}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(120px);background:#0F172A;color:#fff;padding:12px 24px;border-radius:30px;font-size:.85rem;font-weight:700;z-index:500;transition:transform .35s ease,opacity .35s ease;display:flex;align-items:center;gap:10px;pointer-events:none;max-width:88%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .toast i{color:var(--primary);flex-shrink:0;font-size:1rem}
 .toast.toast-success i{color:#10B981}
 .toast.toast-error i{color:#DC2626}
 .toast.toast-warning i{color:#F59E0B}
 .toast.toast-info i{color:#00BFFF}
 
-/* THEME TOGGLE */
 .theme-toggle-boutique{position:fixed;bottom:24px;left:16px;width:46px;height:46px;background:var(--panel-bg);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:1rem;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.15);z-index:86;transition:.2s}
 .theme-toggle-boutique:hover{transform:scale(1.08)}
 
@@ -251,7 +204,6 @@ button{font-family:inherit;cursor:pointer}
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="shop-header">
   {% if boutique.logo_url %}
   <img class="header-logo" src="{{ boutique.logo_url }}" alt="{{ boutique.nom }}">
@@ -260,45 +212,49 @@ button{font-family:inherit;cursor:pointer}
   {% endif %}
   <div class="header-name">{{ boutique.nom }}</div>
   <button class="header-icon" onclick="ouvrirRecherche()"><i class="fas fa-search"></i></button>
+  <a href="{{ url_for('boutique.mes_commandes', slug=slug) }}" class="header-icon" title="Mes commandes">
+    <i class="fas fa-user"></i>
+  </a>
   <button class="header-icon cart" onclick="ouvrirChariot()">
     <i class="fas fa-shopping-cart"></i>
     <span class="badge" id="badgeCart">0</span>
   </button>
 </header>
 
-<!-- BANNIERE SLIDER DYNAMIQUE -->
-<div class="banniere-slider" id="banniereSlider">
-  {% if bannieres %}
-    {% for b in bannieres %}
-    <div class="banniere-slide {% if loop.first %}active{% endif %}">
-      {% if b.image_url %}<img class="banniere-img" src="{{ b.image_url }}" alt="">{% endif %}
-      <div class="banniere-overlay"></div>
-      <div class="banniere-content">
-        {% if b.titre %}<h2>{{ b.titre }}</h2>{% endif %}
-        {% if b.sous_titre %}<p>{{ b.sous_titre }}</p>{% endif %}
-      </div>
-    </div>
-    {% endfor %}
-    {% if bannieres|length > 1 %}
-    <div class="banniere-dots" id="banniereDots">
+<!-- BANNIERE ARRONDIE -->
+<div class="banniere-wrap">
+  <div class="banniere-slider" id="banniereSlider">
+    {% if bannieres %}
       {% for b in bannieres %}
-      <button class="banniere-dot {% if loop.first %}active{% endif %}" onclick="slideBanniere({{ loop.index0 }})" aria-label="Slide {{ loop.index }}"></button>
-      {% endfor %}
-    </div>
-    {% endif %}
-  {% else %}
-    <div class="banniere-slide active">
-      {% if boutique.banniere_url %}<img class="banniere-img" src="{{ boutique.banniere_url }}" alt="">{% endif %}
-      <div class="banniere-overlay"></div>
-      <div class="banniere-content">
-        <h2>{{ boutique.slogan }}</h2>
-        <p>{{ boutique.message_accueil }}</p>
+      <div class="banniere-slide {% if loop.first %}active{% endif %}">
+        {% if b.image_url %}<img class="banniere-img" src="{{ b.image_url }}" alt="">{% endif %}
+        <div class="banniere-overlay"></div>
+        <div class="banniere-content">
+          {% if b.titre %}<h2>{{ b.titre }}</h2>{% endif %}
+          {% if b.sous_titre %}<p>{{ b.sous_titre }}</p>{% endif %}
+        </div>
       </div>
-    </div>
-  {% endif %}
+      {% endfor %}
+      {% if bannieres|length > 1 %}
+      <div class="banniere-dots" id="banniereDots">
+        {% for b in bannieres %}
+        <button class="banniere-dot {% if loop.first %}active{% endif %}" onclick="slideBanniere({{ loop.index0 }})"></button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% else %}
+      <div class="banniere-slide active">
+        {% if boutique.banniere_url %}<img class="banniere-img" src="{{ boutique.banniere_url }}" alt="">{% endif %}
+        <div class="banniere-overlay"></div>
+        <div class="banniere-content">
+          <h2>{{ boutique.slogan }}</h2>
+          <p>{{ boutique.message_accueil }}</p>
+        </div>
+      </div>
+    {% endif %}
+  </div>
 </div>
 
-<!-- CATEGORIES -->
 {% if categories %}
 <div class="cat-scroll" id="catScroll">
   <button class="cat-item active" onclick="filtrerCategorie('all', this)">
@@ -314,25 +270,16 @@ button{font-family:inherit;cursor:pointer}
 </div>
 {% endif %}
 
-<!-- TITRE -->
 <div class="section-hd">
   <h2 id="titreSection">Tous les articles</h2>
 </div>
 
-<!-- VUE -->
 <div class="vue-filtres">
-  <button class="vue-btn active" onclick="changerVue('grille')" data-vue="grille">
-    <i class="fas fa-th"></i> Grille
-  </button>
-  <button class="vue-btn" onclick="changerVue('compacte')" data-vue="compacte">
-    <i class="fas fa-list"></i> Compacte
-  </button>
-  <button class="vue-btn" onclick="ouvrirVue()">
-    <i class="fas fa-arrow-down-up-across-line"></i> Changer
-  </button>
+  <button class="vue-btn active" onclick="changerVue('grille')" data-vue="grille"><i class="fas fa-th"></i> Grille</button>
+  <button class="vue-btn" onclick="changerVue('compacte')" data-vue="compacte"><i class="fas fa-list"></i> Compacte</button>
+  <button class="vue-btn" onclick="ouvrirVue()"><i class="fas fa-arrow-down-up-across-line"></i> Changer</button>
 </div>
 
-<!-- PRODUITS -->
 <div class="produits-wrap">
   {% if produits %}
     <div class="produits-container grille" id="produitsContainer">
@@ -370,7 +317,6 @@ button{font-family:inherit;cursor:pointer}
   {% endif %}
 </div>
 
-<!-- AVIS CLIENTS -->
 {% if avis_approuves and boutique.sections.get('avis', True) %}
 <div class="avis-sec">
   <h2>Ils nous font confiance</h2>
@@ -397,38 +343,23 @@ button{font-family:inherit;cursor:pointer}
 </div>
 {% endif %}
 
-<!-- FOOTER -->
 <footer class="shop-footer">
   <div class="brand">{{ boutique.nom }}</div>
   <div style="margin-bottom:12px">{{ boutique.slogan }}</div>
   <div>&copy; 2026 {{ boutique.nom }} · Propulse par <a href="https://boostcentral.world" target="_blank">Boost Central</a></div>
 </footer>
 
-<!-- NAV BAS -->
 <nav class="nav-bas">
-  <button class="nav-item-bas active" onclick="window.scrollTo({top:0,behavior:'smooth'})">
-    <i class="fas fa-home"></i> Maison
-  </button>
-  <button class="nav-item-bas" onclick="scrollToCategories()">
-    <i class="fas fa-th-large"></i> Categories
-  </button>
-  <button class="nav-item-bas" onclick="ouvrirChariot()">
-    <i class="fas fa-shopping-cart"></i> Chariot
-    <span class="badge-count" id="badgeCartBas">0</span>
-  </button>
-  <a href="{% if est_connecte %}{{ url_for('dashboard.index') }}{% else %}{{ url_for('auth.connexion') }}{% endif %}" class="nav-item-bas">
-    <i class="fas fa-user-circle"></i> {% if est_connecte %}Espace{% else %}Connexion{% endif %}
-  </a>
+  <button class="nav-item-bas active" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-home"></i> Maison</button>
+  <button class="nav-item-bas" onclick="scrollToCategories()"><i class="fas fa-th-large"></i> Categories</button>
+  <button class="nav-item-bas" onclick="ouvrirChariot()"><i class="fas fa-shopping-cart"></i> Chariot <span class="badge-count" id="badgeCartBas">0</span></button>
+  <a href="{{ url_for('boutique.mes_commandes', slug=slug) }}" class="nav-item-bas"><i class="fas fa-user-circle"></i> Mes commandes</a>
 </nav>
 
-<!-- WHATSAPP FLOTTANT -->
 {% if boutique.whatsapp_flottant and boutique.whatsapp %}
-<a href="https://wa.me/{{ boutique.whatsapp }}" target="_blank" class="wa-float">
-  <i class="fab fa-whatsapp"></i>
-</a>
+<a href="https://wa.me/{{ boutique.whatsapp }}" target="_blank" class="wa-float"><i class="fab fa-whatsapp"></i></a>
 {% endif %}
 
-<!-- THEME TOGGLE BOUTIQUE (pour le mode sombre) -->
 <button class="theme-toggle-boutique" onclick="toggleThemeBoutique()" title="Changer de theme">
   <i class="fas fa-moon" id="themeIconBoutique"></i>
 </button>
@@ -437,18 +368,9 @@ button{font-family:inherit;cursor:pointer}
 <div class="modal-bg" id="modalVue" onclick="if(event.target===this) fermerModal('modalVue')">
   <div class="modal-content">
     <div class="modal-header"><h3>Changer de vue</h3><button class="modal-close" onclick="fermerModal('modalVue')">✕</button></div>
-    <button class="vue-option" onclick="changerVue('grille'); fermerModal('modalVue')">
-      <div class="vue-option-ico"><i class="fas fa-th"></i></div>
-      <div class="vue-option-lbl">Vue grille</div>
-    </button>
-    <button class="vue-option" onclick="changerVue('compacte'); fermerModal('modalVue')">
-      <div class="vue-option-ico"><i class="fas fa-list"></i></div>
-      <div class="vue-option-lbl">Vue compacte</div>
-    </button>
-    <button class="vue-option" onclick="changerVue('liste'); fermerModal('modalVue')">
-      <div class="vue-option-ico"><i class="fas fa-list-ul"></i></div>
-      <div class="vue-option-lbl">Vue liste</div>
-    </button>
+    <button class="vue-option" onclick="changerVue('grille'); fermerModal('modalVue')"><div class="vue-option-ico"><i class="fas fa-th"></i></div><div class="vue-option-lbl">Vue grille</div></button>
+    <button class="vue-option" onclick="changerVue('compacte'); fermerModal('modalVue')"><div class="vue-option-ico"><i class="fas fa-list"></i></div><div class="vue-option-lbl">Vue compacte</div></button>
+    <button class="vue-option" onclick="changerVue('liste'); fermerModal('modalVue')"><div class="vue-option-ico"><i class="fas fa-list-ul"></i></div><div class="vue-option-lbl">Vue liste</div></button>
   </div>
 </div>
 
@@ -460,11 +382,66 @@ button{font-family:inherit;cursor:pointer}
   </div>
 </div>
 
-<!-- MODAL CHARIOT -->
+<!-- MODAL CHARIOT + CHECKOUT INTEGRE -->
 <div class="modal-bg" id="modalChariot" onclick="if(event.target===this) fermerModal('modalChariot')">
   <div class="modal-content">
     <div class="modal-header"><h3>Mon panier</h3><button class="modal-close" onclick="fermerModal('modalChariot')">✕</button></div>
     <div id="chariotBody"></div>
+  </div>
+</div>
+
+<!-- MODAL CHECKOUT (FORMULAIRE CLIENT) -->
+<div class="modal-bg" id="modalCheckout" onclick="if(event.target===this) fermerModal('modalCheckout')">
+  <div class="modal-content">
+    <div class="modal-header"><h3>Finaliser ma commande</h3><button class="modal-close" onclick="fermerModal('modalCheckout')">✕</button></div>
+
+    <form method="POST" action="{{ url_for('boutique.commander', slug=slug) }}" id="formCheckout">
+      <input type="hidden" name="panier_json" id="panierJson">
+
+      <div class="fg">
+        <label>Nom complet *</label>
+        <input type="text" class="inp" name="client_nom" required>
+      </div>
+
+      <div class="fg">
+        <label>Telephone (WhatsApp) *</label>
+        <input type="tel" class="inp" name="client_telephone" required placeholder="Ex: 237658033690">
+      </div>
+
+      <div class="fg">
+        <label>Email *</label>
+        <input type="email" class="inp" name="client_email" required placeholder="vous@exemple.com">
+        <small style="font-size:.72rem;color:var(--text-light)">Pour recevoir la confirmation et suivre votre commande</small>
+      </div>
+
+      <div class="fg">
+        <label>Adresse de livraison</label>
+        <input type="text" class="inp" name="client_adresse" placeholder="Quartier, rue...">
+      </div>
+
+      <div class="fg">
+        <label>Ville</label>
+        <input type="text" class="inp" name="client_ville" placeholder="Ex: Douala">
+      </div>
+
+      <div class="fg">
+        <label>Mode de paiement *</label>
+        <select class="sel" name="mode_paiement" required>
+          <option value="cash">💵 Paiement a la livraison</option>
+          <option value="mtn">📱 MTN Mobile Money</option>
+          <option value="orange">📱 Orange Money</option>
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>Note (optionnel)</label>
+        <textarea name="note_client" rows="2" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:11px;font-size:.9rem;color:var(--text);outline:none;background:var(--soft-bg);font-family:inherit;resize:vertical" placeholder="Instructions particulieres..."></textarea>
+      </div>
+
+      <button type="submit" class="btn-checkout">
+        <i class="fas fa-check-circle"></i> Confirmer ma commande
+      </button>
+    </form>
   </div>
 </div>
 
@@ -479,37 +456,26 @@ button{font-family:inherit;cursor:pointer}
       <h3 id="mpNom">Produit</h3>
       <div class="modal-produit-prix" id="mpPrix">0 F</div>
       <p class="modal-produit-desc" id="mpDesc"></p>
-
-      <!-- ATTRIBUTS DYNAMIQUES -->
       <div id="mpAttributs"></div>
-
       <div class="modal-produit-qte">
         <button class="btn-qte" onclick="changeQteProduit(-1)">−</button>
         <span class="qte-val" id="mpQte">1</span>
         <button class="btn-qte" onclick="changeQteProduit(1)">+</button>
       </div>
-      <button class="btn-ajouter" onclick="ajouterProduitDuModal()">
-        <i class="fas fa-cart-plus"></i> Ajouter au panier
-      </button>
+      <button class="btn-ajouter" onclick="ajouterProduitDuModal()"><i class="fas fa-cart-plus"></i> Ajouter au panier</button>
       {% if boutique.whatsapp %}
-      <a href="#" id="mpWa" target="_blank" class="btn-wa-outline">
-        <i class="fab fa-whatsapp"></i> Commander sur WhatsApp
-      </a>
+      <a href="#" id="mpWa" target="_blank" class="btn-wa-outline"><i class="fab fa-whatsapp"></i> Commander sur WhatsApp</a>
       {% endif %}
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast">
   <i class="fas fa-check-circle" id="toastIcon"></i>
   <span id="toastMsg">Ajoute au panier</span>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-// ETAT GLOBAL
-// ═══════════════════════════════════════════════════════════════
 var vueActuelle = 'grille';
 var categorieActive = 'all';
 var chariot = [];
@@ -520,43 +486,21 @@ var attributsDispo = {{ attributs|tojson|safe }};
 var attributsSelectionnes = {};
 var toastTimeout = null;
 
-// ═══════════════════════════════════════════════════════════════
-// BANNIERE - SLIDER AUTOMATIQUE
-// ═══════════════════════════════════════════════════════════════
+// BANNIERE
 var nbSlides = document.querySelectorAll('.banniere-slide').length;
-
 function slideBanniere(index){
   slideActuel = index;
-  var slides = document.querySelectorAll('.banniere-slide');
-  var dots = document.querySelectorAll('.banniere-dot');
-  slides.forEach(function(s, i){ s.classList.toggle('active', i === index); });
-  dots.forEach(function(d, i){ d.classList.toggle('active', i === index); });
+  document.querySelectorAll('.banniere-slide').forEach(function(s, i){ s.classList.toggle('active', i === index); });
+  document.querySelectorAll('.banniere-dot').forEach(function(d, i){ d.classList.toggle('active', i === index); });
 }
+if(nbSlides > 1){ setInterval(function(){ slideActuel = (slideActuel + 1) % nbSlides; slideBanniere(slideActuel); }, 4000); }
 
-if(nbSlides > 1){
-  setInterval(function(){
-    slideActuel = (slideActuel + 1) % nbSlides;
-    slideBanniere(slideActuel);
-  }, 4000);
-}
-
-// ═══════════════════════════════════════════════════════════════
-// THEME SOMBRE (toggle local pour la boutique)
-// ═══════════════════════════════════════════════════════════════
+// THEME
 (function initTheme(){
-  try{
-    var saved = localStorage.getItem('boutique-theme');
-    if(saved === 'dark'){
-      document.documentElement.setAttribute('data-theme','dark');
-    }
-  }catch(e){}
+  try{ if(localStorage.getItem('boutique-theme') === 'dark'){ document.documentElement.setAttribute('data-theme','dark'); } }catch(e){}
   var icon = document.getElementById('themeIconBoutique');
-  if(icon){
-    var current = document.documentElement.getAttribute('data-theme') || 'light';
-    icon.className = current === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-  }
+  if(icon){ var c = document.documentElement.getAttribute('data-theme') || 'light'; icon.className = c === 'dark' ? 'fas fa-sun' : 'fas fa-moon'; }
 })();
-
 function toggleThemeBoutique(){
   var current = document.documentElement.getAttribute('data-theme') || 'light';
   var next = current === 'dark' ? 'light' : 'dark';
@@ -566,107 +510,43 @@ function toggleThemeBoutique(){
   if(icon){ icon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon'; }
 }
 
-// ═══════════════════════════════════════════════════════════════
 // VUE
-// ═══════════════════════════════════════════════════════════════
-function changerVue(vue){
-  vueActuelle = vue;
-  var container = document.getElementById('produitsContainer');
-  if(!container) return;
-  container.className = 'produits-container ' + vue;
-  document.querySelectorAll('.vue-btn[data-vue]').forEach(function(b){
-    b.classList.toggle('active', b.getAttribute('data-vue') === vue);
-  });
-}
+function changerVue(vue){ vueActuelle = vue; var c = document.getElementById('produitsContainer'); if(!c) return; c.className = 'produits-container ' + vue; document.querySelectorAll('.vue-btn[data-vue]').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-vue') === vue); }); }
 function ouvrirVue(){ document.getElementById('modalVue').classList.add('open'); }
-function ouvrirRecherche(){
-  document.getElementById('modalRecherche').classList.add('open');
-  setTimeout(function(){ document.getElementById('searchProduit').focus(); }, 200);
-}
+function ouvrirRecherche(){ document.getElementById('modalRecherche').classList.add('open'); setTimeout(function(){ document.getElementById('searchProduit').focus(); }, 200); }
 
-// ═══════════════════════════════════════════════════════════════
 // FILTRES
-// ═══════════════════════════════════════════════════════════════
-function filtrerCategorie(catId, el){
-  categorieActive = catId;
-  document.querySelectorAll('.cat-item').forEach(function(c){ c.classList.remove('active'); });
-  el.classList.add('active');
-  appliquerFiltres();
-  document.getElementById('titreSection').textContent = catId === 'all' ? 'Tous les articles' : el.querySelector('.cat-item-lbl').textContent;
-}
+function filtrerCategorie(catId, el){ categorieActive = catId; document.querySelectorAll('.cat-item').forEach(function(c){ c.classList.remove('active'); }); el.classList.add('active'); appliquerFiltres(); document.getElementById('titreSection').textContent = catId === 'all' ? 'Tous les articles' : el.querySelector('.cat-item-lbl').textContent; }
 function filtrerParRecherche(){ appliquerFiltres(); }
-function appliquerFiltres(){
-  var q = (document.getElementById('searchProduit') ? document.getElementById('searchProduit').value : '').toLowerCase();
-  document.querySelectorAll('.produit-card').forEach(function(c){
-    var nom = c.getAttribute('data-nom') || '';
-    var cat = c.getAttribute('data-categorie') || '0';
-    var okCat = (categorieActive === 'all') || (cat === categorieActive);
-    var okNom = nom.includes(q);
-    c.style.display = (okCat && okNom) ? '' : 'none';
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════
-// FAVORIS
-// ═══════════════════════════════════════════════════════════════
+function appliquerFiltres(){ var q = (document.getElementById('searchProduit') ? document.getElementById('searchProduit').value : '').toLowerCase(); document.querySelectorAll('.produit-card').forEach(function(c){ var nom = c.getAttribute('data-nom') || ''; var cat = c.getAttribute('data-categorie') || '0'; var okCat = (categorieActive === 'all') || (cat === categorieActive); var okNom = nom.includes(q); c.style.display = (okCat && okNom) ? '' : 'none'; }); }
 function toggleFav(el){ el.classList.toggle('active'); }
 
-// ═══════════════════════════════════════════════════════════════
 // CHARIOT
-// ═══════════════════════════════════════════════════════════════
 function ajouterAuPanier(produit, attributs){
   var key = String(produit.id) + '_' + JSON.stringify(attributs || {});
   var existant = chariot.find(function(item){ return item.key === key; });
-  if(existant){
-    existant.qte += 1;
-  } else {
-    chariot.push({key: key, id: produit.id, nom: produit.nom, prix: produit.prix || 0, image: produit.image_url, qte: 1, attributs: attributs || {}});
-  }
+  if(existant){ existant.qte += 1; } else { chariot.push({key: key, id: produit.id, nom: produit.nom, prix: produit.prix || 0, image: produit.image_url, qte: 1, attributs: attributs || {}}); }
   majChariot();
   afficherToast(produit.nom + ' ajoute au panier', 'success');
 }
-function ajouterProduitDuModal(){
-  if(!currentProduit) return;
-  ajouterAuPanier(currentProduit, attributsSelectionnes);
-  fermerModalProduit();
-}
-function retirerDuPanier(key){
-  chariot = chariot.filter(function(item){ return item.key !== key; });
-  majChariot();
-}
-function changeQteChariot(key, delta){
-  var item = chariot.find(function(i){ return i.key === key; });
-  if(!item) return;
-  item.qte += delta;
-  if(item.qte <= 0) retirerDuPanier(key);
-  else majChariot();
-}
+function ajouterProduitDuModal(){ if(!currentProduit) return; ajouterAuPanier(currentProduit, attributsSelectionnes); fermerModalProduit(); }
+function retirerDuPanier(key){ chariot = chariot.filter(function(item){ return item.key !== key; }); majChariot(); }
+function changeQteChariot(key, delta){ var item = chariot.find(function(i){ return i.key === key; }); if(!item) return; item.qte += delta; if(item.qte <= 0) retirerDuPanier(key); else majChariot(); }
 function majChariot(){
   var totalQte = chariot.reduce(function(sum, item){ return sum + item.qte; }, 0);
-  var badge = document.getElementById('badgeCart');
-  var badgeBas = document.getElementById('badgeCartBas');
+  var badge = document.getElementById('badgeCart'); var badgeBas = document.getElementById('badgeCartBas');
   if(badge){ badge.textContent = totalQte; badge.classList.toggle('show', totalQte > 0); }
   if(badgeBas){ badgeBas.textContent = totalQte; badgeBas.classList.toggle('show', totalQte > 0); }
-
-  var body = document.getElementById('chariotBody');
-  if(!body) return;
-
-  if(chariot.length === 0){
-    body.innerHTML = '<div class="empty-chariot"><i class="fas fa-shopping-bag"></i><p>Votre panier est vide</p></div>';
-    return;
-  }
-
-  var html = '';
-  var total = 0;
+  var body = document.getElementById('chariotBody'); if(!body) return;
+  if(chariot.length === 0){ body.innerHTML = '<div class="empty-chariot"><i class="fas fa-shopping-bag"></i><p>Votre panier est vide</p></div>'; return; }
+  var html = ''; var total = 0;
   chariot.forEach(function(item){
     total += item.prix * item.qte;
     html += '<div class="chariot-item">';
     html += '<div class="chariot-img">' + (item.image ? '<img src="' + item.image + '" alt="">' : '<i class="fas fa-image"></i>') + '</div>';
     html += '<div class="chariot-info">';
     html += '<div class="chariot-nom">' + item.nom + '</div>';
-    if(Object.keys(item.attributs || {}).length > 0){
-      html += '<div style="font-size:.7rem;color:var(--text-light);margin-bottom:3px">' + Object.values(item.attributs).join(' · ') + '</div>';
-    }
+    if(Object.keys(item.attributs || {}).length > 0){ html += '<div style="font-size:.7rem;color:var(--text-light);margin-bottom:3px">' + Object.values(item.attributs).join(' · ') + '</div>'; }
     html += '<div class="chariot-prix">' + (item.prix * item.qte).toLocaleString('fr-FR') + ' F</div>';
     html += '</div>';
     html += '<div class="chariot-qte">';
@@ -676,121 +556,61 @@ function majChariot(){
     html += '</div>';
     html += '</div>';
   });
-
-  html += '<div class="chariot-total">';
-  html += '<span class="chariot-total-lbl">Total</span>';
-  html += '<span class="chariot-total-val">' + total.toLocaleString('fr-FR') + ' F</span>';
-  html += '</div>';
-
-  html += '<a href="https://wa.me/{{ boutique.whatsapp }}?text=' + encodeURIComponent('Bonjour {{ boutique.nom }}, je veux commander : ' + chariot.map(function(i){ return i.qte + 'x ' + i.nom; }).join(', ') + ' — Total : ' + total.toLocaleString('fr-FR') + ' F') + '" target="_blank" class="btn-checkout">';
-  html += '<i class="fab fa-whatsapp"></i> Commander sur WhatsApp';
-  html += '</a>';
-
+  html += '<div class="chariot-total"><span class="chariot-total-lbl">Total</span><span class="chariot-total-val">' + total.toLocaleString('fr-FR') + ' F</span></div>';
+  html += '<button type="button" onclick="ouvrirCheckout()" class="btn-checkout"><i class="fas fa-check-circle"></i> Valider ma commande</button>';
   body.innerHTML = html;
 }
-function ouvrirChariot(){
-  majChariot();
-  document.getElementById('modalChariot').classList.add('open');
+function ouvrirChariot(){ majChariot(); document.getElementById('modalChariot').classList.add('open'); }
+function ouvrirCheckout(){
+  if(chariot.length === 0){ afficherToast('Votre panier est vide', 'warning'); return; }
+  document.getElementById('panierJson').value = JSON.stringify(chariot);
+  fermerModal('modalChariot');
+  document.getElementById('modalCheckout').classList.add('open');
 }
 
-// ═══════════════════════════════════════════════════════════════
 // MODAL PRODUIT
-// ═══════════════════════════════════════════════════════════════
 function ouvrirProduit(produit){
-  currentProduit = produit;
-  currentQteProduit = 1;
-  attributsSelectionnes = {};
-
-  var img = document.getElementById('mpImg');
-  var wrap = document.getElementById('mpImgWrap');
-  if(produit.image_url){
-    img.src = produit.image_url;
-    img.style.display = 'block';
-  } else {
-    img.style.display = 'none';
-    wrap.innerHTML = '<i class="fas fa-image" style="font-size:4rem"></i>';
-  }
+  currentProduit = produit; currentQteProduit = 1; attributsSelectionnes = {};
+  var img = document.getElementById('mpImg'); var wrap = document.getElementById('mpImgWrap');
+  if(produit.image_url){ img.src = produit.image_url; img.style.display = 'block'; } else { img.style.display = 'none'; wrap.innerHTML = '<i class="fas fa-image" style="font-size:4rem"></i>'; }
   document.getElementById('mpNom').textContent = produit.nom || '';
   document.getElementById('mpPrix').textContent = (produit.prix || 0).toLocaleString('fr-FR') + ' F';
   document.getElementById('mpDesc').textContent = produit.description || 'Produit de qualite.';
   document.getElementById('mpQte').textContent = 1;
-
-  // Attributs dynamiques
   var html = '';
   if(attributsDispo && attributsDispo.length > 0){
     attributsDispo.forEach(function(a){
       if(!a.valeurs || a.valeurs.length === 0) return;
-      html += '<div class="attribut-item">';
-      html += '<div class="attribut-item-label">' + a.nom + (a.obligatoire ? ' *' : '') + '</div>';
-      html += '<div class="attribut-valeurs">';
-      a.valeurs.forEach(function(v){
-        html += '<button type="button" class="attribut-btn" onclick="selectAttribut(\'' + a.nom.replace(/'/g, "\\'") + '\', \'' + String(v).replace(/'/g, "\\'") + '\', this)">' + v + '</button>';
-      });
+      html += '<div class="attribut-item"><div class="attribut-item-label">' + a.nom + (a.obligatoire ? ' *' : '') + '</div><div class="attribut-valeurs">';
+      a.valeurs.forEach(function(v){ html += '<button type="button" class="attribut-btn" onclick="selectAttribut(\'' + a.nom.replace(/'/g, "\\'") + '\', \'' + String(v).replace(/'/g, "\\'") + '\', this)">' + v + '</button>'; });
       html += '</div></div>';
     });
   }
   document.getElementById('mpAttributs').innerHTML = html;
-
   var waLink = document.getElementById('mpWa');
-  if(waLink && "{{ boutique.whatsapp }}"){
-    waLink.href = 'https://wa.me/{{ boutique.whatsapp }}?text=' + encodeURIComponent('Bonjour, je veux commander : ' + produit.nom);
-  }
-
+  if(waLink && "{{ boutique.whatsapp }}"){ waLink.href = 'https://wa.me/{{ boutique.whatsapp }}?text=' + encodeURIComponent('Bonjour, je veux commander : ' + produit.nom); }
   document.getElementById('modalProduit').classList.add('open');
 }
-function selectAttribut(nom, valeur, btn){
-  var parent = btn.parentElement;
-  parent.querySelectorAll('.attribut-btn').forEach(function(b){ b.classList.remove('selected'); });
-  btn.classList.add('selected');
-  attributsSelectionnes[nom] = valeur;
-}
+function selectAttribut(nom, valeur, btn){ var parent = btn.parentElement; parent.querySelectorAll('.attribut-btn').forEach(function(b){ b.classList.remove('selected'); }); btn.classList.add('selected'); attributsSelectionnes[nom] = valeur; }
 function fermerModalProduit(){ document.getElementById('modalProduit').classList.remove('open'); }
-function changeQteProduit(delta){
-  currentQteProduit = Math.max(1, currentQteProduit + delta);
-  document.getElementById('mpQte').textContent = currentQteProduit;
-}
+function changeQteProduit(delta){ currentQteProduit = Math.max(1, currentQteProduit + delta); document.getElementById('mpQte').textContent = currentQteProduit; }
 
-// ═══════════════════════════════════════════════════════════════
-// MODALS & NAVIGATION
-// ═══════════════════════════════════════════════════════════════
+// MODALS
 function fermerModal(id){ document.getElementById(id).classList.remove('open'); }
-function scrollToCategories(){
-  var el = document.getElementById('catScroll');
-  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
-}
+function scrollToCategories(){ var el = document.getElementById('catScroll'); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); }
 
-// ═══════════════════════════════════════════════════════════════
-// TOAST - FIXE : disparait bien, ne cache plus les boutons
-// ═══════════════════════════════════════════════════════════════
+// TOAST
 function afficherToast(message, type){
   type = type || 'success';
-  var t = document.getElementById('toast');
-  var icon = document.getElementById('toastIcon');
-  var msg = document.getElementById('toastMsg');
-
-  // Reset
+  var t = document.getElementById('toast'); var icon = document.getElementById('toastIcon'); var msg = document.getElementById('toastMsg');
   t.classList.remove('show', 'toast-success', 'toast-error', 'toast-warning', 'toast-info');
   if(toastTimeout){ clearTimeout(toastTimeout); }
-
-  // Icon selon le type
-  var iconClass = {
-    'success': 'fas fa-check-circle',
-    'error': 'fas fa-times-circle',
-    'warning': 'fas fa-exclamation-circle',
-    'info': 'fas fa-info-circle'
-  }[type] || 'fas fa-check-circle';
-
+  var iconClass = {'success': 'fas fa-check-circle','error': 'fas fa-times-circle','warning': 'fas fa-exclamation-circle','info': 'fas fa-info-circle'}[type] || 'fas fa-check-circle';
   icon.className = iconClass;
   t.classList.add('toast-' + type);
   msg.textContent = message;
-
-  // Afficher
   setTimeout(function(){ t.classList.add('show'); }, 10);
-
-  // Masquer apres 2 secondes
-  toastTimeout = setTimeout(function(){
-    t.classList.remove('show');
-  }, 2000);
+  toastTimeout = setTimeout(function(){ t.classList.remove('show'); }, 2000);
 }
 </script>
 
