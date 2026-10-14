@@ -59,7 +59,7 @@ def _generer_reference():
 def _page_boutique_desactivee(boutique_nom):
     """Retourne une page HTML autonome (aucune dependance a un template)."""
     nom_echappe = (boutique_nom or "Cette boutique").replace("<", "&lt;").replace(">", "&gt;")
-    return f"""<!DOCTYPE html>
+    return """<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -67,8 +67,8 @@ def _page_boutique_desactivee(boutique_nom):
 <meta name="theme-color" content="#0F172A">
 <title>Boutique temporairement indisponible</title>
 <style>
-*,*::before,*::after{{margin:0;padding:0;box-sizing:border-box}}
-body{{
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{
   font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   min-height:100vh;
   background:linear-gradient(135deg,#0F172A,#1E293B);
@@ -81,8 +81,8 @@ body{{
   -webkit-font-smoothing:antialiased;
   position:relative;
   overflow:hidden;
-}}
-body::before{{
+}
+body::before{
   content:'';
   position:absolute;
   top:-50%;
@@ -91,16 +91,16 @@ body::before{{
   height:200%;
   background:radial-gradient(circle,rgba(0,191,255,.15) 0%,transparent 65%);
   pointer-events:none;
-}}
-.wrap{{
+}
+.wrap{
   max-width:520px;
   width:100%;
   text-align:center;
   position:relative;
   z-index:1;
   padding:40px 24px;
-}}
-.icon-wrap{{
+}
+.icon-wrap{
   width:110px;
   height:110px;
   border-radius:50%;
@@ -113,12 +113,12 @@ body::before{{
   color:#00BFFF;
   margin:0 auto 28px;
   animation:pulse 2s ease-in-out infinite;
-}}
-@keyframes pulse{{
-  0%,100%{{box-shadow:0 0 0 0 rgba(0,191,255,.4)}}
-  50%{{box-shadow:0 0 0 20px rgba(0,191,255,0)}}
-}}
-h1{{
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(0,191,255,.4)}
+  50%{box-shadow:0 0 0 20px rgba(0,191,255,0)}
+}
+h1{
   font-size:1.7rem;
   font-weight:900;
   margin-bottom:14px;
@@ -127,8 +127,8 @@ h1{{
   -webkit-background-clip:text;
   background-clip:text;
   color:transparent;
-}}
-.shop-name{{
+}
+.shop-name{
   display:inline-block;
   background:rgba(0,191,255,.1);
   border:1px solid rgba(0,191,255,.3);
@@ -139,8 +139,8 @@ h1{{
   font-weight:800;
   margin-bottom:20px;
   letter-spacing:.3px;
-}}
-p{{
+}
+p{
   font-size:.95rem;
   color:rgba(255,255,255,.7);
   line-height:1.7;
@@ -148,48 +148,48 @@ p{{
   max-width:440px;
   margin-left:auto;
   margin-right:auto;
-}}
-p strong{{color:#fff;font-weight:800}}
-.info-box{{
+}
+p strong{color:#fff;font-weight:800}
+.info-box{
   background:rgba(255,255,255,.05);
   border:1px solid rgba(255,255,255,.1);
   border-radius:16px;
   padding:20px 22px;
   margin:26px 0;
   text-align:left;
-}}
-.info-box h3{{
+}
+.info-box h3{
   font-size:.82rem;
   font-weight:900;
   color:#00BFFF;
   text-transform:uppercase;
   letter-spacing:.8px;
   margin-bottom:12px;
-}}
-.info-box ul{{list-style:none;padding:0}}
-.info-box li{{
+}
+.info-box ul{list-style:none;padding:0}
+.info-box li{
   font-size:.85rem;
   color:rgba(255,255,255,.75);
   padding:8px 0;
   padding-left:22px;
   position:relative;
   line-height:1.5;
-}}
-.info-box li::before{{
-  content:'▸';
+}
+.info-box li::before{
+  content:'\\25B8';
   position:absolute;
   left:0;
   color:#10B981;
   font-weight:900;
-}}
-.actions{{
+}
+.actions{
   display:flex;
   gap:12px;
   justify-content:center;
   flex-wrap:wrap;
   margin-top:8px;
-}}
-.btn{{
+}
+.btn{
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -204,37 +204,37 @@ p strong{{color:#fff;font-weight:800}}
   cursor:pointer;
   font-family:inherit;
   min-width:170px;
-}}
-.btn-primary{{
+}
+.btn-primary{
   background:linear-gradient(135deg,#00BFFF,#0096C7);
   color:#fff;
   box-shadow:0 8px 22px rgba(0,191,255,.35);
-}}
-.btn-primary:hover{{transform:translateY(-2px)}}
-.btn-outline{{
+}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-outline{
   background:rgba(255,255,255,.08);
   color:#fff;
   border:1.5px solid rgba(255,255,255,.2);
-}}
-.btn-outline:hover{{background:rgba(255,255,255,.15)}}
-.footer{{
+}
+.btn-outline:hover{background:rgba(255,255,255,.15)}
+.footer{
   margin-top:36px;
   font-size:.78rem;
   color:rgba(255,255,255,.35);
-}}
-.footer a{{color:#00BFFF;text-decoration:none;font-weight:700}}
-@media(max-width:520px){{
-  h1{{font-size:1.4rem}}
-  .icon-wrap{{width:90px;height:90px;font-size:2.4rem}}
-  .actions{{flex-direction:column}}
-  .btn{{width:100%}}
-}}
+}
+.footer a{color:#00BFFF;text-decoration:none;font-weight:700}
+@media(max-width:520px){
+  h1{font-size:1.4rem}
+  .icon-wrap{width:90px;height:90px;font-size:2.4rem}
+  .actions{flex-direction:column}
+  .btn{width:100%}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="icon-wrap">🚧</div>
-  <div class="shop-name">🏪 {nom_echappe}</div>
+  <div class="shop-name">🏪 BOUTIQUE_NAME_PLACEHOLDER</div>
   <h1>Boutique temporairement indisponible</h1>
   <p>Cette boutique est actuellement <strong>fermée</strong> par son propriétaire. Elle sera de nouveau accessible très bientôt.</p>
   <div class="info-box">
@@ -254,7 +254,7 @@ p strong{{color:#fff;font-weight:800}}
   </div>
 </div>
 </body>
-</html>"""
+</html>""".replace("BOUTIQUE_NAME_PLACEHOLDER", nom_echappe)
 
 
 @boutique_bp.route("/r/<slug>")
