@@ -1,0 +1,171 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Notifications — Boost Reseller{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+{% block page_subtitle %}Choisissez ce que vous voulez recevoir par email{% endblock %}
+
+{% block extra_css %}
+.info-banner{background:linear-gradient(135deg,#E0F7FF,#F0FAFF);border-left:4px solid #00BFFF;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#0F172A;line-height:1.6}
+.info-banner i{color:#00BFFF;margin-right:6px}
+.info-banner strong{color:#0096C7}
+
+.notif-card{background:#fff;border-radius:16px;padding:22px;border:1px solid #E2E8F0;margin-bottom:16px}
+.notif-card h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.notif-card h3 i{color:#00BFFF}
+.notif-card .sous{font-size:.82rem;color:#64748B;margin-bottom:18px;line-height:1.5}
+
+.notif-item{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid #E2E8F0;gap:16px}
+.notif-item:last-child{border-bottom:none;padding-bottom:0}
+.notif-item:first-of-type{padding-top:0}
+.notif-info{flex:1;min-width:0;display:flex;align-items:center;gap:14px}
+.notif-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:#fff;flex-shrink:0}
+.ico-commande{background:linear-gradient(135deg,#10B981,#059669)}
+.ico-paiement{background:linear-gradient(135deg,#F59E0B,#D97706)}
+.ico-avis{background:linear-gradient(135deg,#F472B6,#DB2777)}
+.ico-client{background:linear-gradient(135deg,#7C3AED,#6D28D9)}
+.ico-resume{background:linear-gradient(135deg,#0066FF,#0047CC)}
+.ico-stock{background:linear-gradient(135deg,#DC2626,#991B1B)}
+.notif-text{flex:1;min-width:0}
+.notif-titre{font-size:.92rem;font-weight:800;color:#0F172A;margin-bottom:3px}
+.notif-desc{font-size:.75rem;color:#64748B;line-height:1.4}
+
+.switch{position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;transition:.3s;border-radius:26px}
+.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;bottom:3px;background:#fff;transition:.3s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+input:checked + .slider{background:#00BFFF}
+input:checked + .slider:before{transform:translateX(22px)}
+
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.fg .hint{font-size:.72rem;color:#94A3B8;margin-top:4px;font-weight:400}
+.inp{width:100%;padding:12px 14px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus{border-color:#00BFFF}
+
+.btn-save{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,191,255,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+.btn-save:hover{transform:translateY(-1px)}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="info-banner">
+  <i class="fas fa-bell"></i>
+  Choisissez les <strong>notifications email</strong> que vous voulez recevoir. Vous pourrez les activer/desactiver a tout moment.
+</div>
+
+<form method="POST" action="{{ url_for('dashboard.notifications_prefs') }}">
+
+  <!-- EMAIL DE NOTIFICATION -->
+  <div class="notif-card">
+    <h3><i class="fas fa-envelope"></i> Adresse email de reception</h3>
+    <p class="sous">Par defaut, nous utilisons l'email de votre compte. Vous pouvez le changer ici.</p>
+    <div class="fg" style="margin-bottom:0">
+      <label>Email</label>
+      <input class="inp" type="email" name="notif_email" value="{{ profile.notif_email or profile.email or '' }}" placeholder="vous@exemple.com">
+      <div class="hint">Toutes les notifications seront envoyees a cette adresse.</div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="notif-card">
+    <h3><i class="fas fa-bell"></i> Types de notifications</h3>
+    <p class="sous">Activez ou desactivez chaque type de notification.</p>
+
+    <!-- Commande -->
+    <div class="notif-item">
+      <div class="notif-info">
+        <div class="notif-ico ico-commande"><i class="fas fa-shopping-bag"></i></div>
+        <div class="notif-text">
+          <div class="notif-titre">📦 Nouvelle commande</div>
+          <div class="notif-desc">Recevoir un email quand un client passe une commande</div>
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" name="notif_nouvelle_commande" {% if profile.notif_nouvelle_commande != False %}checked{% endif %}>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- Paiement -->
+    <div class="notif-item">
+      <div class="notif-info">
+        <div class="notif-ico ico-paiement"><i class="fas fa-coins"></i></div>
+        <div class="notif-text">
+          <div class="notif-titre">💰 Paiement recu</div>
+          <div class="notif-desc">Recevoir un email quand un client paie</div>
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" name="notif_paiement_recu" {% if profile.notif_paiement_recu != False %}checked{% endif %}>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- Avis -->
+    <div class="notif-item">
+      <div class="notif-info">
+        <div class="notif-ico ico-avis"><i class="fas fa-star"></i></div>
+        <div class="notif-text">
+          <div class="notif-titre">⭐ Nouvel avis</div>
+          <div class="notif-desc">Recevoir un email quand un client laisse un avis</div>
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" name="notif_nouvel_avis" {% if profile.notif_nouvel_avis != False %}checked{% endif %}>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- Client -->
+    <div class="notif-item">
+      <div class="notif-info">
+        <div class="notif-ico ico-client"><i class="fas fa-user-plus"></i></div>
+        <div class="notif-text">
+          <div class="notif-titre">👤 Nouveau client</div>
+          <div class="notif-desc">Recevoir un email quand un nouveau client s'inscrit</div>
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" name="notif_nouveau_client" {% if profile.notif_nouveau_client != False %}checked{% endif %}>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- Resume -->
+    <div class="notif-item">
+      <div class="notif-info">
+        <div class="notif-ico ico-resume"><i class="fas fa-chart-line"></i></div>
+        <div class="notif-text">
+          <div class="notif-titre">📊 Resume quotidien</div>
+          <div class="notif-desc">Recevoir chaque soir un resume de votre activite</div>
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" name="notif_resume_quotidien" {% if profile.notif_resume_quotidien %}checked{% endif %}>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- Stock bas -->
+    <div class="notif-item">
+      <div class="notif-info">
+        <div class="notif-ico ico-stock"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="notif-text">
+          <div class="notif-titre">🚨 Stock bas</div>
+          <div class="notif-desc">Recevoir une alerte quand un produit est presque epuise</div>
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" name="notif_stock_bas" {% if profile.notif_stock_bas != False %}checked{% endif %}>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+  </div>
+
+  <button type="submit" class="btn-save">
+    <i class="fas fa-save"></i> Enregistrer mes preferences
+  </button>
+
+</form>
+
+{% endblock %}
