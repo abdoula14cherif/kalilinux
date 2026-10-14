@@ -93,3 +93,269 @@ def _verifier_categorie_revendeur(cat_id, revendeur_id):
     except Exception as e:
         logger.error(f"_verifier_categorie_revendeur: {type(e).__name__}")
         return False
+
+
+
+@dashboard_bp.route("/choisir-type", methods=["GET", "POST"])
+@login_required
+@limiter.limit("20 per hour")
+def choisir_type():
+    profile, redir = _get_profile_ou_redirect(check_type=False)
+    if redir:
+        return redir
+
+    if request.method == "POST":
+        type_code = request.form.get("boutique_type", "").strip()
+        type_obj = get_boutique_type(type_code)
+        if not type_obj:
+            flash("Type de boutique invalide. Reessayez.", "error")
+            return redirect(url_for("dashboard.choisir_type"))
+
+        old_type = profile.get("boutique_type")
+        update_profile(profile["id"], {
+            "boutique_type": type_code,
+            "boutique_type_choisi_le": datetime.now(timezone.utc).isoformat(),
+        })
+
+        if old_type and old_type != type_code:
+            flash(f"Type de boutique change : {type_obj['nom']}", "success")
+        else:
+            flash(f"Type de boutique choisi : {type_obj['nom']}", "success")
+
+        return redirect(url_for("dashboard.index"))
+
+    types_boutique = get_all_boutique_types()
+    return render_template("dashboard/choisir_type.html",
+                          profile=profile,
+                          types_boutique=types_boutique)
+
+
+@dashboard_bp.route("/")
+@login_required
+def index():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    type_boutique = get_boutique_type(profile["boutique_type"]) or {}
+
+    stats = {"nb_produits": 0, "nb_commandes": 0, "revenus": 0, "nb_clients": 0}
+
+    if profile["boutique_type"] == "digital":
+        mes_prix = get_revendeur_prix_all(profile["id"]) if profile.get("est_revendeur") else []
+        stats["nb_produits"] = len(mes_prix)
+    else:
+        produits = get_produits_revendeur(profile["id"])
+        stats["nb_produits"] = len(produits)
+        stats["nb_actifs"] = sum(1 for p in produits if p.get("actif"))
+
+    try:
+        orders = get_revendeur_orders(profile["id"], limit=100)
+        stats["nb_commandes"] = len(orders)
+        stats["revenus"] = sum(o.get("prix_total", 0) or 0 for o in orders if o.get("statut") == "termine")
+    except Exception:
+        pass
+
+    try:
+        clients = get_revendeur_clients_detail(profile["id"])
+        stats["nb_clients"] = len(clients)
+    except Exception:
+        pass
+
+    return render_template("dashboard/index.html",
+                          profile=profile,
+                          type_boutique=type_boutique,
+                          stats=stats)
+
+
+@dashboard_bp.route("/boutique")
+@login_required
+def boutique():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    return render_template("dashboard/boutique.html", profile=profile, themes=THEMES)
+
+
+@dashboard_bp.route("/boutique/enregistrer", methods=["POST"])
+@login_required
+@limiter.limit("30 per hour")
+def boutique_enregistrer():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    user_id = profile["id"]
+    data = {}
+
+    data["boutique_nom"] = request.form.get("boutique_nom", "").strip()[:60] or None
+    data["boutique_slogan"] = request.form.get("boutique_slogan", "").strip()[:100] or None
+    data["boutique_message_accueil"] = request.form.get("boutique_message_accueil", "").strip()[:300] or None
+    data["boutique_a_propos"] = request.form.get("boutique_a_propos", "").strip()[:1000] or None
+    data["boutique_whatsapp"] = request.form.get("boutique_whatsapp", "").strip()[:30] or None
+    data["boutique_email"] = request.form.get("boutique_email", "").strip()[:150] or None
+    data["boutique_facebook"] = request.form.get("boutique_facebook", "").strip()[:300] or None
+    data["boutique_instagram"] = request.form.get("boutique_instagram", "").strip()[:300] or None
+    data["boutique_tiktok"] = request.form.get("boutique_tiktok", "").strip()[:300] or None
+    data["boutique_telegram"] = request.form.get("boutique_telegram", "").strip()[:300] or None
+
+    theme = request.form.get("boutique_theme", "bleu")
+    if theme in THEMES:
+        data["boutique_theme"] = theme
+        data["boutique_couleur_principale"] = THEMES[theme][0]
+        data["boutique_couleur_secondaire"] = THEMES[theme][1]
+
+    data["boutique_afficher_prix"] = request.form.get("boutique_afficher_prix") == "on"
+    data["boutique_whatsapp_flottant"] = request.form.get("boutique_whatsapp_flottant") == "on"
+    data["boutique_badge_verifie"] = request.form.get("boutique_badge_verifie") == "on"
+    data["boutique_slogan_anime"] = request.form.get("boutique_slogan_anime") == "on"
+
+    type_grille = request.form.get("boutique_type_grille", "grille")
+    if type_grille in ("grille", "cartes", "liste"):
+        data["boutique_type_grille"] = type_grille
+
+    try:
+        spl = int(request.form.get("boutique_services_par_ligne", 3))
+        if spl in (2, 3, 4):
+            data["boutique_services_par_ligne"] = spl
+    except Exception:
+        pass
+
+    try:
+        note = float(request.form.get("boutique_note", 4.9))
+        data["boutique_note"] = min(5, max(0, note))
+    except Exception:
+        pass
+    try:
+        nb_avis = int(request.form.get("boutique_nb_avis", 0))
+        data["boutique_nb_avis"] = max(0, min(99999, nb_avis))
+    except Exception:
+        pass
+
+    sections = {}
+    for key in ("stats", "avantages", "comment", "services", "apropos", "avis", "faq"):
+        sections[key] = request.form.get(f"section_{key}") == "on"
+    data["boutique_sections_affichees"] = sections
+
+    logo_file = request.files.get("boutique_logo")
+    if logo_file and logo_file.filename:
+        logo_url = upload_image(logo_file, prefix="logo_")
+        if logo_url:
+            data["boutique_logo_url"] = logo_url
+            flash("Logo uploade !", "success")
+        else:
+            flash("Erreur upload logo. Verifiez le bucket Supabase.", "warning")
+
+    banniere_file = request.files.get("boutique_banniere")
+    if banniere_file and banniere_file.filename:
+        banniere_url = upload_image(banniere_file, prefix="banniere_")
+        if banniere_url:
+            data["boutique_banniere_url"] = banniere_url
+            flash("Banniere uploadee !", "success")
+        else:
+            flash("Erreur upload banniere.", "warning")
+
+    ok = update_profile(user_id, data)
+    if ok:
+        flash("Boutique mise a jour avec succes !", "success")
+    else:
+        flash("Erreur lors de la sauvegarde. Reessayez.", "error")
+
+    return redirect(url_for("dashboard.boutique"))
+
+
+@dashboard_bp.route("/boutique/supprimer-image", methods=["POST"])
+@login_required
+@limiter.limit("20 per hour")
+def boutique_supprimer_image():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    type_img = request.form.get("type", "")
+    if type_img == "logo":
+        update_profile(profile["id"], {"boutique_logo_url": None})
+        flash("Logo supprime.", "success")
+    elif type_img == "banniere":
+        update_profile(profile["id"], {"boutique_banniere_url": None})
+        flash("Banniere supprimee.", "success")
+    else:
+        flash("Action invalide.", "error")
+
+    return redirect(url_for("dashboard.boutique"))
+
+
+@dashboard_bp.route("/publier")
+@login_required
+def publier():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    types_boutique = get_all_boutique_types()
+    etapes_ok = {
+        "nom": bool(profile.get("boutique_nom")),
+        "whatsapp": bool(profile.get("boutique_whatsapp")),
+        "logo_ou_slogan": bool(profile.get("boutique_logo_url") or profile.get("boutique_slogan")),
+    }
+    return render_template("dashboard/publier.html",
+                          profile=profile,
+                          prix_activation=PRIX_ACTIVATION,
+                          etapes_ok=etapes_ok,
+                          types_boutique=types_boutique)
+
+
+@dashboard_bp.route("/publier/activer", methods=["POST"])
+@login_required
+@limiter.limit("5 per hour")
+def publier_activer():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    if profile.get("est_revendeur"):
+        flash("Votre boutique est deja publiee.", "info")
+        return redirect(url_for("dashboard.index"))
+
+    balance = profile.get("balance", 0) or 0
+    if balance < PRIX_ACTIVATION:
+        flash(f"Solde insuffisant. Il vous faut {PRIX_ACTIVATION:,.0f} FCFA (solde actuel : {balance:,.0f} FCFA).", "error")
+        return redirect(url_for("dashboard.publier"))
+
+    slug = request.form.get("slug", "").strip().lower()
+    if not slug or len(slug) < 3 or len(slug) > 30:
+        flash("Identifiant invalide : 3 a 30 caracteres.", "error")
+        return redirect(url_for("dashboard.publier"))
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,28}[a-z0-9]", slug):
+        flash("Identifiant invalide : lettres minuscules, chiffres et tirets uniquement.", "error")
+        return redirect(url_for("dashboard.publier"))
+
+    modele = request.form.get("modele", "")
+    if modele not in ("marge", "commission"):
+        flash("Choisissez un modele de gains.", "error")
+        return redirect(url_for("dashboard.publier"))
+
+    if slug_deja_pris(slug):
+        flash(f"L'identifiant '{slug}' est deja pris. Choisissez-en un autre.", "error")
+        return redirect(url_for("dashboard.publier"))
+
+    nouveau_solde = debit_balance(profile["id"], PRIX_ACTIVATION)
+    if nouveau_solde is None:
+        flash("Erreur de paiement. Verifiez votre solde.", "error")
+        return redirect(url_for("dashboard.publier"))
+
+    commission = 0.10 if modele == "commission" else 0.0
+    ok = activer_revendeur(profile["id"], slug, modele, commission)
+
+    if ok:
+        update_profile(profile["id"], {
+            "boutique_brouillon": False,
+            "boutique_publiee": True,
+            "boutique_publiee_le": datetime.now(timezone.utc).isoformat(),
+        })
+        flash(f"Felicitations ! Votre boutique est en ligne : /r/{slug}", "success")
+        return redirect(url_for("dashboard.index"))
+    else:
+        credit_balance(profile["id"], PRIX_ACTIVATION)
+        flash("Erreur lors de l'activation. Vous avez ete rembourse.", "error")
+        return redirect(url_for("dashboard.publier"))
