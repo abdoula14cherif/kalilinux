@@ -419,3 +419,87 @@ def confirmation(slug, reference):
         revendeur=revendeur,
         slug=slug
     )
+
+# ═══════════════════════════════════════════════════════════════
+# ESPACE CLIENT (accès à ses commandes)
+# ═══════════════════════════════════════════════════════════════
+
+@boutique_bp.route("/r/<slug>/mes-commandes")
+def mes_commandes(slug):
+    """Espace client : ses commandes sur cette boutique."""
+    revendeur = get_profile_by_slug(slug)
+    if not revendeur:
+        flash("Boutique introuvable.", "error")
+        return redirect(url_for("home.index"))
+
+    # Identifiant client = email ou telephone, stocke en session
+    client_id = session.get("boutique_client_id", {}).get(slug, "")
+    if not client_id:
+        flash("Entrez votre email pour voir vos commandes.", "info")
+        return redirect(url_for("boutique.visiter", slug=slug))
+
+    # Récupérer les commandes de ce client
+    from app.models.database import _url, _headers
+    import requests
+    try:
+        r = requests.get(
+            _url(f"boutique_commandes?revendeur_id=eq.{revendeur['id']}&client_email=eq.{client_id}&order=created_at.desc"),
+            headers=_headers(True)
+        )
+        commandes = r.json() if r.status_code < 300 else []
+    except Exception as e:
+        logger.error(f"mes_commandes load: {e}")
+        commandes = []
+
+    # Thème
+    theme = revendeur.get("boutique_theme") or "bleu"
+    couleur_principale, couleur_secondaire = THEMES.get(theme, THEMES["bleu"])
+    if revendeur.get("boutique_couleur_principale"):
+        couleur_principale = revendeur["boutique_couleur_principale"]
+    if revendeur.get("boutique_couleur_secondaire"):
+        couleur_secondaire = revendeur["boutique_couleur_secondaire"]
+
+    boutique = {
+        "nom": revendeur.get("boutique_nom") or f"Boutique {slug.capitalize()}",
+        "logo_url": revendeur.get("boutique_logo_url"),
+        "couleur_principale": couleur_principale,
+        "couleur_secondaire": couleur_secondaire,
+        "whatsapp": revendeur.get("boutique_whatsapp"),
+    }
+
+    return render_template("boutique_mes_commandes.html",
+                          boutique=boutique,
+                          commandes=commandes,
+                          slug=slug,
+                          client_id=client_id)
+
+
+@boutique_bp.route("/r/<slug>/verifier-commandes", methods=["POST"])
+def verifier_commandes(slug):
+    """Le client entre son email pour voir ses commandes."""
+    revendeur = get_profile_by_slug(slug)
+    if not revendeur:
+        flash("Boutique introuvable.", "error")
+        return redirect(url_for("home.index"))
+
+    email = request.form.get("email", "").strip().lower()
+    if not email or "@" not in email:
+        flash("Entrez un email valide.", "error")
+        return redirect(url_for("boutique.visiter", slug=slug))
+
+    # Sauvegarder en session
+    ids = session.get("boutique_client_id", {})
+    ids[slug] = email
+    session["boutique_client_id"] = ids
+
+    return redirect(url_for("boutique.mes_commandes", slug=slug))
+
+
+@boutique_bp.route("/r/<slug>/deconnecter-client")
+def deconnecter_client(slug):
+    """Le client se déconnecte de son espace."""
+    ids = session.get("boutique_client_id", {})
+    ids.pop(slug, None)
+    session["boutique_client_id"] = ids
+    flash("Vous etes deconnecte de cet espace.", "info")
+    return redirect(url_for("boutique.visiter", slug=slug))
