@@ -14,17 +14,19 @@
 .info-banner i{color:#00BFFF;margin-right:6px}
 .info-banner strong{color:#0096C7}
 
-.categories-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-.cat-card{background:#fff;border-radius:14px;border:1px solid #E2E8F0;padding:18px;transition:all .22s;position:relative;overflow:hidden}
-.cat-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.08);border-color:#00BFFF}
+.categories-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.cat-card{background:#fff;border-radius:16px;border:1px solid #E2E8F0;padding:20px;transition:all .25s;position:relative;overflow:hidden}
+.cat-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.1);border-color:#00BFFF}
 .cat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#00BFFF,#FF6600)}
-.cat-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.cat-ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#E0F7FF,#F0FAFF);color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.cat-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cat-ico{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#E0F7FF,#F0FAFF);color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
 .cat-info{flex:1;min-width:0}
-.cat-nom{font-size:.95rem;font-weight:900;color:#0F172A;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cat-desc{font-size:.75rem;color:#64748B;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cat-actions{display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px dashed #E2E8F0}
-.btn-action{flex:1;padding:8px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:4px}
+.cat-nom{font-size:.95rem;font-weight:900;color:#0F172A;line-height:1.3;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-count{display:inline-flex;align-items:center;gap:4px;background:#F1F5F9;color:#475569;font-size:.68rem;font-weight:800;padding:3px 8px;border-radius:8px}
+.cat-count i{font-size:.65rem}
+.cat-desc{font-size:.78rem;color:#64748B;line-height:1.5;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:34px}
+.cat-actions{display:flex;gap:6px;padding-top:14px;border-top:1px dashed #E2E8F0}
+.btn-action{flex:1;padding:8px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:4px;font-family:inherit}
 .btn-mod{background:#E0F7FF;color:#0096C7}
 .btn-mod:hover{background:#0096C7;color:#fff}
 .btn-del{background:#FEE2E2;color:#991B1B}
@@ -46,7 +48,10 @@
 .inp,.txta{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
 .inp:focus,.txta:focus{border-color:#00BFFF}
 .txta{min-height:70px;resize:vertical}
-.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,191,255,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+.suggestions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.suggestion-btn{background:#F8FAFC;border:1px solid #E2E8F0;color:#475569;font-size:.75rem;font-weight:700;padding:6px 12px;border-radius:20px;cursor:pointer;transition:.2s;font-family:inherit}
+.suggestion-btn:hover{background:#00BFFF;color:#fff;border-color:#00BFFF}
+.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,191,255,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;font-family:inherit}
 .btn-save:hover{transform:translateY(-1px)}
 {% endblock %}
 
@@ -67,14 +72,29 @@
       </div>
       <div class="cat-info">
         <div class="cat-nom">{{ c.nom }}</div>
-        {% if c.description %}<div class="cat-desc">{{ c.description }}</div>{% endif %}
+        <div class="cat-count">
+          <i class="fas fa-box"></i>
+          {% set count = namespace(n=0) %}
+          {% for p in produits %}
+            {% if p.categorie_id == c.id %}
+              {% set count.n = count.n + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ count.n }} produit{{ 's' if count.n > 1 else '' }}
+        </div>
       </div>
     </div>
+    {% if c.description %}
+    <div class="cat-desc">{{ c.description }}</div>
+    {% else %}
+    <div class="cat-desc" style="color:#94A3B8;font-style:italic">Aucune description</div>
+    {% endif %}
     <div class="cat-actions">
-      <button class="btn-action btn-mod" onclick="ouvrirModif({{ c|tojson }})">
+      <button class="btn-action btn-mod" onclick='ouvrirModif({{ c|tojson }})'>
         <i class="fas fa-edit"></i> Modifier
       </button>
-      <form method="POST" action="#" style="flex:1" onsubmit="return confirm('Supprimer cette categorie ? Les produits lies ne seront pas supprimes.')">
+      <form method="POST" action="{{ url_for('dashboard.categories_supprimer') }}" style="flex:1" onsubmit="return confirm('Supprimer cette catégorie ?\n\nLes produits liés ne seront PAS supprimés, ils n'auront juste plus de catégorie.')">
+        <input type="hidden" name="categorie_id" value="{{ c.id }}">
         <button type="submit" class="btn-action btn-del" style="width:100%">
           <i class="fas fa-trash"></i>
         </button>
@@ -88,7 +108,7 @@
 <div class="empty-state">
   <div class="empty-ico"><i class="fas fa-folder-open"></i></div>
   <h3>Aucune catégorie pour l'instant</h3>
-  <p>Les catégories vous aident à organiser vos produits (Hommes, Femmes, Enfants...).</p>
+  <p>Les catégories vous aident à organiser vos produits (Hommes, Femmes, Enfants, etc.).</p>
   <button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:12px 24px;font-size:.88rem">
     <i class="fas fa-plus"></i> Créer ma première catégorie
   </button>
@@ -100,14 +120,25 @@
   <div class="modal">
     <button class="modal-close" onclick="fermerModal('modalAjout')">✕</button>
     <h3><i class="fas fa-plus-circle"></i> Nouvelle catégorie</h3>
-    <form method="POST" action="#">
+    <form method="POST" action="{{ url_for('dashboard.categories_ajouter') }}">
+      <div class="fg">
+        <label>Suggestions</label>
+        <div class="suggestions">
+          <button type="button" class="suggestion-btn" onclick="remplir('Hommes', 'Vêtements et accessoires pour hommes')">👔 Hommes</button>
+          <button type="button" class="suggestion-btn" onclick="remplir('Femmes', 'Vêtements et accessoires pour femmes')">👗 Femmes</button>
+          <button type="button" class="suggestion-btn" onclick="remplir('Enfants', 'Vêtements pour enfants')">🧒 Enfants</button>
+          <button type="button" class="suggestion-btn" onclick="remplir('Accessoires', 'Sacs, bijoux, montres')">👜 Accessoires</button>
+          <button type="button" class="suggestion-btn" onclick="remplir('Chaussures', 'Tous types de chaussures')">👟 Chaussures</button>
+          <button type="button" class="suggestion-btn" onclick="remplir('Promotions', 'Produits en promotion')">🔥 Promotions</button>
+        </div>
+      </div>
       <div class="fg">
         <label>Nom de la catégorie *</label>
-        <input class="inp" type="text" name="nom" placeholder="Ex: Hommes, Femmes, Enfants..." required maxlength="60">
+        <input class="inp" type="text" name="nom" id="a_nom" placeholder="Ex: Hommes, Femmes, Enfants..." required maxlength="60">
       </div>
       <div class="fg">
         <label>Description (optionnel)</label>
-        <textarea class="txta" name="description" placeholder="Decrivez cette categorie..."></textarea>
+        <textarea class="txta" name="description" id="a_description" placeholder="Decrivez cette categorie..." maxlength="300"></textarea>
       </div>
       <button type="submit" class="btn-save"><i class="fas fa-check"></i> Creer la categorie</button>
     </form>
@@ -119,7 +150,7 @@
   <div class="modal">
     <button class="modal-close" onclick="fermerModal('modalModif')">✕</button>
     <h3><i class="fas fa-edit"></i> Modifier la catégorie</h3>
-    <form method="POST" action="#">
+    <form method="POST" action="{{ url_for('dashboard.categories_modifier') }}">
       <input type="hidden" name="categorie_id" id="m_id">
       <div class="fg">
         <label>Nom de la catégorie *</label>
@@ -127,7 +158,7 @@
       </div>
       <div class="fg">
         <label>Description</label>
-        <textarea class="txta" name="description" id="m_description"></textarea>
+        <textarea class="txta" name="description" id="m_description" maxlength="300"></textarea>
       </div>
       <button type="submit" class="btn-save"><i class="fas fa-save"></i> Enregistrer</button>
     </form>
@@ -146,6 +177,10 @@ function ouvrirModif(cat){
 }
 function fermerModal(id){
   document.getElementById(id).classList.remove('open');
+}
+function remplir(nom, description){
+  document.getElementById('a_nom').value = nom;
+  document.getElementById('a_description').value = description;
 }
 document.querySelectorAll('.modal-bg').forEach(function(m){
   m.addEventListener('click', function(e){
