@@ -8,65 +8,197 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-
 :root{
-  --primary:#00BFFF;
-  --primary-d:#0096C7;
-  --primary-l:#E0F7FF;
-  --accent:#FF6600;
-  --accent-d:#E65C00;
-  --dark:#0F172A;
-  --mid:#475569;
-  --light:#94A3B8;
-  --off:#F8FAFC;
-  --white:#ffffff;
-  --gray:#E2E8F0;
-  --green:#059669;
-  --red:#DC2626;
-  --violet:#7C3AED;
+  --primary:#00BFFF;--primary-d:#0096C7;--primary-l:#E0F7FF;
+  --accent:#FF6600;--accent-d:#E65C00;
+  --dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;
+  --white:#fff;--gray:#E2E8F0;
+  --green:#059669;--red:#DC2626;--yellow:#D97706;--blue:#0066FF;
 }
-
 html{scroll-behavior:smooth}
-
-body{
-  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
-  background:var(--off);
-  color:var(--mid);
-  min-height:100vh;
-  line-height:1.5;
-  -webkit-font-smoothing:antialiased;
-}
-
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--off);color:var(--mid);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;height:auto;display:block}
 button{font-family:inherit;cursor:pointer}
-input,textarea,select{font-family:inherit;outline:none}
+input,textarea,select{font-family:inherit}
 
-/* Boutons generiques */
+/* ═══════════════════════════════════════════════════════════════ */
+/* SYSTEME DE FLASH MESSAGES (notifications)                       */
+/* ═══════════════════════════════════════════════════════════════ */
+.flash-container{
+  position:fixed;top:20px;right:20px;z-index:99999;
+  display:flex;flex-direction:column;gap:10px;
+  max-width:380px;width:calc(100% - 40px);
+  pointer-events:none;
+}
+.flash-msg{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px 16px;border-radius:14px;
+  font-size:.88rem;font-weight:600;line-height:1.5;
+  box-shadow:0 10px 30px rgba(0,0,0,.15);
+  animation:flashIn .35s ease both;
+  pointer-events:auto;
+  border-left:4px solid;
+  position:relative;
+}
+@keyframes flashIn{
+  from{opacity:0;transform:translateX(30px)}
+  to{opacity:1;transform:translateX(0)}
+}
+.flash-msg .flash-icon{
+  font-size:1.1rem;flex-shrink:0;margin-top:1px;
+}
+.flash-msg .flash-text{
+  flex:1;min-width:0;
+}
+.flash-msg .flash-close{
+  background:none;border:none;cursor:pointer;
+  opacity:.5;font-size:.95rem;margin-left:auto;
+  color:inherit;padding:0;line-height:1;flex-shrink:0;
+}
+.flash-msg .flash-close:hover{opacity:1}
+
+.flash-success{
+  background:#ECFDF5;color:#065F46;border-color:#10B981;
+}
+.flash-error{
+  background:#FEF2F2;color:#991B1B;border-color:#DC2626;
+}
+.flash-warning{
+  background:#FFFBEB;color:#92400E;border-color:#F59E0B;
+}
+.flash-info{
+  background:#EFF6FF;color:#1E40AF;border-color:#3B82F6;
+}
+
+.flash-container.hidden{opacity:0;transition:opacity .5s;pointer-events:none}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* THEME SOMBRE TOGGLE                                             */
+/* ═══════════════════════════════════════════════════════════════ */
+.theme-toggle{
+  position:fixed;bottom:24px;left:24px;width:50px;height:50px;
+  background:var(--white);border:2px solid var(--gray);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  color:var(--dark);font-size:1.15rem;box-shadow:0 5px 18px rgba(0,0,0,.15);
+  z-index:90;cursor:pointer;transition:all .25s;
+}
+.theme-toggle:hover{transform:scale(1.08)}
+:root[data-theme="dark"]{
+  --primary:#3B82F6;--primary-d:#2563EB;--primary-l:rgba(59,130,246,.18);
+  --accent:#FF7A3D;--dark:#F1F5F9;--mid:#B6C2D9;--light:#7A879E;
+  --off:#0F1420;--white:#1A2233;--gray:#2A3550;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* BOUTONS GENERIQUES                                              */
+/* ═══════════════════════════════════════════════════════════════ */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:12px;font-weight:700;font-size:.95rem;border:none;cursor:pointer;transition:all .25s;text-decoration:none}
 .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;box-shadow:0 6px 18px rgba(0,191,255,.3)}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,191,255,.4)}
 .btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent-d));color:#fff;box-shadow:0 6px 18px rgba(255,102,0,.3)}
-.btn-accent:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(255,102,0,.4)}
+.btn-accent:hover{transform:translateY(-2px)}
 .btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
 .btn-outline:hover{background:var(--primary);color:#fff}
 
-/* Header public */
+/* ═══════════════════════════════════════════════════════════════ */
+/* HEADER PUBLIC                                                   */
+/* ═══════════════════════════════════════════════════════════════ */
 .pub-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--white);border-bottom:1px solid var(--gray);position:sticky;top:0;z-index:100}
 .pub-logo{font-size:1.15rem;font-weight:900;background:linear-gradient(90deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
 .pub-nav{display:flex;gap:10px;align-items:center}
 
-/* Sections */
+/* ═══════════════════════════════════════════════════════════════ */
+/* SECTIONS                                                        */
+/* ═══════════════════════════════════════════════════════════════ */
 .section{padding:60px 20px}
 .container{max-width:1100px;margin:0 auto}
 
-/* Titres */
+/* ═══════════════════════════════════════════════════════════════ */
+/* TITRES                                                          */
+/* ═══════════════════════════════════════════════════════════════ */
 h1,h2,h3,h4{color:var(--dark);line-height:1.25}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* RESPONSIVE                                                      */
+/* ═══════════════════════════════════════════════════════════════ */
+@media(max-width:640px){
+  .flash-container{
+    top:16px;right:16px;left:16px;
+    max-width:100%;width:auto;
+  }
+  .flash-msg{
+    padding:12px 14px;font-size:.84rem;
+  }
+}
 
 {% block extra_css %}{% endblock %}
 </style>
 </head>
 <body>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- FLASH MESSAGES (succes, erreurs, warnings, infos)              -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-container" id="flashContainer">
+  {% for category, message in messages %}
+  <div class="flash-msg flash-{{ category }}">
+    <span class="flash-icon">
+      {% if category == 'success' %}✅
+      {% elif category == 'error' %}❌
+      {% elif category == 'warning' %}⚠️
+      {% else %}ℹ️{% endif %}
+    </span>
+    <span class="flash-text">{{ message }}</span>
+    <button class="flash-close" onclick="this.parentElement.remove()" title="Fermer">✕</button>
+  </div>
+  {% endfor %}
+</div>
+<script>
+  // Auto-hide les flash apres 6 secondes
+  setTimeout(function(){
+    var c = document.getElementById('flashContainer');
+    if(c){
+      c.classList.add('hidden');
+      setTimeout(function(){ c.remove(); }, 500);
+    }
+  }, 6000);
+</script>
+{% endif %}
+{% endwith %}
+
+<!-- THEME TOGGLE -->
+<button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Changer de theme">
+  <i class="fas fa-moon" id="themeIcon"></i>
+</button>
+
+<script>
+  // Restaurer le theme
+  (function(){
+    try{
+      var saved = localStorage.getItem('reseller-theme');
+      if(saved === 'dark'){ document.documentElement.setAttribute('data-theme','dark'); }
+    }catch(e){}
+  })();
+
+  function toggleTheme(){
+    var current = document.documentElement.getAttribute('data-theme') || 'light';
+    var next = current === 'dark' ? 'light' : 'dark';
+    try{ localStorage.setItem('reseller-theme', next); }catch(e){}
+    document.documentElement.setAttribute('data-theme', next);
+    var icon = document.getElementById('themeIcon');
+    if(icon){ icon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon'; }
+  }
+
+  // Initialiser l'icone
+  (function(){
+    var current = document.documentElement.getAttribute('data-theme') || 'light';
+    var icon = document.getElementById('themeIcon');
+    if(icon){ icon.className = current === 'dark' ? 'fas fa-sun' : 'fas fa-moon'; }
+  })();
+</script>
 
 {% block nav %}{% endblock %}
 
