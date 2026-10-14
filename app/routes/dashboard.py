@@ -1268,3 +1268,140 @@ def test_email():
         return f"✅ Email envoye a {destinataire}. Verifie ta boite (et les spams)."
     else:
         return "❌ Echec. Verifie MAIL_USERNAME et GMAIL_APP_PASSWORD sur Vercel, et regarde les logs."
+
+# ═══════════════════════════════════════════════════════════════
+# OPTIONS DE BANNIERE
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_bp.route("/bannieres/options", methods=["POST"])
+@login_required
+def bannieres_options():
+    """Sauvegarde les options d'affichage des bannieres."""
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    data = {
+        "boutique_banniere_arrondie": request.form.get("banniere_arrondie") == "on",
+        "boutique_banniere_flou": request.form.get("banniere_flou") == "on",
+    }
+
+    try:
+        intensite = float(request.form.get("banniere_flou_intensite", 0.45))
+        data["boutique_banniere_flou_intensite"] = max(0.1, min(1.0, intensite))
+    except Exception:
+        pass
+
+    try:
+        hauteur = int(request.form.get("banniere_hauteur", 220))
+        data["boutique_banniere_hauteur"] = max(150, min(400, hauteur))
+    except Exception:
+        pass
+
+    ok = update_profile(profile["id"], data)
+    if ok:
+        flash("✅ Options de banniere mises a jour !", "success")
+    else:
+        flash("❌ Erreur lors de la sauvegarde.", "error")
+
+    return redirect(url_for("dashboard.bannieres"))
+
+
+# ═══════════════════════════════════════════════════════════════
+# ABONNEMENTS
+# ═══════════════════════════════════════════════════════════════
+
+def _get_plan_actuel(profile):
+    """Recupere les infos du plan actuel du revendeur."""
+    from app.models.database import _url, _headers
+    import requests
+    code = profile.get("abonnement_niveau") or "gratuit"
+    try:
+        r = requests.get(_url(f"abonnements_plans?code=eq.{code}&limit=1"), headers=_headers(True))
+        data = r.json()
+        return data[0] if isinstance(data, list) and data else None
+    except Exception:
+        return None
+
+
+@dashboard_bp.route("/abonnement")
+@login_required
+def abonnement():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    from app.models.database import _url, _headers
+    import requests
+
+    # Recuperer tous les plans
+    try:
+        r = requests.get(_url("abonnements_plans?actif=eq.true&order=ordre"), headers=_headers(True))
+        plans = r.json() if r.status_code < 300 else []
+    except Exception:
+        plans = []
+
+    # Compter l'utilisation actuelle
+    produits = get_produits_revendeur(profile["id"])
+    categories = get_categories_par_type(profile["boutique_type"])
+    bannieres = get_bannieres_revendeur(profile["id"])
+    attributs = get_attributs_revendeur(profile["id"])
+    coupons = get_coupons_revendeur(profile["id"])
+
+    usage = {
+        "produits": len(produits),
+        "categories": len(categories),
+        "bannieres": len(bannieres),
+        "attributs": len(attributs),
+        "coupons": len(coupons),
+    }
+
+    plan_actuel = _get_plan_actuel(profile)
+
+    return render_template("dashboard/abonnement.html",
+                          profile=profile,
+                          plans=plans,
+                          plan_actuel=plan_actuel,
+                          usage=usage)
+
+
+@dashboard_bp.route("/abonnement/choisir", methods=["POST"])
+@login_required
+def abonnement_choisir():
+    """Le revendeur choisit un plan (mode gratuit seulement pour l'instant)."""
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    plan_code = request.form.get("plan_code", "")
+    if not plan_code:
+        flash("Plan invalide.", "error")
+        return redirect(url_for("dashboard.abonnement"))
+
+    from app.models.database import _url, _headers
+    import requests
+
+    try:
+        r = requests.get(_url(f"abonnements_plans?code=eq.{plan_code}&limit=1"), headers=_headers(True))
+        data = r.json()
+        plan = data[0] if isinstance(data, list) and data else None
+    except Exception:
+        plan = None
+
+    if not plan:
+        flash("Plan introuvable.", "error")
+        return redirect(url_for("dashboard.abonnement"))
+
+    # Pour l'instant : seul le plan gratuit s'active directement
+    # Les plans payants afficheront "Bientot disponible"
+    if float(plan.get("prix_mensuel", 0)) > 0:
+        flash(f"💎 Le plan {plan['nom']} sera bientot disponible ! Contactez le support.", "info")
+        return redirect(url_for("dashboard.abonnement"))
+
+    ok = update_profile(profile["id"], {"abonnement_niveau": plan_code})
+    if ok:
+        flash(f"✅ Vous etes maintenant sur le plan {plan['nom']} !", "success")
+    else:
+        flash("❌ Erreur lors du changement.", "error")
+
+    return redirect(url_for("dashboard.abonnement"))
