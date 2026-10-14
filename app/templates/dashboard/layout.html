@@ -11,11 +11,30 @@
 .sidebar-status{margin-top:10px;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:20px;display:inline-block;letter-spacing:.3px}
 .status-brouillon{background:rgba(255,102,0,.15);color:#FF6600}
 .status-online{background:rgba(5,150,105,.15);color:#34D399}
+.status-pause{background:rgba(220,38,38,.15);color:#F87171}
 .sidebar-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px}
-.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;font-weight:600;transition:all .2s}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;font-weight:600;transition:all .2s;position:relative}
 .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
 .nav-item.active{background:linear-gradient(90deg,rgba(0,191,255,.2),rgba(0,191,255,.05));color:#00BFFF}
-.nav-item i{width:18px;text-align:center;font-size:.92rem}
+.nav-item i.nav-ico{width:18px;text-align:center;font-size:.92rem;flex-shrink:0}
+.nav-item span.nav-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-badge{
+  background:linear-gradient(135deg,#EF4444,#DC2626);
+  color:#fff;
+  font-size:.65rem;
+  font-weight:900;
+  padding:3px 8px;
+  border-radius:12px;
+  min-width:20px;
+  text-align:center;
+  line-height:1.2;
+  box-shadow:0 2px 8px rgba(239,68,68,.4);
+  animation:badgePulse 2s ease-in-out infinite;
+}
+@keyframes badgePulse{
+  0%,100%{box-shadow:0 2px 8px rgba(239,68,68,.4)}
+  50%{box-shadow:0 2px 14px rgba(239,68,68,.7)}
+}
 .nav-separator{height:1px;background:rgba(255,255,255,.08);margin:8px 12px}
 .sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,.08)}
 .sidebar-user{padding:10px 12px;font-size:.76rem;color:rgba(255,255,255,.6);margin-bottom:6px;word-break:break-all;display:flex;align-items:center;gap:8px}
@@ -29,8 +48,24 @@
 .topbar-title{font-size:1.15rem;font-weight:900;color:#0F172A;line-height:1.2}
 .topbar-subtitle{font-size:.78rem;color:#64748B;font-weight:500;margin-top:2px}
 .topbar-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
-.btn-hamburger{display:none;background:none;border:none;font-size:1.3rem;color:#0F172A;cursor:pointer;padding:8px;border-radius:8px}
+.btn-hamburger{display:none;background:none;border:none;font-size:1.3rem;color:#0F172A;cursor:pointer;padding:8px;border-radius:8px;position:relative}
 .btn-hamburger:hover{background:#F1F5F9}
+.btn-hamburger .hamburger-badge{
+  position:absolute;
+  top:2px;
+  right:2px;
+  background:linear-gradient(135deg,#EF4444,#DC2626);
+  color:#fff;
+  font-size:.6rem;
+  font-weight:900;
+  padding:2px 6px;
+  border-radius:10px;
+  min-width:18px;
+  text-align:center;
+  line-height:1.2;
+  display:none;
+}
+.btn-hamburger .hamburger-badge.show{display:block}
 .dash-content{flex:1;padding:22px;max-width:1200px;width:100%;margin:0 auto}
 @media(max-width:900px){
   .dash-sidebar{transform:translateX(-100%)}
@@ -54,7 +89,9 @@
   <aside class="dash-sidebar" id="dashSidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">BOOST RESELLER</div>
-      {% if profile and profile.est_revendeur %}
+      {% if profile and profile.est_revendeur and profile.boutique_active == False %}
+      <span class="sidebar-status status-pause">● EN PAUSE</span>
+      {% elif profile and profile.est_revendeur %}
       <span class="sidebar-status status-online">● EN LIGNE</span>
       {% else %}
       <span class="sidebar-status status-brouillon">● BROUILLON</span>
@@ -63,78 +100,80 @@
 
     <nav class="sidebar-nav">
       <a href="{{ url_for('dashboard.index') }}" class="nav-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
-        <i class="fas fa-home"></i> Accueil
+        <i class="fas fa-home nav-ico"></i> <span class="nav-label">Accueil</span>
       </a>
 
       <a href="{{ url_for('dashboard.choisir_type') }}" class="nav-item {% if request.endpoint == 'dashboard.choisir_type' %}active{% endif %}">
-        <i class="fas fa-store-alt"></i> Type de boutique
+        <i class="fas fa-store-alt nav-ico"></i> <span class="nav-label">Type de boutique</span>
       </a>
 
       <div class="nav-separator"></div>
 
       <a href="{{ url_for('dashboard.boutique') }}" class="nav-item {% if request.endpoint == 'dashboard.boutique' %}active{% endif %}">
-        <i class="fas fa-palette"></i> Ma boutique
+        <i class="fas fa-palette nav-ico"></i> <span class="nav-label">Ma boutique</span>
       </a>
 
       {% if profile.boutique_type == 'digital' %}
       <a href="{{ url_for('dashboard.prix') }}" class="nav-item {% if request.endpoint == 'dashboard.prix' %}active{% endif %}">
-        <i class="fas fa-tags"></i> Mes prix
+        <i class="fas fa-tags nav-ico"></i> <span class="nav-label">Mes prix</span>
       </a>
       {% else %}
       <a href="{{ url_for('dashboard.produits') }}" class="nav-item {% if request.endpoint == 'dashboard.produits' %}active{% endif %}">
-        <i class="fas fa-box"></i> Mes produits
+        <i class="fas fa-box nav-ico"></i> <span class="nav-label">Mes produits</span>
       </a>
       <a href="{{ url_for('dashboard.categories') }}" class="nav-item {% if request.endpoint == 'dashboard.categories' %}active{% endif %}">
-        <i class="fas fa-folder"></i> Categories
+        <i class="fas fa-folder nav-ico"></i> <span class="nav-label">Categories</span>
       </a>
       <a href="{{ url_for('dashboard.attributs') }}" class="nav-item {% if request.endpoint == 'dashboard.attributs' %}active{% endif %}">
-        <i class="fas fa-sliders-h"></i> Attributs
+        <i class="fas fa-sliders-h nav-ico"></i> <span class="nav-label">Attributs</span>
       </a>
       {% endif %}
 
       <a href="{{ url_for('dashboard.bannieres') }}" class="nav-item {% if request.endpoint == 'dashboard.bannieres' %}active{% endif %}">
-        <i class="fas fa-images"></i> Bannieres
+        <i class="fas fa-images nav-ico"></i> <span class="nav-label">Bannieres</span>
       </a>
 
       <div class="nav-separator"></div>
 
       <a href="{{ url_for('dashboard_shop.contacts') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.contacts' %}active{% endif %}">
-        <i class="fas fa-address-book"></i> Contacts
+        <i class="fas fa-address-book nav-ico"></i> <span class="nav-label">Contacts</span>
       </a>
       <a href="{{ url_for('dashboard_shop.reviews') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.reviews' %}active{% endif %}">
-        <i class="fas fa-star"></i> Avis
+        <i class="fas fa-star nav-ico"></i> <span class="nav-label">Avis</span>
+        <span class="nav-badge" id="badge-avis" style="display:none">0</span>
       </a>
       <a href="{{ url_for('dashboard_shop.coupons') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.coupons' %}active{% endif %}">
-        <i class="fas fa-ticket-alt"></i> Coupons
+        <i class="fas fa-ticket-alt nav-ico"></i> <span class="nav-label">Coupons</span>
       </a>
 
       <a href="{{ url_for('dashboard_shop.commandes') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.commandes' %}active{% endif %}">
-        <i class="fas fa-shopping-bag"></i> Commandes
+        <i class="fas fa-shopping-bag nav-ico"></i> <span class="nav-label">Commandes</span>
+        <span class="nav-badge" id="badge-commandes" style="display:none">0</span>
       </a>
       <a href="{{ url_for('dashboard_shop.gains') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.gains' %}active{% endif %}">
-        <i class="fas fa-wallet"></i> Mes gains
+        <i class="fas fa-wallet nav-ico"></i> <span class="nav-label">Mes gains</span>
       </a>
 
       <div class="nav-separator"></div>
 
       <a href="{{ url_for('dashboard_shop.notifications_prefs') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.notifications_prefs' %}active{% endif %}">
-        <i class="fas fa-bell"></i> Notifications
+        <i class="fas fa-bell nav-ico"></i> <span class="nav-label">Notifications</span>
       </a>
 
       <a href="{{ url_for('dashboard_shop.premium') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.premium' %}active{% endif %}">
-        <i class="fas fa-crown"></i> Premium
+        <i class="fas fa-crown nav-ico"></i> <span class="nav-label">Premium</span>
       </a>
       <a href="{{ url_for('dashboard_shop.abonnement') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.abonnement' %}active{% endif %}">
-        <i class="fas fa-star"></i> Abonnement
+        <i class="fas fa-star nav-ico"></i> <span class="nav-label">Abonnement</span>
       </a>
 
       <div class="nav-separator"></div>
 
       <a href="{{ url_for('dashboard.publier') }}" class="nav-item {% if request.endpoint == 'dashboard.publier' %}active{% endif %}">
-        <i class="fas fa-rocket"></i> Publier
+        <i class="fas fa-rocket nav-ico"></i> <span class="nav-label">Publier</span>
       </a>
       <a href="{{ url_for('dashboard_shop.parametres') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.parametres' %}active{% endif %}">
-        <i class="fas fa-cog"></i> Parametres
+        <i class="fas fa-cog nav-ico"></i> <span class="nav-label">Parametres</span>
       </a>
     </nav>
 
@@ -154,7 +193,10 @@
   <div class="dash-main">
     <div class="dash-topbar">
       <div class="topbar-left">
-        <button class="btn-hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <button class="btn-hamburger" onclick="toggleSidebar()">
+          <i class="fas fa-bars"></i>
+          <span class="hamburger-badge" id="hamburgerBadge">0</span>
+        </button>
         <div style="min-width:0;flex:1">
           <div class="topbar-title">{% block page_title %}Mon espace{% endblock %}</div>
           <div class="topbar-subtitle">{% block page_subtitle %}Gerez votre activite{% endblock %}</div>
@@ -184,5 +226,103 @@ document.querySelectorAll('.nav-item').forEach(function(el){
     }
   });
 });
+
+// ═══════════════════════════════════════════════════════════════
+// Badge notifications temps reel
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  var lastTotal = -1;
+
+  function updateBadges(data){
+    var badgeCmd = document.getElementById('badge-commandes');
+    var badgeAvis = document.getElementById('badge-avis');
+    var hamburgerBadge = document.getElementById('hamburgerBadge');
+
+    if(badgeCmd){
+      if(data.commandes_attente > 0){
+        badgeCmd.textContent = data.commandes_attente > 99 ? '99+' : data.commandes_attente;
+        badgeCmd.style.display = 'inline-block';
+      } else {
+        badgeCmd.style.display = 'none';
+      }
+    }
+
+    if(badgeAvis){
+      if(data.avis_attente > 0){
+        badgeAvis.textContent = data.avis_attente > 99 ? '99+' : data.avis_attente;
+        badgeAvis.style.display = 'inline-block';
+      } else {
+        badgeAvis.style.display = 'none';
+      }
+    }
+
+    if(hamburgerBadge){
+      if(data.total > 0){
+        hamburgerBadge.textContent = data.total > 99 ? '99+' : data.total;
+        hamburgerBadge.classList.add('show');
+      } else {
+        hamburgerBadge.classList.remove('show');
+      }
+    }
+
+    // Alerte visuelle si nouveau total (nouvelle commande / nouvel avis)
+    if(lastTotal !== -1 && data.total > lastTotal){
+      var diff = data.total - lastTotal;
+      var msg = diff === 1
+        ? (data.commandes_attente > 0 ? '📦 Nouvelle commande reçue !' : '⭐ Nouvel avis reçu !')
+        : '🔔 ' + diff + ' nouvelles notifications';
+      afficherToastNotif(msg);
+    }
+    lastTotal = data.total;
+  }
+
+  function afficherToastNotif(msg){
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:20px;right:20px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;padding:16px 22px;border-radius:14px;font-weight:800;font-size:.9rem;box-shadow:0 12px 40px rgba(0,191,255,.4);z-index:99998;animation:toastIn .4s cubic-bezier(.34,1.56,.64,1);max-width:360px;display:flex;align-items:center;gap:12px';
+    toast.innerHTML = msg;
+    document.body.appendChild(toast);
+
+    var style = document.createElement('style');
+    style.textContent = '@keyframes toastIn{from{opacity:0;transform:translateX(40px) scale(.95)}to{opacity:1;transform:translateX(0) scale(1)}}';
+    document.head.appendChild(style);
+
+    setTimeout(function(){
+      toast.style.transition = 'opacity .5s, transform .5s';
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(40px)';
+      setTimeout(function(){ toast.remove(); }, 500);
+    }, 5000);
+  }
+
+  function fetchCount(){
+    fetch('/dashboard/api/notifications-count', {
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data){
+      updateBadges(data);
+    })
+    .catch(function(e){
+      // Silencieux : pas de notification si l'API est down
+    });
+  }
+
+  // Premier appel au chargement
+  fetchCount();
+
+  // Polling toutes les 30 secondes
+  setInterval(fetchCount, 30000);
+
+  // Rafraichir quand l'utilisateur revient sur l'onglet
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden){
+      fetchCount();
+    }
+  });
+})();
 </script>
 {% endblock %}
