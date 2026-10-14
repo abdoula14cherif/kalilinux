@@ -245,3 +245,127 @@ def reviews_supprimer():
     delete_avis(avis_id)
     flash("Avis supprime.", "success")
     return redirect(url_for("dashboard_shop.reviews"))
+
+
+
+@dashboard_shop_bp.route("/coupons")
+@login_required
+def coupons():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    liste = get_coupons_revendeur(profile["id"])
+    return render_template("dashboard/coupons.html", profile=profile, coupons=liste)
+
+
+@dashboard_shop_bp.route("/coupons/ajouter", methods=["POST"])
+@login_required
+@limiter.limit("20 per hour")
+def coupons_ajouter():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    code = request.form.get("code", "").strip().upper()[:20]
+    type_coupon = request.form.get("type", "pourcentage")
+    date_expiration = request.form.get("date_expiration", "").strip()[:30] or None
+
+    if type_coupon not in ("pourcentage", "montant"):
+        type_coupon = "pourcentage"
+
+    if not code:
+        flash("Le code promo est obligatoire.", "error")
+        return redirect(url_for("dashboard_shop.coupons"))
+
+    try:
+        valeur = float(request.form.get("valeur", 10))
+        if valeur <= 0 or valeur > 100000000:
+            raise ValueError
+    except Exception:
+        flash("La valeur de reduction est invalide.", "error")
+        return redirect(url_for("dashboard_shop.coupons"))
+
+    if type_coupon == "pourcentage" and valeur > 100:
+        flash("Le pourcentage ne peut pas depasser 100%.", "error")
+        return redirect(url_for("dashboard_shop.coupons"))
+
+    try:
+        montant_min = float(request.form.get("montant_min", 0))
+        montant_min = max(0, min(100000000, montant_min))
+    except Exception:
+        montant_min = 0
+
+    try:
+        max_util = int(request.form.get("max_utilisations", 100))
+        max_util = max(1, min(1000000, max_util))
+    except Exception:
+        max_util = 100
+
+    existant = get_coupon_by_code(profile["id"], code)
+    if existant:
+        flash(f"Le code '{code}' existe deja. Choisissez un autre code.", "error")
+        return redirect(url_for("dashboard_shop.coupons"))
+
+    result = create_coupon({
+        "revendeur_id": profile["id"],
+        "code": code,
+        "type": type_coupon,
+        "valeur": valeur,
+        "montant_min": montant_min,
+        "max_utilisations": max_util,
+        "date_expiration": date_expiration,
+        "actif": True,
+    })
+
+    if result:
+        flash(f"Coupon '{code}' cree avec succes !", "success")
+    else:
+        flash("Erreur lors de la creation du coupon.", "error")
+
+    return redirect(url_for("dashboard_shop.coupons"))
+
+
+@dashboard_shop_bp.route("/coupons/toggle", methods=["POST"])
+@login_required
+@limiter.limit("60 per hour")
+def coupons_toggle():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    coupon_id = request.form.get("coupon_id", "")
+    actif = request.form.get("actif") == "1"
+
+    if not coupon_id:
+        flash("ID coupon manquant.", "error")
+        return redirect(url_for("dashboard_shop.coupons"))
+
+    if not _verifier_propriete("boutique_coupons", coupon_id, profile["id"]):
+        flash("Action non autorisee.", "error")
+        return redirect(url_for("dashboard_shop.coupons"))
+
+    update_coupon(coupon_id, {"actif": not actif})
+    flash(f"Coupon {'desactive' if actif else 'active'}.", "success")
+    return redirect(url_for("dashboard_shop.coupons"))
+
+
+@dashboard_shop_bp.route("/coupons/supprimer", methods=["POST"])
+@login_required
+@limiter.limit("30 per hour")
+def coupons_supprimer():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    coupon_id = request.form.get("coupon_id", "")
+    if not coupon_id:
+        flash("ID coupon manquant.", "error")
+        return redirect(url_for("dashboard_shop.coupons"))
+
+    if not _verifier_propriete("boutique_coupons", coupon_id, profile["id"]):
+        flash("Action non autorisee.", "error")
+        return redirect(url_for("dashboard_shop.coupons"))
+
+    delete_coupon(coupon_id)
+    flash("Coupon supprime.", "success")
+    return redirect(url_for("dashboard_shop.coupons"))
