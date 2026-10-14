@@ -9,14 +9,13 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{--primary:{{ boutique.couleur_principale }};--primary-d:{{ boutique.couleur_secondaire }};--dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;--white:#fff;--gray:#E2E8F0;--green:#059669;--accent:#FF6600;--orange:#F97316;--red:#DC2626}
+:root{--primary:{{ boutique.couleur_principale }};--primary-d:{{ boutique.couleur_secondaire }};--dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;--white:#fff;--gray:#E2E8F0;--green:#059669;--accent:#FF6600;--orange:#F97316;--red:#DC2626;--cols:{{ boutique.services_par_ligne }}}
 html{scroll-behavior:smooth}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#FFF9F5;color:var(--mid);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;height:auto;display:block}
 button{font-family:inherit;cursor:pointer}
 
-/* HEADER */
 .shop-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--white);border-bottom:1px solid var(--gray);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.03)}
 .shop-brand{display:flex;align-items:center;gap:10px;min-width:0}
 .shop-logo{width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,var(--orange),var(--red));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem}
@@ -27,45 +26,35 @@ button{font-family:inherit;cursor:pointer}
 .shop-rating .stars{color:#F59E0B;letter-spacing:-1px}
 .btn-login{background:var(--orange);color:#fff;padding:9px 16px;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;flex-shrink:0}
 
-/* NAV */
 .shop-nav{background:var(--white);border-bottom:1px solid var(--gray);padding:0 20px;overflow-x:auto;display:flex;gap:4px;position:sticky;top:67px;z-index:99;scrollbar-width:none}
 .shop-nav::-webkit-scrollbar{display:none}
 .shop-nav a{padding:12px 14px;font-size:.82rem;font-weight:700;color:var(--mid);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
 .shop-nav a:hover,.shop-nav a.active{color:var(--orange);border-bottom-color:var(--orange)}
 
-/* HERO */
-.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--orange),var(--red));color:#fff;text-align:center;padding:60px 24px}
-.hero.has-banniere{padding:0;min-height:480px;display:flex;align-items:center;justify-content:center}
-.hero-banniere{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45;z-index:0}
-.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.55),rgba(0,0,0,.35));z-index:1}
-.hero-content{position:relative;z-index:2;max-width:700px;margin:0 auto;padding:40px 0}
-.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);padding:7px 16px;border-radius:20px;font-size:.74rem;font-weight:800;letter-spacing:.4px;margin-bottom:20px}
-.hero h1{font-size:2.2rem;font-weight:900;margin-bottom:14px;line-height:1.15;text-shadow:0 2px 12px rgba(0,0,0,.2)}
-.hero p{font-size:.95rem;opacity:.95;line-height:1.7;max-width:520px;margin:0 auto 28px}
-.hero-cta{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--orange);padding:15px 34px;border-radius:14px;font-weight:900;font-size:.98rem;text-decoration:none;box-shadow:0 12px 30px rgba(0,0,0,.25);transition:transform .2s}
-.hero-cta:hover{transform:translateY(-2px)}
+/* BANNIERE SLIDER */
+.banniere-wrap{padding:10px 12px}
+.banniere-slider{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--orange),var(--red));border-radius:{% if revendeur.get('boutique_banniere_arrondie', True) %}18px{% else %}0{% endif %};min-height:{{ revendeur.get('boutique_banniere_hauteur', 220) }}px;box-shadow:0 6px 20px rgba(249,115,22,.15)}
+.banniere-slide{display:none;padding:36px 20px;text-align:center;color:#fff;min-height:{{ revendeur.get('boutique_banniere_hauteur', 220) }}px;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.banniere-slide.active{display:flex;animation:fadeSlide .6s ease}
+@keyframes fadeSlide{from{opacity:0}to{opacity:1}}
+.banniere-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:{% if revendeur.get('boutique_banniere_flou', True) %}{{ revendeur.get('boutique_banniere_flou_intensite', 0.45) }}{% else %}0{% endif %};z-index:0}
+.banniere-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.55),rgba(0,0,0,.35));z-index:1}
+.banniere-content{position:relative;z-index:2}
+.banniere-slide h2{font-size:1.4rem;font-weight:900;margin-bottom:8px;line-height:1.2;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+.banniere-slide p{font-size:.88rem;opacity:.95;max-width:400px;margin:0 auto;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+.banniere-dots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:3}
+.banniere-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer;transition:.3s;border:none;padding:0}
+.banniere-dot.active{background:#fff;width:22px;border-radius:4px}
 
-.hero-stats{display:flex;justify-content:center;gap:30px;margin-top:30px;flex-wrap:wrap;position:relative;z-index:2}
-.hero-stat{text-align:center}
-.hero-stat-val{font-size:1.5rem;font-weight:900;color:#fff;line-height:1}
-.hero-stat-lbl{font-size:.72rem;color:rgba(255,255,255,.85);margin-top:4px;font-weight:700;letter-spacing:.4px}
-
-.hero-contact{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:22px;position:relative;z-index:2}
-.contact-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);color:#fff;padding:9px 16px;border-radius:20px;font-size:.78rem;font-weight:700;text-decoration:none}
-.contact-btn:hover{background:rgba(255,255,255,.3)}
-
-/* TRUST */
 .trust-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;max-width:760px;margin:-30px auto 0;padding:0 20px;position:relative;z-index:10}
 .trust-item{background:var(--white);border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.08);border:1px solid var(--gray)}
 .trust-item i{font-size:1.15rem;color:var(--orange);margin-bottom:6px;display:block}
 .trust-item span{font-size:.74rem;font-weight:800;color:var(--dark);display:block}
 
-/* SECTIONS */
 .section{padding:50px 20px;max-width:1100px;margin:0 auto}
 .section-title{font-size:1.5rem;font-weight:900;color:var(--dark);text-align:center;margin-bottom:8px}
 .section-sub{font-size:.85rem;color:var(--mid);text-align:center;max-width:520px;margin:0 auto 30px;line-height:1.6}
 
-/* MENU */
 .menu-cat{margin-bottom:40px}
 .menu-cat-title{font-size:1.15rem;font-weight:900;color:var(--dark);margin-bottom:16px;display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:2px dashed var(--gray)}
 .menu-cat-title i{color:var(--orange);font-size:1.3rem}
@@ -84,7 +73,6 @@ button{font-family:inherit;cursor:pointer}
 .btn-plat{background:linear-gradient(135deg,var(--orange),var(--red));color:#fff;border:none;width:34px;height:34px;border-radius:50%;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
 .btn-plat:hover{transform:scale(1.1)}
 
-/* HORAIRES */
 .horaires{background:#fff;border-radius:16px;padding:24px;border:1px solid var(--gray);max-width:600px;margin:0 auto}
 .horaires h3{font-size:1.1rem;font-weight:900;color:var(--dark);margin-bottom:16px;display:flex;align-items:center;gap:8px;justify-content:center}
 .horaires h3 i{color:var(--orange)}
@@ -94,7 +82,6 @@ button{font-family:inherit;cursor:pointer}
 .horaire-heure{color:var(--mid);font-weight:600}
 .horaire-heure.ferme{color:var(--red);font-weight:800}
 
-/* MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
 .modal-bg.open{display:flex}
 .modal{background:#fff;border-radius:20px;max-width:480px;width:100%;position:relative;max-height:90vh;overflow-y:auto;animation:pop .3s ease}
@@ -121,13 +108,11 @@ button{font-family:inherit;cursor:pointer}
 .btn-modal{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;background:linear-gradient(135deg,var(--orange),var(--red));color:#fff;border:none;border-radius:12px;font-weight:900;font-size:.95rem;cursor:pointer;text-decoration:none;margin-bottom:10px}
 .btn-modal-outline{background:transparent;border:2px solid var(--orange);color:var(--orange)}
 
-/* A PROPOS */
 .apropos{background:#fff;border-radius:16px;padding:26px;border:1px solid var(--gray);max-width:800px;margin:0 auto}
 .apropos h3{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .apropos h3 i{color:var(--orange)}
 .apropos p{font-size:.88rem;color:var(--mid);line-height:1.8}
 
-/* FAQ */
 .faq-item{background:#fff;border:1px solid var(--gray);border-radius:14px;padding:16px 18px;margin-bottom:10px}
 .faq-item summary{font-size:.88rem;font-weight:800;color:var(--dark);cursor:pointer;list-style:none;display:flex;justify-content:space-between}
 .faq-item summary::-webkit-details-marker{display:none}
@@ -135,22 +120,26 @@ button{font-family:inherit;cursor:pointer}
 .faq-item[open] summary::after{content:"−"}
 .faq-item p{font-size:.82rem;color:var(--mid);line-height:1.7;margin-top:12px;padding-top:12px;border-top:1px solid var(--gray)}
 
-/* CTA */
 .cta-final{background:linear-gradient(135deg,var(--orange),var(--red));border-radius:20px;padding:40px 24px;text-align:center;color:#fff;margin:40px auto 0;max-width:960px}
 .cta-final h2{font-size:1.35rem;font-weight:900;margin-bottom:10px}
 .cta-final p{font-size:.9rem;opacity:.92;margin-bottom:22px}
 .cta-final .btn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--orange);padding:15px 32px;border-radius:14px;font-weight:900;font-size:.95rem;text-decoration:none}
 
-/* FOOTER */
 .shop-footer{background:var(--dark);color:rgba(255,255,255,.6);text-align:center;padding:32px 20px;font-size:.78rem;line-height:1.7;margin-top:40px}
 .shop-footer .brand{color:#fff;font-weight:900;font-size:1rem;margin-bottom:8px}
 .shop-footer a{color:var(--orange);font-weight:700}
 
-/* WHATSAPP FLOAT */
 .wa-float{position:fixed;bottom:22px;right:22px;width:58px;height:58px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.7rem;box-shadow:0 8px 24px rgba(37,211,102,.5);z-index:90;text-decoration:none}
 
 .scroll-top{position:fixed;bottom:90px;right:22px;width:44px;height:44px;background:var(--orange);color:#fff;border:none;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:89}
 .scroll-top.show{display:flex}
+
+/* TOAST - position corrigée pour ne PAS cacher les boutons */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-120px);background:#0F172A;color:#fff;padding:12px 24px;border-radius:30px;font-size:.85rem;font-weight:700;z-index:500;transition:transform .35s ease,opacity .35s ease;display:flex;align-items:center;gap:10px;pointer-events:none;max-width:88%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast i{flex-shrink:0;font-size:1rem}
+.toast.toast-success i{color:#10B981}
+.toast.toast-error i{color:#DC2626}
 
 .empty-shop{text-align:center;padding:60px 24px;background:#fff;border-radius:18px;border:1px solid var(--gray)}
 .empty-shop i{font-size:2.8rem;color:var(--gray);display:block;margin-bottom:14px}
@@ -167,7 +156,6 @@ button{font-family:inherit;cursor:pointer}
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="shop-header">
   <div class="shop-brand">
     {% if boutique.logo_url %}
@@ -197,7 +185,6 @@ button{font-family:inherit;cursor:pointer}
   </div>
 </header>
 
-<!-- NAV -->
 <nav class="shop-nav">
   <a href="#menu" class="active">Menu</a>
   <a href="#horaires">Horaires</a>
@@ -206,39 +193,39 @@ button{font-family:inherit;cursor:pointer}
   <a href="#contact">Contact</a>
 </nav>
 
-<!-- HERO -->
-<section class="hero {% if boutique.banniere_url %}has-banniere{% endif %}">
-  {% if boutique.banniere_url %}
-  <img class="hero-banniere" src="{{ boutique.banniere_url }}" alt="">
-  <div class="hero-overlay"></div>
-  {% endif %}
-  <div class="hero-content">
-    <div class="hero-badge"><i class="fas fa-utensils"></i> {{ boutique.nom }}</div>
-    <h1>{{ boutique.slogan }}</h1>
-    <p>{{ boutique.message_accueil }}</p>
-    <a href="#menu" class="hero-cta">
-      <i class="fas fa-book-open"></i> Voir le menu
-    </a>
-
-    {% if boutique.sections.get('stats', True) %}
-    <div class="hero-stats">
-      <div class="hero-stat"><div class="hero-stat-val">{{ produits|length }}</div><div class="hero-stat-lbl">PLATS</div></div>
-      <div class="hero-stat"><div class="hero-stat-val">30min</div><div class="hero-stat-lbl">LIVRAISON</div></div>
-      <div class="hero-stat"><div class="hero-stat-val">{{ stats_boutique.note }}/5</div><div class="hero-stat-lbl">NOTE</div></div>
-    </div>
-    {% endif %}
-
-    {% if boutique.whatsapp or boutique.facebook or boutique.instagram %}
-    <div class="hero-contact" id="contact">
-      {% if boutique.whatsapp %}<a href="https://wa.me/{{ boutique.whatsapp }}" target="_blank" class="contact-btn"><i class="fab fa-whatsapp"></i> Commander WhatsApp</a>{% endif %}
-      {% if boutique.facebook %}<a href="{{ boutique.facebook }}" target="_blank" class="contact-btn"><i class="fab fa-facebook"></i> Facebook</a>{% endif %}
-      {% if boutique.instagram %}<a href="{{ boutique.instagram }}" target="_blank" class="contact-btn"><i class="fab fa-instagram"></i> Instagram</a>{% endif %}
-    </div>
+<div class="banniere-wrap">
+  <div class="banniere-slider" id="banniereSlider">
+    {% if bannieres %}
+      {% for b in bannieres %}
+      <div class="banniere-slide {% if loop.first %}active{% endif %}">
+        {% if b.image_url %}<img class="banniere-img" src="{{ b.image_url }}" alt="">{% endif %}
+        <div class="banniere-overlay"></div>
+        <div class="banniere-content">
+          {% if b.titre %}<h2>{{ b.titre }}</h2>{% endif %}
+          {% if b.sous_titre %}<p>{{ b.sous_titre }}</p>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+      {% if bannieres|length > 1 %}
+      <div class="banniere-dots" id="banniereDots">
+        {% for b in bannieres %}
+        <button class="banniere-dot {% if loop.first %}active{% endif %}" onclick="slideBanniere({{ loop.index0 }})"></button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% else %}
+      <div class="banniere-slide active">
+        {% if boutique.banniere_url %}<img class="banniere-img" src="{{ boutique.banniere_url }}" alt="">{% endif %}
+        <div class="banniere-overlay"></div>
+        <div class="banniere-content">
+          <h2>{{ boutique.slogan }}</h2>
+          <p>{{ boutique.message_accueil }}</p>
+        </div>
+      </div>
     {% endif %}
   </div>
-</section>
+</div>
 
-<!-- TRUST -->
 <div class="trust-row">
   <div class="trust-item"><i class="fas fa-motorcycle"></i><span>Livraison 30min</span></div>
   <div class="trust-item"><i class="fas fa-fire"></i><span>Plats chauds</span></div>
@@ -246,7 +233,6 @@ button{font-family:inherit;cursor:pointer}
   <div class="trust-item"><i class="fas fa-headset"></i><span>Support 24/7</span></div>
 </div>
 
-<!-- MENU -->
 <section class="section" id="menu">
   <h2 class="section-title">Notre menu</h2>
   <p class="section-sub">Des plats delicieux prepares avec des ingredients frais.</p>
@@ -284,7 +270,6 @@ button{font-family:inherit;cursor:pointer}
     {% endif %}
     {% endfor %}
 
-    <!-- Plats sans categorie -->
     {% set plats_sans_cat = produits_par_categorie.get(0, []) %}
     {% if plats_sans_cat %}
     <div class="menu-cat">
@@ -320,7 +305,6 @@ button{font-family:inherit;cursor:pointer}
   {% endif %}
 </section>
 
-<!-- HORAIRES -->
 <section class="section" id="horaires" style="background:#fff">
   <h2 class="section-title">Nos horaires</h2>
   <p class="section-sub">Nous sommes ouverts pour vous servir.</p>
@@ -358,7 +342,6 @@ button{font-family:inherit;cursor:pointer}
   </div>
 </section>
 
-<!-- A PROPOS -->
 {% if boutique.a_propos %}
 <section class="section" id="apropos">
   <div class="apropos">
@@ -368,7 +351,6 @@ button{font-family:inherit;cursor:pointer}
 </section>
 {% endif %}
 
-<!-- FAQ -->
 {% if boutique.sections.get('faq', True) %}
 <section class="section" id="faq">
   <h2 class="section-title">Questions frequentes</h2>
@@ -392,7 +374,6 @@ button{font-family:inherit;cursor:pointer}
 </section>
 {% endif %}
 
-<!-- CTA -->
 <div class="cta-final">
   <h2>Une faim de loup ? 🍔</h2>
   <p>Commandez maintenant et faites-vous livrer en 30 minutes.</p>
@@ -401,7 +382,6 @@ button{font-family:inherit;cursor:pointer}
   {% endif %}
 </div>
 
-<!-- FOOTER -->
 <footer class="shop-footer">
   <div class="brand">{{ boutique.nom }}</div>
   <div style="margin-bottom:12px">{{ boutique.slogan }}</div>
@@ -424,7 +404,6 @@ button{font-family:inherit;cursor:pointer}
 </a>
 {% endif %}
 
-<!-- MODAL PLAT -->
 <div class="modal-bg" id="modalProduit">
   <div class="modal">
     <button class="modal-close" onclick="fermerModal()">✕</button>
@@ -466,10 +445,30 @@ button{font-family:inherit;cursor:pointer}
   </div>
 </div>
 
+<div class="toast" id="toast">
+  <i class="fas fa-check-circle" id="toastIcon"></i>
+  <span id="toastMsg"></span>
+</div>
+
 <script>
 var currentPlat = null;
 var currentQte = 1;
 var currentOption = 'Normal';
+var slideActuel = 0;
+
+// BANNIERE SLIDER AUTO
+var nbSlides = document.querySelectorAll('.banniere-slide').length;
+function slideBanniere(index){
+  slideActuel = index;
+  document.querySelectorAll('.banniere-slide').forEach(function(s, i){ s.classList.toggle('active', i === index); });
+  document.querySelectorAll('.banniere-dot').forEach(function(d, i){ d.classList.toggle('active', i === index); });
+}
+if(nbSlides > 1){
+  setInterval(function(){
+    slideActuel = (slideActuel + 1) % nbSlides;
+    slideBanniere(slideActuel);
+  }, 4000);
+}
 
 function ouvrirModal(plat){
   currentPlat = plat;
