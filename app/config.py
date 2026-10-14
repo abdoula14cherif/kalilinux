@@ -4,7 +4,7 @@ from datetime import timedelta
 
 class BaseConfig:
     SECRET_KEY = os.environ.get("SECRET_KEY", "changez-moi-reseller-urgent")
-    JWT_SECRET = os.environ.get("SECRET_KEY", SECRET_KEY)  # Meme cle que boostcentral pour valider le SSO
+    JWT_SECRET = os.environ.get("SECRET_KEY", SECRET_KEY)
 
     WTF_CSRF_ENABLED = False
     SESSION_COOKIE_SECURE = True
@@ -23,8 +23,10 @@ class BaseConfig:
     # Contact
     WHATSAPP_NUMBER = os.environ.get("WHATSAPP_NUMBER", "237658033690")
 
-    # Email
+    # Email Boost Reseller (compte dedie, separe de Boost Central)
+    GMAIL_USERNAME = os.environ.get("GMAIL_USERNAME", "boostcentralsupport@gmail.com")
     GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
+    GMAIL_FROM_NAME = os.environ.get("GMAIL_FROM_NAME", "Boost Reseller")
 
     # Domaines
     ROOT_DOMAIN = os.environ.get("ROOT_DOMAIN", "boostcentral.world")
