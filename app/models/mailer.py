@@ -1,6 +1,6 @@
 """
 Module Email — Boost Reseller
-Utilise Gmail SMTP avec un compte dedie.
+Utilise Gmail SMTP avec un compte dedie (boostcentralsupport@gmail.com).
 """
 import logging
 import smtplib
@@ -15,7 +15,7 @@ def _send(to, subject, html_body):
     """Envoie un email via Gmail SMTP (compte Boost Reseller)."""
     try:
         password = current_app.config.get("GMAIL_APP_PASSWORD", "")
-        gmail_user = current_app.config.get("GMAIL_USER", "boostcentralsupport@gmail.com")
+        gmail_user = current_app.config.get("GMAIL_USERNAME", "boostcentralsupport@gmail.com")
         from_name = current_app.config.get("GMAIL_FROM_NAME", "Boost Reseller")
 
         if not password:
@@ -41,7 +41,7 @@ def _send(to, subject, html_body):
 
 
 def _template(titre, contenu, couleur="#00BFFF", couleur2="#0096C7", emoji="⚡", eyebrow="BOOST RESELLER"):
-    """Template HTML commun."""
+    """Template HTML commun pour tous les emails."""
     return f"""
 <!DOCTYPE html>
 <html lang="fr">
@@ -98,6 +98,7 @@ def email_revendeur_nouvelle_commande(to_email, nom_revendeur, nom_boutique,
                                        reference, client_nom, client_telephone,
                                        produits, total, mode_paiement,
                                        lien_commandes):
+    """Notifie le revendeur qu'il a recu une nouvelle commande."""
     produits_html = ""
     for p in produits:
         produits_html += f'<div class="row"><span>{p.get("qte", 1)}x {p.get("nom", "")}</span><span>{p.get("prix", 0) * p.get("qte", 1):,.0f} F</span></div>'
@@ -136,6 +137,7 @@ def email_revendeur_nouvelle_commande(to_email, nom_revendeur, nom_boutique,
 
 def email_revendeur_paiement_recu(to_email, nom_revendeur, nom_boutique,
                                    reference, montant, methode, lien_commandes):
+    """Notifie le revendeur qu'un paiement a ete recu."""
     methode_label = {
         "cash": "Paiement a la livraison",
         "mtn": "MTN Mobile Money",
@@ -161,6 +163,7 @@ def email_revendeur_paiement_recu(to_email, nom_revendeur, nom_boutique,
 
 def email_revendeur_nouvel_avis(to_email, nom_revendeur, nom_boutique,
                                   client_nom, note, commentaire, lien_avis):
+    """Notifie le revendeur qu'un client a laisse un avis."""
     etoiles = "★" * note + "☆" * (5 - note)
     contenu = f"""
 <p>Bonjour <strong>{nom_revendeur}</strong>,</p>
@@ -181,6 +184,7 @@ def email_revendeur_nouvel_avis(to_email, nom_revendeur, nom_boutique,
 
 def email_revendeur_nouveau_client(to_email, nom_revendeur, nom_boutique,
                                      client_email, client_pays, lien_clients):
+    """Notifie le revendeur qu'un nouveau client s'est inscrit."""
     contenu = f"""
 <p>Bonjour <strong>{nom_revendeur}</strong>,</p>
 <p>Un nouveau client s'est inscrit via votre boutique <strong>{nom_boutique}</strong> !</p>
@@ -200,6 +204,7 @@ def email_revendeur_nouveau_client(to_email, nom_revendeur, nom_boutique,
 def email_revendeur_resume_quotidien(to_email, nom_revendeur, nom_boutique,
                                        nb_commandes, total_ventes, nb_nouveaux_clients,
                                        lien_dashboard):
+    """Resume quotidien de l'activite du revendeur."""
     contenu = f"""
 <p>Bonjour <strong>{nom_revendeur}</strong>,</p>
 <p>Voici votre <strong>resume du jour</strong> pour la boutique <strong>{nom_boutique}</strong> :</p>
@@ -219,6 +224,7 @@ def email_revendeur_resume_quotidien(to_email, nom_revendeur, nom_boutique,
 
 def email_revendeur_stock_bas(to_email, nom_revendeur, nom_boutique,
                                 produit_nom, stock_restant, lien_produits):
+    """Alerte le revendeur qu'un produit est presque en rupture."""
     contenu = f"""
 <p>Bonjour <strong>{nom_revendeur}</strong>,</p>
 <p>Un produit de votre boutique <strong>{nom_boutique}</strong> est presque en rupture de stock.</p>
@@ -236,12 +242,13 @@ def email_revendeur_stock_bas(to_email, nom_revendeur, nom_boutique,
 
 
 # ═══════════════════════════════════════════════════════════════
-# EMAIL CLIENT (confirmation de commande)
+# EMAIL CLIENT — CONFIRMATION DE COMMANDE
 # ═══════════════════════════════════════════════════════════════
 
 def email_client_confirmation_commande(to_email, nom_client, nom_boutique,
                                          reference, produits, total,
                                          lien_confirmation, whatsapp_vendeur):
+    """Email de confirmation envoye au client qui vient de commander."""
     produits_html = ""
     for p in produits:
         produits_html += f'<div class="row"><span>{p.get("qte", 1)}x {p.get("nom", "")}</span><span>{p.get("prix", 0) * p.get("qte", 1):,.0f} F</span></div>'
