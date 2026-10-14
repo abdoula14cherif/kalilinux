@@ -175,6 +175,15 @@
       <a href="{{ url_for('dashboard_shop.parametres') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.parametres' %}active{% endif %}">
         <i class="fas fa-cog nav-ico"></i> <span class="nav-label">Parametres</span>
       </a>
+
+      <div class="nav-separator"></div>
+
+      <a href="{{ url_for('home.cgu') }}" class="nav-item" target="_blank" title="Ouvre dans un nouvel onglet">
+        <i class="fas fa-file-contract nav-ico"></i> <span class="nav-label">Conditions d'utilisation</span>
+      </a>
+      <a href="{{ url_for('home.confidentialite') }}" class="nav-item" target="_blank" title="Ouvre dans un nouvel onglet">
+        <i class="fas fa-shield-alt nav-ico"></i> <span class="nav-label">Confidentialité</span>
+      </a>
     </nav>
 
     <div class="sidebar-footer">
@@ -220,16 +229,13 @@ function toggleSidebar(){
 }
 document.querySelectorAll('.nav-item').forEach(function(el){
   el.addEventListener('click', function(){
-    if(window.innerWidth <= 900){
+    if(window.innerWidth <= 900 && !el.hasAttribute('target')){
       document.getElementById('dashSidebar').classList.remove('open');
       document.getElementById('sidebarOverlay').classList.remove('open');
     }
   });
 });
 
-// ═══════════════════════════════════════════════════════════════
-// Badge notifications temps reel
-// ═══════════════════════════════════════════════════════════════
 (function(){
   var lastTotal = -1;
 
@@ -265,7 +271,6 @@ document.querySelectorAll('.nav-item').forEach(function(el){
       }
     }
 
-    // Alerte visuelle si nouveau total (nouvelle commande / nouvel avis)
     if(lastTotal !== -1 && data.total > lastTotal){
       var diff = data.total - lastTotal;
       var msg = diff === 1
@@ -307,17 +312,13 @@ document.querySelectorAll('.nav-item').forEach(function(el){
       updateBadges(data);
     })
     .catch(function(e){
-      // Silencieux : pas de notification si l'API est down
+      // Silencieux
     });
   }
 
-  // Premier appel au chargement
   fetchCount();
-
-  // Polling toutes les 30 secondes
   setInterval(fetchCount, 30000);
 
-  // Rafraichir quand l'utilisateur revient sur l'onglet
   document.addEventListener('visibilitychange', function(){
     if(!document.hidden){
       fetchCount();
