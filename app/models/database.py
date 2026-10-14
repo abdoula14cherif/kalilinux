@@ -1,6 +1,5 @@
 """
 Fonctions Supabase pour le site reseller.
-Utilise la meme base que boostcentral.
 """
 import logging
 import requests
@@ -29,21 +28,21 @@ def _url(path):
 
 def get_profile(user_id):
     try:
-        r = requests.get(_url(f"profiles?id=eq.{user_id}&limit=1"), headers=_headers(True))
+        r = requests.get(_url(f"profiles?id=eq.{user_id}&limit=1"), headers=_headers(True), timeout=10)
         data = r.json()
         return data[0] if isinstance(data, list) and data else None
     except Exception as e:
-        logger.error(f"get_profile: {e}")
+        logger.error(f"get_profile: {type(e).__name__}")
         return None
 
 
 def get_profile_by_email(email):
     try:
-        r = requests.get(_url(f"profiles?email=eq.{email}&limit=1"), headers=_headers(True))
+        r = requests.get(_url(f"profiles?email=eq.{email}&limit=1"), headers=_headers(True), timeout=10)
         data = r.json()
         return data[0] if isinstance(data, list) and data else None
     except Exception as e:
-        logger.error(f"get_profile_by_email: {e}")
+        logger.error(f"get_profile_by_email: {type(e).__name__}")
         return None
 
 
@@ -51,21 +50,21 @@ def get_profile_by_slug(slug):
     try:
         r = requests.get(
             _url(f"profiles?revendeur_slug=eq.{slug}&est_revendeur=eq.true&limit=1"),
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         data = r.json()
         return data[0] if isinstance(data, list) and data else None
     except Exception as e:
-        logger.error(f"get_profile_by_slug: {e}")
+        logger.error(f"get_profile_by_slug: {type(e).__name__}")
         return None
 
 
 def update_profile(user_id, data):
     try:
-        r = requests.patch(_url(f"profiles?id=eq.{user_id}"), json=data, headers=_headers(True))
+        r = requests.patch(_url(f"profiles?id=eq.{user_id}"), json=data, headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"update_profile: {e}")
+        logger.error(f"update_profile: {type(e).__name__}")
         return False
 
 
@@ -81,7 +80,7 @@ def debit_balance(user_id, montant):
         ok = update_profile(user_id, {"balance": new_balance})
         return new_balance if ok else None
     except Exception as e:
-        logger.error(f"debit_balance: {e}")
+        logger.error(f"debit_balance: {type(e).__name__}")
         return None
 
 
@@ -94,17 +93,17 @@ def credit_balance(user_id, montant):
         ok = update_profile(user_id, {"balance": new_balance})
         return new_balance if ok else None
     except Exception as e:
-        logger.error(f"credit_balance: {e}")
+        logger.error(f"credit_balance: {type(e).__name__}")
         return None
 
 
 def slug_deja_pris(slug):
     try:
-        r = requests.get(_url(f"profiles?revendeur_slug=eq.{slug}&limit=1"), headers=_headers(True))
+        r = requests.get(_url(f"profiles?revendeur_slug=eq.{slug}&limit=1"), headers=_headers(True), timeout=10)
         data = r.json()
         return isinstance(data, list) and len(data) > 0
     except Exception as e:
-        logger.error(f"slug_deja_pris: {e}")
+        logger.error(f"slug_deja_pris: {type(e).__name__}")
         return True
 
 
@@ -123,11 +122,11 @@ def toggle_boutique_active(revendeur_id, active):
         r = requests.patch(
             _url(f"profiles?id=eq.{revendeur_id}"),
             json={"boutique_active": active},
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"toggle_boutique_active: {e}")
+        logger.error(f"toggle_boutique_active: {type(e).__name__}")
         return False
 
 
@@ -135,26 +134,32 @@ def get_all_revendeurs(limit=200):
     try:
         r = requests.get(
             _url(f"profiles?est_revendeur=eq.true&order=created_at.desc&limit={limit}"),
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_all_revendeurs: {e}")
+        logger.error(f"get_all_revendeurs: {type(e).__name__}")
         return []
 
 
 def incrementer_visite_boutique(revendeur_id):
+    """Incremente atomiquement le compteur de visites via RPC Supabase."""
     try:
-        r = requests.get(_url(f"profiles?id=eq.{revendeur_id}&select=boutique_visites"), headers=_headers(True))
-        data = r.json()
-        if data:
-            actuel = (data[0].get("boutique_visites") or 0) + 1
-            requests.patch(_url(f"profiles?id=eq.{revendeur_id}"), json={"boutique_visites": actuel}, headers=_headers(True))
-            return actuel
+        r = requests.post(
+            _url("rpc/incrementer_visite"),
+            json={"revendeur_id": revendeur_id},
+            headers=_headers(True),
+            timeout=10
+        )
+        if r.status_code in (200, 201):
+            try:
+                return int(r.json())
+            except Exception:
+                return 1
         return 0
     except Exception as e:
-        logger.error(f"incrementer_visite_boutique: {e}")
+        logger.error(f"incrementer_visite_boutique: {type(e).__name__}")
         return 0
 
 
@@ -167,21 +172,21 @@ def get_all_boutique_types(only_active=True):
         url = "boutique_types?order=ordre"
         if only_active:
             url += "&actif=eq.true"
-        r = requests.get(_url(url), headers=_headers(True))
+        r = requests.get(_url(url), headers=_headers(True), timeout=10)
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_all_boutique_types: {e}")
+        logger.error(f"get_all_boutique_types: {type(e).__name__}")
         return []
 
 
 def get_boutique_type(code):
     try:
-        r = requests.get(_url(f"boutique_types?code=eq.{code}&limit=1"), headers=_headers(True))
+        r = requests.get(_url(f"boutique_types?code=eq.{code}&limit=1"), headers=_headers(True), timeout=10)
         data = r.json()
         return data[0] if isinstance(data, list) and data else None
     except Exception as e:
-        logger.error(f"get_boutique_type: {e}")
+        logger.error(f"get_boutique_type: {type(e).__name__}")
         return None
 
 
@@ -189,12 +194,12 @@ def get_categories_par_type(type_code):
     try:
         r = requests.get(
             _url(f"boutique_categories?type_code=eq.{type_code}&actif=eq.true&order=ordre"),
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_categories_par_type: {e}")
+        logger.error(f"get_categories_par_type: {type(e).__name__}")
         return []
 
 
@@ -208,41 +213,44 @@ def get_active_services(network=None):
             url = _url(f"services?actif=eq.true&reseau=eq.{network}&order=categorie")
         else:
             url = _url("services?actif=eq.true&order=reseau,categorie")
-        r = requests.get(url, headers=_headers(True))
+        r = requests.get(url, headers=_headers(True), timeout=10)
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_active_services: {e}")
+        logger.error(f"get_active_services: {type(e).__name__}")
         return []
 
 
 def get_service_by_id(service_id):
     try:
-        r = requests.get(_url(f"services?id=eq.{service_id}&limit=1"), headers=_headers(True))
+        r = requests.get(_url(f"services?id=eq.{service_id}&limit=1"), headers=_headers(True), timeout=10)
         data = r.json()
         return data[0] if isinstance(data, list) and data else None
     except Exception as e:
-        logger.error(f"get_service_by_id: {e}")
+        logger.error(f"get_service_by_id: {type(e).__name__}")
         return None
 
 
 def get_revendeur_prix_all(revendeur_id):
     try:
-        r = requests.get(_url(f"revendeur_prix?revendeur_id=eq.{revendeur_id}"), headers=_headers(True))
+        r = requests.get(_url(f"revendeur_prix?revendeur_id=eq.{revendeur_id}"), headers=_headers(True), timeout=10)
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_revendeur_prix_all: {e}")
+        logger.error(f"get_revendeur_prix_all: {type(e).__name__}")
         return []
 
 
 def get_revendeur_prix(revendeur_id, service_id):
     try:
-        r = requests.get(_url(f"revendeur_prix?revendeur_id=eq.{revendeur_id}&service_id=eq.{service_id}&limit=1"), headers=_headers(True))
+        r = requests.get(
+            _url(f"revendeur_prix?revendeur_id=eq.{revendeur_id}&service_id=eq.{service_id}&limit=1"),
+            headers=_headers(True), timeout=10
+        )
         data = r.json()
         return data[0] if isinstance(data, list) and data else None
     except Exception as e:
-        logger.error(f"get_revendeur_prix: {e}")
+        logger.error(f"get_revendeur_prix: {type(e).__name__}")
         return None
 
 
@@ -253,22 +261,22 @@ def set_revendeur_prix(revendeur_id, service_id, prix_fcfa):
             r = requests.patch(
                 _url(f"revendeur_prix?id=eq.{existing['id']}"),
                 json={"prix_fcfa": prix_fcfa},
-                headers=_headers(True)
+                headers=_headers(True), timeout=10
             )
         else:
             r = requests.post(
                 _url("revendeur_prix"),
                 json={"revendeur_id": revendeur_id, "service_id": service_id, "prix_fcfa": prix_fcfa},
-                headers=_headers(True)
+                headers=_headers(True), timeout=10
             )
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"set_revendeur_prix: {e}")
+        logger.error(f"set_revendeur_prix: {type(e).__name__}")
         return False
 
 
 # ═══════════════════════════════════════════════════════════════
-# PRODUITS BOUTIQUE (autres types)
+# PRODUITS BOUTIQUE
 # ═══════════════════════════════════════════════════════════════
 
 def get_produits_revendeur(revendeur_id, only_active=False):
@@ -276,31 +284,31 @@ def get_produits_revendeur(revendeur_id, only_active=False):
         url = f"boutique_produits?revendeur_id=eq.{revendeur_id}&order=ordre,created_at.desc"
         if only_active:
             url += "&actif=eq.true"
-        r = requests.get(_url(url), headers=_headers(True))
+        r = requests.get(_url(url), headers=_headers(True), timeout=10)
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_produits_revendeur: {e}")
+        logger.error(f"get_produits_revendeur: {type(e).__name__}")
         return []
 
 
 def get_produit_boutique(produit_id):
     try:
-        r = requests.get(_url(f"boutique_produits?id=eq.{produit_id}&limit=1"), headers=_headers(True))
+        r = requests.get(_url(f"boutique_produits?id=eq.{produit_id}&limit=1"), headers=_headers(True), timeout=10)
         data = r.json()
         return data[0] if isinstance(data, list) and data else None
     except Exception as e:
-        logger.error(f"get_produit_boutique: {e}")
+        logger.error(f"get_produit_boutique: {type(e).__name__}")
         return None
 
 
 def create_produit_boutique(data):
     try:
-        r = requests.post(_url("boutique_produits"), json=data, headers=_headers(True))
+        r = requests.post(_url("boutique_produits"), json=data, headers=_headers(True), timeout=10)
         result = r.json()
         return result[0] if isinstance(result, list) and result else None
     except Exception as e:
-        logger.error(f"create_produit_boutique: {e}")
+        logger.error(f"create_produit_boutique: {type(e).__name__}")
         return None
 
 
@@ -309,20 +317,39 @@ def update_produit_boutique(produit_id, data):
         r = requests.patch(
             _url(f"boutique_produits?id=eq.{produit_id}"),
             json=data,
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"update_produit_boutique: {e}")
+        logger.error(f"update_produit_boutique: {type(e).__name__}")
         return False
 
 
 def delete_produit_boutique(produit_id):
     try:
-        r = requests.delete(_url(f"boutique_produits?id=eq.{produit_id}"), headers=_headers(True))
+        r = requests.delete(_url(f"boutique_produits?id=eq.{produit_id}"), headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"delete_produit_boutique: {e}")
+        logger.error(f"delete_produit_boutique: {type(e).__name__}")
+        return False
+
+
+def get_produit_by_id(produit_id):
+    return get_produit_boutique(produit_id)
+
+
+def decrementer_stock(produit_id, quantite):
+    try:
+        produit = get_produit_by_id(produit_id)
+        if not produit:
+            return False
+        stock_actuel = produit.get("stock", -1)
+        if stock_actuel is None or stock_actuel < 0:
+            return True
+        nouveau_stock = max(0, stock_actuel - quantite)
+        return update_produit_boutique(produit_id, {"stock": nouveau_stock})
+    except Exception as e:
+        logger.error(f"decrementer_stock: {type(e).__name__}")
         return False
 
 
@@ -332,11 +359,11 @@ def delete_produit_boutique(produit_id):
 
 def get_revendeur_clients(revendeur_id):
     try:
-        r = requests.get(_url(f"revendeur_clients?revendeur_id=eq.{revendeur_id}"), headers=_headers(True))
+        r = requests.get(_url(f"revendeur_clients?revendeur_id=eq.{revendeur_id}"), headers=_headers(True), timeout=10)
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_revendeur_clients: {e}")
+        logger.error(f"get_revendeur_clients: {type(e).__name__}")
         return []
 
 
@@ -344,7 +371,7 @@ def get_revendeur_clients_detail(revendeur_id):
     try:
         r = requests.get(
             _url(f"revendeur_clients?revendeur_id=eq.{revendeur_id}&order=created_at.desc"),
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         liens = r.json()
         if not isinstance(liens, list):
@@ -363,7 +390,7 @@ def get_revendeur_clients_detail(revendeur_id):
                 })
         return resultat
     except Exception as e:
-        logger.error(f"get_revendeur_clients_detail: {e}")
+        logger.error(f"get_revendeur_clients_detail: {type(e).__name__}")
         return []
 
 
@@ -371,30 +398,30 @@ def rattacher_client_revendeur(revendeur_id, client_id):
     try:
         exist = requests.get(
             _url(f"revendeur_clients?revendeur_id=eq.{revendeur_id}&client_id=eq.{client_id}&limit=1"),
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         ).json()
         if exist:
             return True
         r = requests.post(
             _url("revendeur_clients"),
             json={"revendeur_id": revendeur_id, "client_id": client_id},
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"rattacher_client_revendeur: {e}")
+        logger.error(f"rattacher_client_revendeur: {type(e).__name__}")
         return False
 
 
 # ═══════════════════════════════════════════════════════════════
-# COMMANDES REVENDEUR
+# COMMANDES REVENDEUR (services)
 # ═══════════════════════════════════════════════════════════════
 
 def get_revendeur_orders(revendeur_id, limit=100):
     try:
         r = requests.get(
             _url(f"revendeur_clients?revendeur_id=eq.{revendeur_id}&select=client_id"),
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         liens = r.json()
         client_ids = [l.get("client_id") for l in liens] if isinstance(liens, list) else []
@@ -403,12 +430,12 @@ def get_revendeur_orders(revendeur_id, limit=100):
         ids_str = ",".join(client_ids)
         r2 = requests.get(
             _url(f"commandes?user_id=in.({ids_str})&order=created_at.desc&limit={limit}"),
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         data = r2.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_revendeur_orders: {e}")
+        logger.error(f"get_revendeur_orders: {type(e).__name__}")
         return []
 
 
@@ -420,12 +447,12 @@ def get_revendeur_gains_total(revendeur_id):
     try:
         r = requests.get(
             _url(f"revendeur_gains?revendeur_id=eq.{revendeur_id}&select=montant"),
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         data = r.json()
         return sum(g.get("montant", 0) or 0 for g in data) if isinstance(data, list) else 0
     except Exception as e:
-        logger.error(f"get_revendeur_gains_total: {e}")
+        logger.error(f"get_revendeur_gains_total: {type(e).__name__}")
         return 0
 
 
@@ -435,22 +462,23 @@ def get_revendeur_gains_total(revendeur_id):
 
 def get_abonnements_plans():
     try:
-        r = requests.get(_url("abonnements_plans?actif=eq.true&order=ordre"), headers=_headers(True))
+        r = requests.get(_url("abonnements_plans?actif=eq.true&order=ordre"), headers=_headers(True), timeout=10)
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_abonnements_plans: {e}")
+        logger.error(f"get_abonnements_plans: {type(e).__name__}")
         return []
 
 
 def get_fonctionnalites_premium():
     try:
-        r = requests.get(_url("fonctionnalites_premium?actif=eq.true&order=ordre"), headers=_headers(True))
+        r = requests.get(_url("fonctionnalites_premium?actif=eq.true&order=ordre"), headers=_headers(True), timeout=10)
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_fonctionnalites_premium: {e}")
+        logger.error(f"get_fonctionnalites_premium: {type(e).__name__}")
         return []
+
 
 # ═══════════════════════════════════════════════════════════════
 # CATEGORIES BOUTIQUE
@@ -463,33 +491,34 @@ def create_categorie(type_code, nom, description=None):
             "nom": nom,
             "description": description,
             "actif": True,
-        }, headers=_headers(True))
+        }, headers=_headers(True), timeout=10)
         result = r.json()
         return result[0] if isinstance(result, list) and result else None
     except Exception as e:
-        logger.error(f"create_categorie: {e}")
+        logger.error(f"create_categorie: {type(e).__name__}")
         return None
 
 
 def update_categorie(cat_id, data):
     try:
-        r = requests.patch(_url(f"boutique_categories?id=eq.{cat_id}"), json=data, headers=_headers(True))
+        r = requests.patch(_url(f"boutique_categories?id=eq.{cat_id}"), json=data, headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"update_categorie: {e}")
+        logger.error(f"update_categorie: {type(e).__name__}")
         return False
 
 
 def delete_categorie(cat_id):
     try:
-        r = requests.delete(_url(f"boutique_categories?id=eq.{cat_id}"), headers=_headers(True))
+        r = requests.delete(_url(f"boutique_categories?id=eq.{cat_id}"), headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"delete_categorie: {e}")
+        logger.error(f"delete_categorie: {type(e).__name__}")
         return False
 
+
 # ═══════════════════════════════════════════════════════════════
-# BANNIÈRES
+# BANNIERES (une seule definition)
 # ═══════════════════════════════════════════════════════════════
 
 def get_bannieres_revendeur(revendeur_id, only_active=False):
@@ -497,44 +526,44 @@ def get_bannieres_revendeur(revendeur_id, only_active=False):
         url = f"boutique_bannieres?revendeur_id=eq.{revendeur_id}&order=ordre,created_at.desc"
         if only_active:
             url += "&actif=eq.true"
-        r = requests.get(_url(url), headers=_headers(True))
+        r = requests.get(_url(url), headers=_headers(True), timeout=10)
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_bannieres_revendeur: {e}")
+        logger.error(f"get_bannieres_revendeur: {type(e).__name__}")
         return []
 
 
 def create_banniere(data):
     try:
-        r = requests.post(_url("boutique_bannieres"), json=data, headers=_headers(True))
+        r = requests.post(_url("boutique_bannieres"), json=data, headers=_headers(True), timeout=10)
         result = r.json()
         return result[0] if isinstance(result, list) and result else None
     except Exception as e:
-        logger.error(f"create_banniere: {e}")
+        logger.error(f"create_banniere: {type(e).__name__}")
         return None
 
 
 def update_banniere(banniere_id, data):
     try:
-        r = requests.patch(_url(f"boutique_bannieres?id=eq.{banniere_id}"), json=data, headers=_headers(True))
+        r = requests.patch(_url(f"boutique_bannieres?id=eq.{banniere_id}"), json=data, headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"update_banniere: {e}")
+        logger.error(f"update_banniere: {type(e).__name__}")
         return False
 
 
 def delete_banniere(banniere_id):
     try:
-        r = requests.delete(_url(f"boutique_bannieres?id=eq.{banniere_id}"), headers=_headers(True))
+        r = requests.delete(_url(f"boutique_bannieres?id=eq.{banniere_id}"), headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"delete_banniere: {e}")
+        logger.error(f"delete_banniere: {type(e).__name__}")
         return False
 
 
 # ═══════════════════════════════════════════════════════════════
-# ATTRIBUTS
+# ATTRIBUTS (une seule definition)
 # ═══════════════════════════════════════════════════════════════
 
 def get_attributs_revendeur(revendeur_id, only_active=False):
@@ -542,83 +571,39 @@ def get_attributs_revendeur(revendeur_id, only_active=False):
         url = f"boutique_attributs?revendeur_id=eq.{revendeur_id}&order=ordre,created_at"
         if only_active:
             url += "&actif=eq.true"
-        r = requests.get(_url(url), headers=_headers(True))
+        r = requests.get(_url(url), headers=_headers(True), timeout=10)
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_attributs_revendeur: {e}")
+        logger.error(f"get_attributs_revendeur: {type(e).__name__}")
         return []
 
 
 def create_attribut(data):
     try:
-        r = requests.post(_url("boutique_attributs"), json=data, headers=_headers(True))
+        r = requests.post(_url("boutique_attributs"), json=data, headers=_headers(True), timeout=10)
         result = r.json()
         return result[0] if isinstance(result, list) and result else None
     except Exception as e:
-        logger.error(f"create_attribut: {e}")
+        logger.error(f"create_attribut: {type(e).__name__}")
         return None
 
 
 def update_attribut(attribut_id, data):
     try:
-        r = requests.patch(_url(f"boutique_attributs?id=eq.{attribut_id}"), json=data, headers=_headers(True))
+        r = requests.patch(_url(f"boutique_attributs?id=eq.{attribut_id}"), json=data, headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"update_attribut: {e}")
+        logger.error(f"update_attribut: {type(e).__name__}")
         return False
 
 
 def delete_attribut(attribut_id):
     try:
-        r = requests.delete(_url(f"boutique_attributs?id=eq.{attribut_id}"), headers=_headers(True))
+        r = requests.delete(_url(f"boutique_attributs?id=eq.{attribut_id}"), headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"delete_attribut: {e}")
-        return False
-
-# ═══════════════════════════════════════════════════════════════
-# BANNIÈRES
-# ═══════════════════════════════════════════════════════════════
-
-def get_bannieres_revendeur(revendeur_id, only_active=False):
-    try:
-        url = f"boutique_bannieres?revendeur_id=eq.{revendeur_id}&order=ordre,created_at.desc"
-        if only_active:
-            url += "&actif=eq.true"
-        r = requests.get(_url(url), headers=_headers(True))
-        data = r.json()
-        return data if isinstance(data, list) else []
-    except Exception as e:
-        logger.error(f"get_bannieres_revendeur: {e}")
-        return []
-
-
-def create_banniere(data):
-    try:
-        r = requests.post(_url("boutique_bannieres"), json=data, headers=_headers(True))
-        result = r.json()
-        return result[0] if isinstance(result, list) and result else None
-    except Exception as e:
-        logger.error(f"create_banniere: {e}")
-        return None
-
-
-def update_banniere(banniere_id, data):
-    try:
-        r = requests.patch(_url(f"boutique_bannieres?id=eq.{banniere_id}"), json=data, headers=_headers(True))
-        return r.status_code < 300
-    except Exception as e:
-        logger.error(f"update_banniere: {e}")
-        return False
-
-
-def delete_banniere(banniere_id):
-    try:
-        r = requests.delete(_url(f"boutique_bannieres?id=eq.{banniere_id}"), headers=_headers(True))
-        return r.status_code < 300
-    except Exception as e:
-        logger.error(f"delete_banniere: {e}")
+        logger.error(f"delete_attribut: {type(e).__name__}")
         return False
 
 
@@ -631,84 +616,39 @@ def get_avis_revendeur(revendeur_id, only_approuve=False):
         url = f"boutique_avis?revendeur_id=eq.{revendeur_id}&order=created_at.desc"
         if only_approuve:
             url += "&approuve=eq.true"
-        r = requests.get(_url(url), headers=_headers(True))
+        r = requests.get(_url(url), headers=_headers(True), timeout=10)
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_avis_revendeur: {e}")
+        logger.error(f"get_avis_revendeur: {type(e).__name__}")
         return []
 
 
 def create_avis(data):
     try:
-        r = requests.post(_url("boutique_avis"), json=data, headers=_headers(True))
+        r = requests.post(_url("boutique_avis"), json=data, headers=_headers(True), timeout=10)
         result = r.json()
         return result[0] if isinstance(result, list) and result else None
     except Exception as e:
-        logger.error(f"create_avis: {e}")
+        logger.error(f"create_avis: {type(e).__name__}")
         return None
 
 
 def update_avis(avis_id, data):
     try:
-        r = requests.patch(_url(f"boutique_avis?id=eq.{avis_id}"), json=data, headers=_headers(True))
+        r = requests.patch(_url(f"boutique_avis?id=eq.{avis_id}"), json=data, headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"update_avis: {e}")
+        logger.error(f"update_avis: {type(e).__name__}")
         return False
 
 
 def delete_avis(avis_id):
     try:
-        r = requests.delete(_url(f"boutique_avis?id=eq.{avis_id}"), headers=_headers(True))
+        r = requests.delete(_url(f"boutique_avis?id=eq.{avis_id}"), headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"delete_avis: {e}")
-        return False
-
-
-# ═══════════════════════════════════════════════════════════════
-# ATTRIBUTS
-# ═══════════════════════════════════════════════════════════════
-
-def get_attributs_revendeur(revendeur_id, only_active=False):
-    try:
-        url = f"boutique_attributs?revendeur_id=eq.{revendeur_id}&order=ordre,created_at"
-        if only_active:
-            url += "&actif=eq.true"
-        r = requests.get(_url(url), headers=_headers(True))
-        data = r.json()
-        return data if isinstance(data, list) else []
-    except Exception as e:
-        logger.error(f"get_attributs_revendeur: {e}")
-        return []
-
-
-def create_attribut(data):
-    try:
-        r = requests.post(_url("boutique_attributs"), json=data, headers=_headers(True))
-        result = r.json()
-        return result[0] if isinstance(result, list) and result else None
-    except Exception as e:
-        logger.error(f"create_attribut: {e}")
-        return None
-
-
-def update_attribut(attribut_id, data):
-    try:
-        r = requests.patch(_url(f"boutique_attributs?id=eq.{attribut_id}"), json=data, headers=_headers(True))
-        return r.status_code < 300
-    except Exception as e:
-        logger.error(f"update_attribut: {e}")
-        return False
-
-
-def delete_attribut(attribut_id):
-    try:
-        r = requests.delete(_url(f"boutique_attributs?id=eq.{attribut_id}"), headers=_headers(True))
-        return r.status_code < 300
-    except Exception as e:
-        logger.error(f"delete_attribut: {e}")
+        logger.error(f"delete_avis: {type(e).__name__}")
         return False
 
 
@@ -720,12 +660,12 @@ def get_coupons_revendeur(revendeur_id):
     try:
         r = requests.get(
             _url(f"boutique_coupons?revendeur_id=eq.{revendeur_id}&order=created_at.desc"),
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_coupons_revendeur: {e}")
+        logger.error(f"get_coupons_revendeur: {type(e).__name__}")
         return []
 
 
@@ -733,54 +673,54 @@ def get_coupon_by_code(revendeur_id, code):
     try:
         r = requests.get(
             _url(f"boutique_coupons?revendeur_id=eq.{revendeur_id}&code=eq.{code}&limit=1"),
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         data = r.json()
         return data[0] if isinstance(data, list) and data else None
     except Exception as e:
-        logger.error(f"get_coupon_by_code: {e}")
+        logger.error(f"get_coupon_by_code: {type(e).__name__}")
         return None
 
 
 def create_coupon(data):
     try:
-        r = requests.post(_url("boutique_coupons"), json=data, headers=_headers(True))
+        r = requests.post(_url("boutique_coupons"), json=data, headers=_headers(True), timeout=10)
         result = r.json()
         return result[0] if isinstance(result, list) and result else None
     except Exception as e:
-        logger.error(f"create_coupon: {e}")
+        logger.error(f"create_coupon: {type(e).__name__}")
         return None
 
 
 def update_coupon(coupon_id, data):
     try:
-        r = requests.patch(_url(f"boutique_coupons?id=eq.{coupon_id}"), json=data, headers=_headers(True))
+        r = requests.patch(_url(f"boutique_coupons?id=eq.{coupon_id}"), json=data, headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"update_coupon: {e}")
+        logger.error(f"update_coupon: {type(e).__name__}")
         return False
 
 
 def delete_coupon(coupon_id):
     try:
-        r = requests.delete(_url(f"boutique_coupons?id=eq.{coupon_id}"), headers=_headers(True))
+        r = requests.delete(_url(f"boutique_coupons?id=eq.{coupon_id}"), headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"delete_coupon: {e}")
+        logger.error(f"delete_coupon: {type(e).__name__}")
         return False
+
 
 # ═══════════════════════════════════════════════════════════════
 # COMMANDES BOUTIQUE
 # ═══════════════════════════════════════════════════════════════
 
 def create_commande_boutique(data):
-    """Cree une commande boutique (checkout invite)."""
     try:
-        r = requests.post(_url("boutique_commandes"), json=data, headers=_headers(True))
+        r = requests.post(_url("boutique_commandes"), json=data, headers=_headers(True), timeout=10)
         result = r.json()
         return result[0] if isinstance(result, list) and result else None
     except Exception as e:
-        logger.error(f"create_commande_boutique: {e}")
+        logger.error(f"create_commande_boutique: {type(e).__name__}")
         return None
 
 
@@ -788,59 +728,32 @@ def get_commande_boutique_by_reference(reference):
     try:
         r = requests.get(
             _url(f"boutique_commandes?reference=eq.{reference}&limit=1"),
-            headers=_headers(True)
+            headers=_headers(True), timeout=10
         )
         data = r.json()
         return data[0] if isinstance(data, list) and data else None
     except Exception as e:
-        logger.error(f"get_commande_boutique_by_reference: {e}")
+        logger.error(f"get_commande_boutique_by_reference: {type(e).__name__}")
         return None
 
 
 def get_commandes_boutique_revendeur(revendeur_id, limit=100, statut=None):
-    """Recupere les commandes d'une boutique."""
     try:
         url = f"boutique_commandes?revendeur_id=eq.{revendeur_id}&order=created_at.desc&limit={limit}"
         if statut:
             url += f"&statut=eq.{statut}"
-        r = requests.get(_url(url), headers=_headers(True))
+        r = requests.get(_url(url), headers=_headers(True), timeout=10)
         data = r.json()
         return data if isinstance(data, list) else []
     except Exception as e:
-        logger.error(f"get_commandes_boutique_revendeur: {e}")
+        logger.error(f"get_commandes_boutique_revendeur: {type(e).__name__}")
         return []
 
 
 def update_commande_boutique(commande_id, data):
     try:
-        r = requests.patch(_url(f"boutique_commandes?id=eq.{commande_id}"), json=data, headers=_headers(True))
+        r = requests.patch(_url(f"boutique_commandes?id=eq.{commande_id}"), json=data, headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception as e:
-        logger.error(f"update_commande_boutique: {e}")
-        return False
-
-
-def get_produit_by_id(produit_id):
-    try:
-        r = requests.get(_url(f"boutique_produits?id=eq.{produit_id}&limit=1"), headers=_headers(True))
-        data = r.json()
-        return data[0] if isinstance(data, list) and data else None
-    except Exception as e:
-        logger.error(f"get_produit_by_id: {e}")
-        return None
-
-
-def decrementer_stock(produit_id, quantite):
-    """Decremente le stock d'un produit apres une commande."""
-    try:
-        produit = get_produit_by_id(produit_id)
-        if not produit:
-            return False
-        stock_actuel = produit.get("stock", -1)
-        if stock_actuel is None or stock_actuel < 0:
-            return True  # Stock illimite
-        nouveau_stock = max(0, stock_actuel - quantite)
-        return update_produit_boutique(produit_id, {"stock": nouveau_stock})
-    except Exception as e:
-        logger.error(f"decrementer_stock: {e}")
+        logger.error(f"update_commande_boutique: {type(e).__name__}")
         return False
