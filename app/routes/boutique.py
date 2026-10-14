@@ -687,3 +687,137 @@ def deconnecter_client(slug):
     session["boutique_client_id"] = ids
     flash("Vous etes deconnecte de cet espace.", "info")
     return redirect(url_for("boutique.visiter", slug=slug))
+
+
+
+@boutique_bp.route("/r/<slug>/paiement/creer-lien", methods=["POST"])
+@limiter.limit("10 per hour")
+def paiement_creer_lien(slug):
+    """Cree un lien de paiement Mysoleas pour une commande."""
+    from flask import jsonify
+    from app.models.mysoleas import creer_lien_paiement
+    from app.models.database import update_commande_boutique
+
+    revendeur = get_profile_by_slug(slug)
+    if not revendeur or not revendeur.get("est_revendeur"):
+        return jsonify({"error": "Boutique introuvable"}), 404
+
+    if not revendeur.get("boutique_active", True):
+        return jsonify({"error": "Boutique desactivee"}), 403
+
+    commande_ref = request.form.get("commande_reference", "").strip()
+    provider = request.form.get("provider", "").strip() or None
+
+    if not commande_ref:
+        return jsonify({"error": "Reference commande manquante"}), 400
+
+    commande = get_commande_boutique_by_reference(commande_ref)
+    if not commande or commande.get("revendeur_id") != revendeur["id"]:
+        return jsonify({"error": "Commande introuvable"}), 404
+
+    if commande.get("statut") == "payee":
+        return jsonify({"error": "Cette commande est deja payee"}), 400
+
+    lien = creer_lien_paiement(
+        amount=commande.get("total", 0),
+        currency="XAF",
+        title=f"Commande {commande_ref}",
+        description=f"Paiement de votre commande sur {revendeur.get('boutique_nom') or slug}",
+        provider=provider,
+        fee_bearer="CUSTOMER",
+        max_usage=1,
+        metadata={
+            "commande_reference": commande_ref,
+            "revendeur_slug": slug,
+        },
+    )
+
+    if not lien or not lien.get("payment_url"):
+        return jsonify({"error": "Erreur creation du lien. Reessayez."}), 500
+
+    try:
+        update_commande_boutique(commande["id"], {
+            "statut_paiement": "en_attente",
+            "paiement_reference": lien.get("reference"),
+        })
+    except Exception as e:
+        logger.error(f"update_commande paiement_reference: {type(e).__name__}")
+
+    return jsonify({
+        "success": True,
+        "payment_url": lien.get("payment_url"),
+        "reference": lien.get("reference"),
+        "short_code": lien.get("short_code"),
+    })
+
+
+@boutique_bp.route("/r/<slug>/paiement/webhook", methods=["POST"])
+@limiter.limit("300 per hour")
+def paiement_webhook(slug):
+    """
+    Webhook appele par Mysoleas a chaque changement de statut.
+    Met a jour le statut de la commande.
+    """
+    from flask import jsonify
+    from app.models.mysoleas import verifier_signature_webhook, verifier_statut_collection
+    from app.models.database import update_commande_boutique
+
+    revendeur = get_profile_by_slug(slug)
+    if not revendeur:
+        return jsonify({"error": "Boutique introuvable"}), 404
+
+    private_key = request.headers.get("x-private-key", "")
+    if not verifier_signature_webhook(private_key):
+        logger.warning(f"Webhook Mysoleas rejete (signature invalide) - slug={slug}")
+        return jsonify({"error": "Signature invalide"}), 401
+
+    data = request.get_json(silent=True) or {}
+    transaction_ref = data.get("transaction_reference", "")
+    invoice_ref = data.get("invoice_reference", "")
+    statut = (data.get("status") or "").upper()
+    operation = (data.get("operation") or "").upper()
+
+    logger.info(f"Webhook Mysoleas : {operation} {statut} pour {invoice_ref}")
+
+    if operation != "COLLECTION":
+        return jsonify({"received": True})
+
+    if not invoice_ref:
+        return jsonify({"error": "invoice_reference manquant"}), 400
+
+    commande = get_commande_boutique_by_reference(invoice_ref)
+    if not commande or commande.get("revendeur_id") != revendeur["id"]:
+        return jsonify({"error": "Commande introuvable"}), 404
+
+    statut_verifie = statut
+    if transaction_ref:
+        try:
+            verification = verifier_statut_collection(transaction_ref)
+            if verification and verification.get("status"):
+                statut_verifie = (verification.get("status") or "").upper()
+        except Exception as e:
+            logger.error(f"verifier_statut webhook: {type(e).__name__}")
+
+    try:
+        if statut_verifie in ("COMPLETED", "SUCCESSFUL", "SUCCESS", "PAID"):
+            update_commande_boutique(commande["id"], {
+                "statut": "confirmee",
+                "statut_paiement": "paye",
+                "paiement_reference": transaction_ref or commande.get("paiement_reference"),
+            })
+            logger.info(f"Paiement confirme pour {invoice_ref}")
+        elif statut_verifie in ("FAILED", "CANCELLED", "REJECTED"):
+            update_commande_boutique(commande["id"], {
+                "statut_paiement": "echec",
+                "paiement_reference": transaction_ref or commande.get("paiement_reference"),
+            })
+            logger.info(f"Paiement echoue pour {invoice_ref}")
+        elif statut_verifie in ("PROCESSING", "SUBMITTED", "PENDING"):
+            update_commande_boutique(commande["id"], {
+                "statut_paiement": "en_cours",
+                "paiement_reference": transaction_ref or commande.get("paiement_reference"),
+            })
+    except Exception as e:
+        logger.error(f"update_commande webhook: {type(e).__name__}")
+
+    return jsonify({"received": True})
