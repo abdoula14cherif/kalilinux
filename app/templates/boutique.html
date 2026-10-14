@@ -16,7 +16,6 @@ a{color:inherit;text-decoration:none}
 img{max-width:100%;height:auto;display:block}
 button{font-family:inherit;cursor:pointer}
 
-/* HEADER */
 .shop-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--white);border-bottom:1px solid var(--gray);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.03)}
 .shop-brand{display:flex;align-items:center;gap:10px;min-width:0}
 .shop-logo{width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--primary-d));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem}
@@ -26,77 +25,53 @@ button{font-family:inherit;cursor:pointer}
 .shop-rating{font-size:.72rem;color:var(--mid);display:flex;align-items:center;gap:4px;margin-top:2px}
 .shop-rating .stars{color:#F59E0B;letter-spacing:-1px}
 .btn-login{background:var(--primary);color:#fff;padding:9px 16px;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;flex-shrink:0}
-.btn-login:hover{opacity:.92}
 
-/* NAV */
 .shop-nav{background:var(--white);border-bottom:1px solid var(--gray);padding:0 20px;overflow-x:auto;display:flex;gap:4px;position:sticky;top:67px;z-index:99;scrollbar-width:none}
 .shop-nav::-webkit-scrollbar{display:none}
 .shop-nav a{padding:12px 14px;font-size:.82rem;font-weight:700;color:var(--mid);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
 .shop-nav a:hover{color:var(--primary)}
 .shop-nav a.active{color:var(--primary);border-bottom-color:var(--primary)}
 
-/* HERO */
-.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;text-align:center;padding:56px 24px}
-.hero.has-banniere{padding:0;min-height:420px;display:flex;align-items:center;justify-content:center}
-.hero-banniere{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;z-index:0}
-.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.6),rgba(0,0,0,.4));z-index:1}
-.hero-content{position:relative;z-index:2;max-width:680px;margin:0 auto;padding:40px 0}
-.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);padding:7px 16px;border-radius:20px;font-size:.74rem;font-weight:800;letter-spacing:.4px;margin-bottom:20px}
-.hero h1{font-size:2rem;font-weight:900;margin-bottom:14px;line-height:1.2;text-shadow:0 2px 12px rgba(0,0,0,.2)}
-.hero .typing-cursor{display:inline-block;width:3px;background:#fff;animation:blink 1s infinite;margin-left:2px;vertical-align:middle;height:1em}
-@keyframes blink{50%{opacity:0}}
-.hero p{font-size:.95rem;opacity:.95;line-height:1.7;max-width:520px;margin:0 auto 28px;text-shadow:0 2px 8px rgba(0,0,0,.2)}
-.hero-cta{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--primary);padding:15px 32px;border-radius:14px;font-weight:900;font-size:.98rem;text-decoration:none;box-shadow:0 12px 30px rgba(0,0,0,.25);transition:transform .2s}
-.hero-cta:hover{transform:translateY(-2px)}
+/* BANNIERE SLIDER */
+.banniere-wrap{padding:10px 12px}
+.banniere-slider{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:{% if revendeur.get('boutique_banniere_arrondie', True) %}18px{% else %}0{% endif %};min-height:{{ revendeur.get('boutique_banniere_hauteur', 220) }}px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.banniere-slide{display:none;padding:36px 20px;text-align:center;color:#fff;min-height:{{ revendeur.get('boutique_banniere_hauteur', 220) }}px;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.banniere-slide.active{display:flex;animation:fadeSlide .6s ease}
+@keyframes fadeSlide{from{opacity:0}to{opacity:1}}
+.banniere-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:{% if revendeur.get('boutique_banniere_flou', True) %}{{ revendeur.get('boutique_banniere_flou_intensite', 0.45) }}{% else %}0{% endif %};z-index:0}
+.banniere-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.4),rgba(0,0,0,.2));z-index:1}
+.banniere-content{position:relative;z-index:2}
+.banniere-slide h2{font-size:1.4rem;font-weight:900;margin-bottom:8px;line-height:1.2;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+.banniere-slide p{font-size:.88rem;opacity:.95;max-width:400px;margin:0 auto;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+.banniere-dots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:3}
+.banniere-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer;transition:.3s;border:none;padding:0}
+.banniere-dot.active{background:#fff;width:22px;border-radius:4px}
 
-.hero-stats{display:flex;justify-content:center;gap:26px;margin-top:28px;flex-wrap:wrap;position:relative;z-index:2}
-.hero-stat{text-align:center}
-.hero-stat-val{font-size:1.5rem;font-weight:900;color:#fff;line-height:1}
-.hero-stat-lbl{font-size:.72rem;color:rgba(255,255,255,.85);margin-top:4px;font-weight:700;letter-spacing:.4px}
-
+.hero{display:none}
+.hero-stats{display:none}
 .hero-contact{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:22px;position:relative;z-index:2}
-.contact-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);color:#fff;padding:9px 16px;border-radius:20px;font-size:.78rem;font-weight:700;text-decoration:none;transition:background .2s}
-.contact-btn:hover{background:rgba(255,255,255,.3)}
+.contact-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);color:#fff;padding:9px 16px;border-radius:20px;font-size:.78rem;font-weight:700;text-decoration:none}
 
-/* TRUST */
 .trust-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;max-width:760px;margin:-30px auto 0;padding:0 20px;position:relative;z-index:10}
 .trust-item{background:var(--white);border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.08);border:1px solid var(--gray)}
 .trust-item i{font-size:1.15rem;color:var(--primary);margin-bottom:6px;display:block}
 .trust-item span{font-size:.74rem;font-weight:800;color:var(--dark);display:block;line-height:1.3}
 
-/* SECTIONS */
 .section{padding:44px 20px;max-width:1100px;margin:0 auto}
 .section-title{font-size:1.35rem;font-weight:900;color:var(--dark);text-align:center;margin-bottom:8px}
 .section-sub{font-size:.85rem;color:var(--mid);text-align:center;max-width:520px;margin:0 auto 30px;line-height:1.6}
 
-/* AVANTAGES */
-.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
-.feat-card{background:var(--white);border-radius:14px;padding:22px;text-align:center;border:1px solid var(--gray);transition:all .25s}
-.feat-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.08);border-color:var(--primary)}
-.feat-ico{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 14px}
-.feat-card h3{font-size:.92rem;font-weight:900;color:var(--dark);margin-bottom:8px}
-.feat-card p{font-size:.78rem;color:var(--mid);line-height:1.6}
-
-/* COMMENT COMMANDER */
-.steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px}
-.step{text-align:center;padding:20px}
-.step-num{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;font-size:1.2rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 8px 20px rgba(0,0,0,.15)}
-.step h3{font-size:.92rem;font-weight:900;color:var(--dark);margin-bottom:6px}
-.step p{font-size:.8rem;color:var(--mid);line-height:1.6}
-
-/* FILTRES */
 .filters-wrap{background:var(--white);border-radius:16px;padding:16px;margin-bottom:22px;border:1px solid var(--gray);box-shadow:0 4px 12px rgba(0,0,0,.04)}
 .search-box{position:relative;margin-bottom:12px}
 .search-box i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--light);font-size:.9rem}
-.search-input{width:100%;padding:13px 14px 13px 42px;border:2px solid var(--gray);border-radius:12px;font-size:.9rem;color:var(--dark);outline:none;background:var(--off);font-family:inherit;transition:border-color .2s}
+.search-input{width:100%;padding:13px 14px 13px 42px;border:2px solid var(--gray);border-radius:12px;font-size:.9rem;color:var(--dark);outline:none;background:var(--off);font-family:inherit}
 .search-input:focus{border-color:var(--primary);background:var(--white)}
 .filter-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .filter-tabs::-webkit-scrollbar{display:none}
-.filter-tab{padding:8px 15px;border-radius:20px;background:var(--off);color:var(--mid);font-size:.78rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+.filter-tab{padding:8px 15px;border-radius:20px;background:var(--off);color:var(--mid);font-size:.78rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:all .2s}
 .filter-tab:hover{background:#E2E8F0}
 .filter-tab.active{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15)}
 
-/* SERVICES - GRILLE */
 .svc-container{display:grid;gap:14px;margin-bottom:20px}
 .svc-container.grille{grid-template-columns:repeat(var(--cols),1fr)}
 .svc-container.cartes{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
@@ -104,7 +79,6 @@ button{font-family:inherit;cursor:pointer}
 @media(max-width:720px){.svc-container.grille{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:480px){.svc-container.grille{grid-template-columns:1fr}}
 
-/* CARTE SERVICE */
 .svc-card{background:var(--white);border-radius:14px;padding:16px;border:1px solid var(--gray);transition:all .25s;position:relative;overflow:hidden;display:flex;flex-direction:column}
 .svc-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.08);border-color:var(--primary)}
 .svc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--primary-d))}
@@ -118,63 +92,40 @@ button{font-family:inherit;cursor:pointer}
 .btn-commander{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border:none;border-radius:10px;font-weight:800;font-size:.84rem;text-decoration:none;transition:transform .2s;cursor:pointer;margin-top:auto}
 .btn-commander:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.15)}
 
-/* VUE LISTE */
-.svc-container.liste .svc-card{flex-direction:row;align-items:center;gap:16px;padding:14px 18px}
-.svc-container.liste .svc-card::before{width:3px;height:100%;top:0;left:0;right:auto}
-.svc-container.liste .svc-name{margin-bottom:0;min-width:200px}
-.svc-container.liste .svc-price{font-size:1.15rem;margin-bottom:0}
-.svc-container.liste .svc-unit{margin-bottom:0}
-.svc-container.liste .btn-commander{width:auto;padding:11px 20px;margin-left:auto;margin-top:0}
-@media(max-width:720px){
-  .svc-container.liste .svc-card{flex-direction:column;align-items:flex-start;padding:16px}
-  .svc-container.liste .svc-name{min-width:0;margin-bottom:10px}
-  .svc-container.liste .btn-commander{width:100%;margin-top:10px}
-}
-
-/* AVIS */
 .avis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-.avis-card{background:var(--white);border:1px solid var(--gray);border-radius:14px;padding:20px;position:relative}
+.avis-card{background:var(--white);border:1px solid var(--gray);border-radius:14px;padding:20px}
 .avis-card .stars{color:#F59E0B;font-size:.88rem;margin-bottom:10px}
 .avis-card p{font-size:.85rem;color:var(--mid);line-height:1.7;margin-bottom:14px;font-style:italic}
 .avis-auteur{display:flex;align-items:center;gap:10px}
 .avis-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;flex-shrink:0}
 .avis-nom{font-size:.82rem;font-weight:800;color:var(--dark)}
-.avis-role{font-size:.72rem;color:var(--light);font-weight:600}
 
-/* FAQ */
 .faq-item{background:var(--white);border:1px solid var(--gray);border-radius:14px;padding:16px 18px;margin-bottom:10px}
 .faq-item summary{font-size:.88rem;font-weight:800;color:var(--dark);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
 .faq-item summary::-webkit-details-marker{display:none}
-.faq-item summary::after{content:"+";font-size:1.3rem;color:var(--primary);font-weight:300;transition:transform .2s}
+.faq-item summary::after{content:"+";font-size:1.3rem;color:var(--primary);font-weight:300}
 .faq-item[open] summary::after{transform:rotate(45deg)}
 .faq-item p{font-size:.82rem;color:var(--mid);line-height:1.7;margin-top:12px;padding-top:12px;border-top:1px solid var(--gray)}
 
-/* A PROPOS */
 .apropos{background:var(--white);border-radius:16px;padding:26px;border:1px solid var(--gray);max-width:800px;margin:0 auto}
 .apropos h3{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .apropos h3 i{color:var(--primary)}
 .apropos p{font-size:.88rem;color:var(--mid);line-height:1.8}
 
-/* CTA FINAL */
 .cta-final{background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:20px;padding:40px 24px;text-align:center;color:#fff;position:relative;overflow:hidden;margin:40px auto 0;max-width:960px}
-.cta-final::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 65%);pointer-events:none}
 .cta-final h2{font-size:1.35rem;font-weight:900;margin-bottom:10px;position:relative}
-.cta-final p{font-size:.9rem;opacity:.92;margin-bottom:22px;position:relative;line-height:1.6}
-.cta-final .btn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--primary);padding:15px 32px;border-radius:14px;font-weight:900;font-size:.95rem;text-decoration:none;box-shadow:0 10px 24px rgba(0,0,0,.2);position:relative}
+.cta-final p{font-size:.9rem;opacity:.92;margin-bottom:22px;position:relative}
+.cta-final .btn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--primary);padding:15px 32px;border-radius:14px;font-weight:900;font-size:.95rem;text-decoration:none}
 
-/* FOOTER */
 .shop-footer{background:var(--dark);color:rgba(255,255,255,.6);text-align:center;padding:32px 20px;font-size:.78rem;line-height:1.7;margin-top:40px}
 .shop-footer .brand{color:#fff;font-weight:900;font-size:1rem;margin-bottom:8px}
-.shop-footer a{color:var(--primary);font-weight:700;text-decoration:none}
+.shop-footer a{color:var(--primary);font-weight:700}
 
-/* WHATSAPP FLOAT */
-.wa-float{position:fixed;bottom:22px;right:22px;width:58px;height:58px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.7rem;box-shadow:0 8px 24px rgba(37,211,102,.5);z-index:90;text-decoration:none;animation:waPulse 2s infinite}
-@keyframes waPulse{0%,100%{box-shadow:0 8px 24px rgba(37,211,102,.5)}50%{box-shadow:0 8px 34px rgba(37,211,102,.8)}}
+.wa-float{position:fixed;bottom:22px;right:22px;width:58px;height:58px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.7rem;box-shadow:0 8px 24px rgba(37,211,102,.5);z-index:90;text-decoration:none}
 
 .scroll-top{position:fixed;bottom:90px;right:22px;width:44px;height:44px;background:var(--primary);color:#fff;border:none;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:89}
 .scroll-top.show{display:flex}
 
-/* MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
 .modal-bg.open{display:flex}
 .modal{background:var(--white);border-radius:20px;padding:26px 22px;max-width:420px;width:100%;position:relative;animation:pop .3s ease}
@@ -189,17 +140,20 @@ button{font-family:inherit;cursor:pointer}
 .modal .btn-modal-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
 .modal-info{background:var(--off);border-radius:12px;padding:14px;margin-bottom:16px;font-size:.8rem;color:var(--mid);line-height:1.6}
 
-/* EMPTY */
+/* TOAST - position corrigée pour ne PAS cacher les boutons */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-120px);background:#0F172A;color:#fff;padding:12px 24px;border-radius:30px;font-size:.85rem;font-weight:700;z-index:500;transition:transform .35s ease,opacity .35s ease;display:flex;align-items:center;gap:10px;pointer-events:none;max-width:88%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast i{flex-shrink:0;font-size:1rem}
+.toast.toast-success i{color:#10B981}
+.toast.toast-error i{color:#DC2626}
+.toast.toast-warning i{color:#F59E0B}
+
 .empty-shop{text-align:center;padding:60px 24px;background:var(--white);border-radius:18px;border:1px solid var(--gray)}
 .empty-shop i{font-size:2.8rem;color:var(--gray);display:block;margin-bottom:14px}
 .empty-shop h3{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:8px}
 .empty-shop p{font-size:.85rem;color:var(--mid);line-height:1.6}
 
 @media(max-width:520px){
-  .hero{padding:40px 18px}
-  .hero h1{font-size:1.5rem}
-  .hero-stats{gap:18px}
-  .hero-stat-val{font-size:1.2rem}
   .section{padding:30px 14px}
   .shop-name{font-size:.9rem}
   .shop-logo{width:38px;height:38px}
@@ -208,7 +162,6 @@ button{font-family:inherit;cursor:pointer}
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="shop-header">
   <div class="shop-brand">
     {% if boutique.logo_url %}
@@ -238,52 +191,57 @@ button{font-family:inherit;cursor:pointer}
   </div>
 </header>
 
-<!-- NAV -->
 <nav class="shop-nav">
-  {% if boutique.sections.get('services', True) %}<a href="#services">Services</a>{% endif %}
-  {% if boutique.sections.get('avantages', True) %}<a href="#avantages">Avantages</a>{% endif %}
-  {% if boutique.sections.get('comment', True) %}<a href="#comment">Comment commander</a>{% endif %}
-  {% if boutique.sections.get('apropos', True) and boutique.a_propos %}<a href="#apropos">A propos</a>{% endif %}
+  <a href="#services" class="active">Services</a>
+  <a href="#avantages">Avantages</a>
+  {% if boutique.a_propos %}<a href="#apropos">A propos</a>{% endif %}
   {% if boutique.sections.get('avis', True) and boutique.nb_avis > 0 %}<a href="#avis">Avis</a>{% endif %}
   {% if boutique.sections.get('faq', True) %}<a href="#faq">FAQ</a>{% endif %}
   <a href="#contact">Contact</a>
 </nav>
 
-<!-- HERO -->
-<section class="hero {% if boutique.banniere_url %}has-banniere{% endif %}">
-  {% if boutique.banniere_url %}
-  <img class="hero-banniere" src="{{ boutique.banniere_url }}" alt="">
-  <div class="hero-overlay"></div>
-  {% endif %}
-  <div class="hero-content">
-    <div class="hero-badge"><i class="fas fa-store"></i> {{ boutique.nom }}</div>
-    <h1>{{ boutique.slogan }}</h1>
-    <p>{{ boutique.message_accueil }}</p>
-    <a href="{% if est_connecte %}{{ url_for('dashboard.index') }}{% else %}{{ url_for('auth.connexion') }}{% endif %}" class="hero-cta">
-      <i class="fas fa-rocket"></i> {% if est_connecte %}Acceder a mon espace{% else %}Creer mon compte gratuit{% endif %}
-    </a>
-
-    {% if boutique.sections.get('stats', True) %}
-    <div class="hero-stats">
-      <div class="hero-stat"><div class="hero-stat-val">+{{ stats_boutique.clients }}</div><div class="hero-stat-lbl">CLIENTS</div></div>
-      <div class="hero-stat"><div class="hero-stat-val">{{ stats_boutique.note }}/5</div><div class="hero-stat-lbl">NOTE</div></div>
-      <div class="hero-stat"><div class="hero-stat-val">24/7</div><div class="hero-stat-lbl">SUPPORT</div></div>
-    </div>
-    {% endif %}
-
-    {% if boutique.whatsapp or boutique.facebook or boutique.instagram or boutique.tiktok or boutique.telegram %}
-    <div class="hero-contact" id="contact">
-      {% if boutique.whatsapp %}<a href="https://wa.me/{{ boutique.whatsapp }}" target="_blank" class="contact-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>{% endif %}
-      {% if boutique.facebook %}<a href="{{ boutique.facebook }}" target="_blank" class="contact-btn"><i class="fab fa-facebook"></i> Facebook</a>{% endif %}
-      {% if boutique.instagram %}<a href="{{ boutique.instagram }}" target="_blank" class="contact-btn"><i class="fab fa-instagram"></i> Instagram</a>{% endif %}
-      {% if boutique.tiktok %}<a href="{{ boutique.tiktok }}" target="_blank" class="contact-btn"><i class="fab fa-tiktok"></i> TikTok</a>{% endif %}
-      {% if boutique.telegram %}<a href="{{ boutique.telegram }}" target="_blank" class="contact-btn"><i class="fab fa-telegram"></i> Telegram</a>{% endif %}
-    </div>
+<div class="banniere-wrap">
+  <div class="banniere-slider" id="banniereSlider">
+    {% if bannieres %}
+      {% for b in bannieres %}
+      <div class="banniere-slide {% if loop.first %}active{% endif %}">
+        {% if b.image_url %}<img class="banniere-img" src="{{ b.image_url }}" alt="">{% endif %}
+        <div class="banniere-overlay"></div>
+        <div class="banniere-content">
+          {% if b.titre %}<h2>{{ b.titre }}</h2>{% endif %}
+          {% if b.sous_titre %}<p>{{ b.sous_titre }}</p>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+      {% if bannieres|length > 1 %}
+      <div class="banniere-dots" id="banniereDots">
+        {% for b in bannieres %}
+        <button class="banniere-dot {% if loop.first %}active{% endif %}" onclick="slideBanniere({{ loop.index0 }})"></button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% else %}
+      <div class="banniere-slide active">
+        {% if boutique.banniere_url %}<img class="banniere-img" src="{{ boutique.banniere_url }}" alt="">{% endif %}
+        <div class="banniere-overlay"></div>
+        <div class="banniere-content">
+          <h2>{{ boutique.slogan }}</h2>
+          <p>{{ boutique.message_accueil }}</p>
+          {% if boutique.whatsapp or boutique.facebook or boutique.instagram or boutique.tiktok or boutique.telegram %}
+          <div class="hero-contact" id="contact" style="margin-top:22px">
+            {% if boutique.whatsapp %}<a href="https://wa.me/{{ boutique.whatsapp }}" target="_blank" class="contact-btn"><i class="fab fa-whatsapp"></i> WhatsApp</a>{% endif %}
+            {% if boutique.facebook %}<a href="{{ boutique.facebook }}" target="_blank" class="contact-btn"><i class="fab fa-facebook"></i> Facebook</a>{% endif %}
+            {% if boutique.instagram %}<a href="{{ boutique.instagram }}" target="_blank" class="contact-btn"><i class="fab fa-instagram"></i> Instagram</a>{% endif %}
+            {% if boutique.tiktok %}<a href="{{ boutique.tiktok }}" target="_blank" class="contact-btn"><i class="fab fa-tiktok"></i> TikTok</a>{% endif %}
+            {% if boutique.telegram %}<a href="{{ boutique.telegram }}" target="_blank" class="contact-btn"><i class="fab fa-telegram"></i> Telegram</a>{% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
     {% endif %}
   </div>
-</section>
+</div>
 
-<!-- TRUST -->
 <div class="trust-row">
   <div class="trust-item"><i class="fas fa-bolt"></i><span>Livraison rapide</span></div>
   <div class="trust-item"><i class="fas fa-shield-halved"></i><span>Paiement securise</span></div>
@@ -291,62 +249,6 @@ button{font-family:inherit;cursor:pointer}
   <div class="trust-item"><i class="fas fa-undo"></i><span>Resultats garantis</span></div>
 </div>
 
-<!-- AVANTAGES -->
-{% if boutique.sections.get('avantages', True) %}
-<section class="section" id="avantages">
-  <h2 class="section-title">Pourquoi nous choisir ?</h2>
-  <p class="section-sub">Des milliers de clients nous font deja confiance pour booster leur presence en ligne.</p>
-  <div class="feat-grid">
-    <div class="feat-card">
-      <div class="feat-ico"><i class="fas fa-rocket"></i></div>
-      <h3>Livraison ultra rapide</h3>
-      <p>Vos commandes sont traitees en quelques minutes.</p>
-    </div>
-    <div class="feat-card">
-      <div class="feat-ico"><i class="fas fa-lock"></i></div>
-      <h3>100% securise</h3>
-      <p>Paiement Mobile Money et carte bancaire proteges.</p>
-    </div>
-    <div class="feat-card">
-      <div class="feat-ico"><i class="fas fa-tags"></i></div>
-      <h3>Prix imbattables</h3>
-      <p>Les meilleurs tarifs du marche africain.</p>
-    </div>
-    <div class="feat-card">
-      <div class="feat-ico"><i class="fas fa-headset"></i></div>
-      <h3>Support 24/7</h3>
-      <p>Une equipe disponible sur WhatsApp a tout moment.</p>
-    </div>
-  </div>
-</section>
-{% endif %}
-
-<!-- COMMENT COMMANDER -->
-{% if boutique.sections.get('comment', True) %}
-<section class="section" id="comment">
-  <h2 class="section-title">Comment commander ?</h2>
-  <p class="section-sub">Seulement 3 etapes pour booster vos reseaux sociaux.</p>
-  <div class="steps-grid">
-    <div class="step">
-      <div class="step-num">1</div>
-      <h3>Creez votre compte</h3>
-      <p>Inscription gratuite en 30 secondes.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <h3>Rechargez</h3>
-      <p>Ajoutez du credit via Mobile Money.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <h3>Commandez</h3>
-      <p>Choisissez votre service et validez.</p>
-    </div>
-  </div>
-</section>
-{% endif %}
-
-<!-- SERVICES -->
 {% if boutique.sections.get('services', True) %}
 <section class="section" id="services">
   <h2 class="section-title">Nos services</h2>
@@ -370,7 +272,6 @@ button{font-family:inherit;cursor:pointer}
       'audiomack': '#FFA200', 'kick': '#53FC18', 'deezer': '#A238FF'
     } %}
 
-    <!-- FILTRES -->
     <div class="filters-wrap">
       <div class="search-box">
         <i class="fas fa-search"></i>
@@ -389,7 +290,6 @@ button{font-family:inherit;cursor:pointer}
       </div>
     </div>
 
-    <!-- SERVICES -->
     {% for reseau, liste in services_par_reseau.items() %}
     <div class="reseau-block" data-reseau="{{ reseau }}">
       <div style="font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:14px;display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:2px solid var(--gray)">
@@ -429,7 +329,6 @@ button{font-family:inherit;cursor:pointer}
 </section>
 {% endif %}
 
-<!-- A PROPOS -->
 {% if boutique.sections.get('apropos', True) and boutique.a_propos %}
 <section class="section" id="apropos">
   <div class="apropos">
@@ -439,48 +338,36 @@ button{font-family:inherit;cursor:pointer}
 </section>
 {% endif %}
 
-<!-- AVIS -->
-{% if boutique.sections.get('avis', True) and boutique.nb_avis > 0 %}
+{% if boutique.sections.get('avis', True) and avis_approuves %}
 <section class="section" id="avis">
   <h2 class="section-title">Ils nous font confiance</h2>
   <p class="section-sub">Decouvrez ce que nos clients disent de nous.</p>
   <div class="avis-grid">
+    {% for a in avis_approuves[:6] %}
     <div class="avis-card">
-      <div class="stars">★★★★★</div>
-      <p>"Service impeccable et livraison ultra rapide ! Je recommande vivement."</p>
+      <div class="stars">
+        {% for i in range(1, 6) %}
+        <i class="fas fa-star" {% if i > a.note %}style="opacity:.3"{% endif %}></i>
+        {% endfor %}
+      </div>
+      {% if a.commentaire %}<p>"{{ a.commentaire }}"</p>{% endif %}
       <div class="avis-auteur">
-        <div class="avis-avatar">A</div>
-        <div><div class="avis-nom">Abdou</div><div class="avis-role">Client verifie</div></div>
+        <div class="avis-avatar">{{ (a.client_nom or '?')[0] }}</div>
+        <div><div class="avis-nom">{{ a.client_nom }}</div></div>
       </div>
     </div>
-    <div class="avis-card">
-      <div class="stars">★★★★★</div>
-      <p>"Toujours satisfaite, les prix sont imbattables. Merci {{ boutique.nom }} !"</p>
-      <div class="avis-auteur">
-        <div class="avis-avatar">M</div>
-        <div><div class="avis-nom">Marie</div><div class="avis-role">Cliente verifiee</div></div>
-      </div>
-    </div>
-    <div class="avis-card">
-      <div class="stars">★★★★★</div>
-      <p>"Equipe reactive, service au top. Mes reseaux ont explose !"</p>
-      <div class="avis-auteur">
-        <div class="avis-avatar">J</div>
-        <div><div class="avis-nom">Jean</div><div class="avis-role">Client verifie</div></div>
-      </div>
-    </div>
+    {% endfor %}
   </div>
 </section>
 {% endif %}
 
-<!-- FAQ -->
 {% if boutique.sections.get('faq', True) %}
 <section class="section" id="faq">
   <h2 class="section-title">Questions frequentes</h2>
   <p class="section-sub">Tout ce que vous devez savoir avant de commander.</p>
   <details class="faq-item">
     <summary>Comment creer mon compte ?</summary>
-    <p>Cliquez sur "Creer mon compte" en haut de la page. L'inscription est gratuite et prend moins de 30 secondes.</p>
+    <p>Cliquez sur "Connexion" en haut de la page. L'inscription est gratuite et prend moins de 30 secondes.</p>
   </details>
   <details class="faq-item">
     <summary>Quels sont les moyens de paiement acceptes ?</summary>
@@ -497,7 +384,6 @@ button{font-family:inherit;cursor:pointer}
 </section>
 {% endif %}
 
-<!-- CTA FINAL -->
 <div class="cta-final">
   <h2>Pret a booster vos reseaux ?</h2>
   <p>Rejoignez des milliers de clients satisfaits et boostez votre presence en ligne des aujourd'hui.</p>
@@ -506,7 +392,6 @@ button{font-family:inherit;cursor:pointer}
   </a>
 </div>
 
-<!-- FOOTER -->
 <footer class="shop-footer">
   <div class="brand">{{ boutique.nom }}</div>
   <div style="margin-bottom:12px">{{ boutique.slogan }}</div>
@@ -519,19 +404,16 @@ button{font-family:inherit;cursor:pointer}
   <div>&copy; 2026 {{ boutique.nom }} · Propulse par <a href="https://boostcentral.world" target="_blank">Boost Central</a></div>
 </footer>
 
-<!-- SCROLL TOP -->
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
   <i class="fas fa-arrow-up"></i>
 </button>
 
-<!-- WHATSAPP FLOAT -->
 {% if boutique.whatsapp_flottant and boutique.whatsapp %}
 <a href="https://wa.me/{{ boutique.whatsapp }}?text={{ ('Bonjour ' ~ boutique.nom ~ ', je viens de votre boutique.')|urlencode }}" target="_blank" class="wa-float">
   <i class="fab fa-whatsapp"></i>
 </a>
 {% endif %}
 
-<!-- MODAL COMMANDER -->
 <div class="modal-bg" id="modalSvc">
   <div class="modal">
     <button class="modal-close" onclick="fermerModal()">✕</button>
@@ -555,6 +437,22 @@ button{font-family:inherit;cursor:pointer}
 </div>
 
 <script>
+var slideActuel = 0;
+
+// BANNIERE SLIDER AUTO
+var nbSlides = document.querySelectorAll('.banniere-slide').length;
+function slideBanniere(index){
+  slideActuel = index;
+  document.querySelectorAll('.banniere-slide').forEach(function(s, i){ s.classList.toggle('active', i === index); });
+  document.querySelectorAll('.banniere-dot').forEach(function(d, i){ d.classList.toggle('active', i === index); });
+}
+if(nbSlides > 1){
+  setInterval(function(){
+    slideActuel = (slideActuel + 1) % nbSlides;
+    slideBanniere(slideActuel);
+  }, 4000);
+}
+
 function ouvrirModal(nom, reseau, prix, min){
   document.getElementById('modalTitre').textContent = nom;
   document.getElementById('modalReseau').innerHTML = '<i class="fas fa-share-alt"></i> ' + reseau.charAt(0).toUpperCase() + reseau.slice(1);
