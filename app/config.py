@@ -23,10 +23,22 @@ class BaseConfig:
     # Contact
     WHATSAPP_NUMBER = os.environ.get("WHATSAPP_NUMBER", "237658033690")
 
-    # Email Boost Reseller (compte dedie, separe de Boost Central)
-    GMAIL_USERNAME = os.environ.get("GMAIL_USERNAME", "boostcentralsupport@gmail.com")
-    GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
-    GMAIL_FROM_NAME = os.environ.get("GMAIL_FROM_NAME", "Boost Reseller")
+    # Email Boost Reseller (compte dedie)
+    # On accepte plusieurs noms possibles pour eviter les erreurs de nommage
+    GMAIL_USERNAME = (
+        os.environ.get("MAIL_USERNAME")
+        or os.environ.get("GMAIL_USERNAME")
+        or "boostcentralsupport@gmail.com"
+    )
+    GMAIL_APP_PASSWORD = (
+        os.environ.get("GMAIL_APP_PASSWORD")
+        or os.environ.get("GAMAIL_APP_PASSWORD")  # au cas ou faute de frappe
+        or ""
+    )
+    GMAIL_FROM_NAME = (
+        os.environ.get("GMAIL_FROM_NAME")
+        or "Boost Reseller"
+    )
 
     # Domaines
     ROOT_DOMAIN = os.environ.get("ROOT_DOMAIN", "boostcentral.world")
