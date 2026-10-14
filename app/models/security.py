@@ -257,3 +257,52 @@ def _validate_next_url(url):
 #    - redis.exists(f"jti:{jti}")
 #
 # ═══════════════════════════════════════════════════════════════
+
+
+def valider_url(url, domaines_autorises=None):
+    """
+    Valide une URL pour eviter les injections javascript:, data:, etc.
+    Retourne l'URL nettoyee ou None si invalide.
+    """
+    if not url or not isinstance(url, str):
+        return None
+    url = url.strip()
+    if not url:
+        return None
+    if len(url) > 500:
+        return None
+    url_lower = url.lower()
+    if not url_lower.startswith(("http://", "https://")):
+        return None
+    interdits = ("javascript:", "data:", "vbscript:", "file:", "about:")
+    for interdit in interdits:
+        if interdit in url_lower:
+            return None
+    if domaines_autorises:
+        from urllib.parse import urlparse
+        try:
+            host = urlparse(url).hostname or ""
+            host = host.lower()
+            if not any(host == d or host.endswith("." + d) for d in domaines_autorises):
+                return None
+        except Exception:
+            return None
+    return url
+
+
+def valider_url_reseau_social(url):
+    """Valide une URL de reseau social (domaines autorises)."""
+    domaines = (
+        "facebook.com", "fb.com", "instagram.com", "tiktok.com",
+        "twitter.com", "x.com", "youtube.com", "youtu.be",
+        "telegram.org", "t.me", "wa.me", "whatsapp.com",
+        "linkedin.com", "pinterest.com", "snapchat.com",
+        "spotify.com", "soundcloud.com", "twitch.tv", "discord.com",
+        "threads.net", "deezer.com",
+    )
+    return valider_url(url, domaines_autorises=domaines)
+
+
+def valider_url_generique(url):
+    """Valide une URL generique (lien de banniere)."""
+    return valider_url(url)
