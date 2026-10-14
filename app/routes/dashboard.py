@@ -762,6 +762,44 @@ def bannieres_toggle():
 
 
 # ═══════════════════════════════════════════════════════════════
+# OPTIONS DE BANNIERE
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_bp.route("/bannieres/options", methods=["POST"])
+@login_required
+def bannieres_options():
+    """Sauvegarde les options d'affichage des bannieres."""
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    data = {
+        "boutique_banniere_arrondie": request.form.get("banniere_arrondie") == "on",
+        "boutique_banniere_flou": request.form.get("banniere_flou") == "on",
+    }
+
+    try:
+        intensite = float(request.form.get("banniere_flou_intensite", 0.45))
+        data["boutique_banniere_flou_intensite"] = max(0.1, min(1.0, intensite))
+    except Exception:
+        pass
+
+    try:
+        hauteur = int(request.form.get("banniere_hauteur", 220))
+        data["boutique_banniere_hauteur"] = max(150, min(400, hauteur))
+    except Exception:
+        pass
+
+    ok = update_profile(profile["id"], data)
+    if ok:
+        flash("✅ Options de banniere mises a jour !", "success")
+    else:
+        flash("❌ Erreur lors de la sauvegarde.", "error")
+
+    return redirect(url_for("dashboard.bannieres"))
+
+
+# ═══════════════════════════════════════════════════════════════
 # ATTRIBUTS
 # ═══════════════════════════════════════════════════════════════
 
@@ -1205,110 +1243,7 @@ def premium():
 
 
 # ═══════════════════════════════════════════════════════════════
-# ABONNEMENT
-# ═══════════════════════════════════════════════════════════════
-
-@dashboard_bp.route("/abonnement")
-@login_required
-def abonnement():
-    profile, redir = _get_profile_ou_redirect()
-    if redir:
-        return redir
-    plans = get_abonnements_plans()
-    return render_template("dashboard/abonnement.html", profile=profile, plans=plans)
-
-
-# ═══════════════════════════════════════════════════════════════
-# PARAMETRES
-# ═══════════════════════════════════════════════════════════════
-
-@dashboard_bp.route("/parametres")
-@login_required
-def parametres():
-    profile, redir = _get_profile_ou_redirect()
-    if redir:
-        return redir
-    types_boutique = get_all_boutique_types()
-    return render_template("dashboard/parametres.html",
-                          profile=profile,
-                          types_boutique=types_boutique)
-
-
-# ═══════════════════════════════════════════════════════════════
-# TEST EMAIL (temporaire)
-# ═══════════════════════════════════════════════════════════════
-
-@dashboard_bp.route("/test-email")
-def test_email():
-    """Route temporaire pour tester l'envoi d'email."""
-    from app.models.mailer import _send, _template
-
-    destinataire = request.args.get("to", "")
-    if not destinataire:
-        return "Utilise ?to=ton@email.com", 400
-
-    contenu = f"""
-<p>Bonjour,</p>
-<p>Ceci est un <b>email de test</b> envoye depuis Boost Reseller.</p>
-<p>Si tu recois cet email, la config SMTP est correcte !</p>
-<div class="box">
-<div class="row"><span>Expediteur</span><span>{current_app.config.get('GMAIL_USERNAME')}</span></div>
-<div class="row"><span>Nom</span><span>{current_app.config.get('GMAIL_FROM_NAME')}</span></div>
-<div class="row"><span>Mot de passe configure</span><span>{'OUI' if current_app.config.get('GMAIL_APP_PASSWORD') else 'NON'}</span></div>
-</div>
-"""
-
-    ok = _send(
-        destinataire,
-        "Test email — Boost Reseller",
-        _template("Test email reussi !", contenu, "#10B981", "#059669", emoji="✅")
-    )
-
-    if ok:
-        return f"✅ Email envoye a {destinataire}. Verifie ta boite (et les spams)."
-    else:
-        return "❌ Echec. Verifie MAIL_USERNAME et GMAIL_APP_PASSWORD sur Vercel, et regarde les logs."
-
-# ═══════════════════════════════════════════════════════════════
-# OPTIONS DE BANNIERE
-# ═══════════════════════════════════════════════════════════════
-
-@dashboard_bp.route("/bannieres/options", methods=["POST"])
-@login_required
-def bannieres_options():
-    """Sauvegarde les options d'affichage des bannieres."""
-    profile, redir = _get_profile_ou_redirect()
-    if redir:
-        return redir
-
-    data = {
-        "boutique_banniere_arrondie": request.form.get("banniere_arrondie") == "on",
-        "boutique_banniere_flou": request.form.get("banniere_flou") == "on",
-    }
-
-    try:
-        intensite = float(request.form.get("banniere_flou_intensite", 0.45))
-        data["boutique_banniere_flou_intensite"] = max(0.1, min(1.0, intensite))
-    except Exception:
-        pass
-
-    try:
-        hauteur = int(request.form.get("banniere_hauteur", 220))
-        data["boutique_banniere_hauteur"] = max(150, min(400, hauteur))
-    except Exception:
-        pass
-
-    ok = update_profile(profile["id"], data)
-    if ok:
-        flash("✅ Options de banniere mises a jour !", "success")
-    else:
-        flash("❌ Erreur lors de la sauvegarde.", "error")
-
-    return redirect(url_for("dashboard.bannieres"))
-
-
-# ═══════════════════════════════════════════════════════════════
-# ABONNEMENTS
+# ABONNEMENT (Version complète avec plan_actuel)
 # ═══════════════════════════════════════════════════════════════
 
 def _get_plan_actuel(profile):
@@ -1405,3 +1340,55 @@ def abonnement_choisir():
         flash("❌ Erreur lors du changement.", "error")
 
     return redirect(url_for("dashboard.abonnement"))
+
+
+# ═══════════════════════════════════════════════════════════════
+# PARAMETRES
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_bp.route("/parametres")
+@login_required
+def parametres():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    types_boutique = get_all_boutique_types()
+    return render_template("dashboard/parametres.html",
+                          profile=profile,
+                          types_boutique=types_boutique)
+
+
+# ═══════════════════════════════════════════════════════════════
+# TEST EMAIL (temporaire)
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_bp.route("/test-email")
+def test_email():
+    """Route temporaire pour tester l'envoi d'email."""
+    from app.models.mailer import _send, _template
+
+    destinataire = request.args.get("to", "")
+    if not destinataire:
+        return "Utilise ?to=ton@email.com", 400
+
+    contenu = f"""
+<p>Bonjour,</p>
+<p>Ceci est un <b>email de test</b> envoye depuis Boost Reseller.</p>
+<p>Si tu recois cet email, la config SMTP est correcte !</p>
+<div class="box">
+<div class="row"><span>Expediteur</span><span>{current_app.config.get('GMAIL_USERNAME')}</span></div>
+<div class="row"><span>Nom</span><span>{current_app.config.get('GMAIL_FROM_NAME')}</span></div>
+<div class="row"><span>Mot de passe configure</span><span>{'OUI' if current_app.config.get('GMAIL_APP_PASSWORD') else 'NON'}</span></div>
+</div>
+"""
+
+    ok = _send(
+        destinataire,
+        "Test email — Boost Reseller",
+        _template("Test email reussi !", contenu, "#10B981", "#059669", emoji="✅")
+    )
+
+    if ok:
+        return f"✅ Email envoye a {destinataire}. Verifie ta boite (et les spams)."
+    else:
+        return "❌ Echec. Verifie MAIL_USERNAME et GMAIL_APP_PASSWORD sur Vercel, et regarde les logs."
