@@ -1153,3 +1153,33 @@ def coupons_supprimer():
         delete_coupon(coupon_id)
         flash("Coupon supprime.", "success")
     return redirect(url_for("dashboard.coupons"))
+
+# ═══════════════════════════════════════════════════════════════
+# NOTIFICATIONS (préférences)
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_bp.route("/notifications-prefs", methods=["GET", "POST"])
+@login_required
+def notifications_prefs():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    if request.method == "POST":
+        data = {
+            "notif_nouvelle_commande": request.form.get("notif_nouvelle_commande") == "on",
+            "notif_paiement_recu": request.form.get("notif_paiement_recu") == "on",
+            "notif_nouvel_avis": request.form.get("notif_nouvel_avis") == "on",
+            "notif_nouveau_client": request.form.get("notif_nouveau_client") == "on",
+            "notif_resume_quotidien": request.form.get("notif_resume_quotidien") == "on",
+            "notif_stock_bas": request.form.get("notif_stock_bas") == "on",
+            "notif_email": request.form.get("notif_email", "").strip() or None,
+        }
+        ok = update_profile(profile["id"], data)
+        if ok:
+            flash("✅ Preferences mises a jour !", "success")
+        else:
+            flash("Erreur lors de la sauvegarde.", "error")
+        return redirect(url_for("dashboard.notifications_prefs"))
+
+    return render_template("dashboard/notifications_prefs.html", profile=profile)
