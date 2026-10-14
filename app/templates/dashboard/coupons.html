@@ -102,14 +102,14 @@
       <button class="btn-action btn-copy" onclick="copierCode('{{ c.code }}')">
         <i class="fas fa-copy"></i> Copier
       </button>
-      <form method="POST" action="{{ url_for('dashboard.coupons_toggle') }}" style="flex:1">
+      <form method="POST" action="{{ url_for('dashboard_shop.coupons_toggle') }}" style="flex:1">
         <input type="hidden" name="coupon_id" value="{{ c.id }}">
         <input type="hidden" name="actif" value="{{ '1' if c.actif else '0' }}">
         <button type="submit" class="btn-action btn-off" style="width:100%">
           <i class="fas fa-{% if c.actif %}pause{% else %}play{% endif %}"></i>
         </button>
       </form>
-      <form method="POST" action="{{ url_for('dashboard.coupons_supprimer') }}" style="flex:1" onsubmit="return confirm('Supprimer ce coupon ?')">
+      <form method="POST" action="{{ url_for('dashboard_shop.coupons_supprimer') }}" style="flex:1" onsubmit="return confirm('Supprimer ce coupon ?')">
         <input type="hidden" name="coupon_id" value="{{ c.id }}">
         <button type="submit" class="btn-action btn-del" style="width:100%">
           <i class="fas fa-trash"></i>
@@ -131,12 +131,11 @@
 </div>
 {% endif %}
 
-<!-- MODAL AJOUT -->
 <div class="modal-bg" id="modalAjout">
   <div class="modal">
     <button class="modal-close" onclick="fermerModal('modalAjout')">✕</button>
     <h3><i class="fas fa-ticket-alt"></i> Nouveau coupon</h3>
-    <form method="POST" action="{{ url_for('dashboard.coupons_ajouter') }}">
+    <form method="POST" action="{{ url_for('dashboard_shop.coupons_ajouter') }}">
       <div class="fg">
         <label>Code promo *</label>
         <input class="inp" type="text" name="code" id="codeInput" placeholder="Ex: PROMO10" required maxlength="20" style="text-transform:uppercase" oninput="this.value = this.value.toUpperCase(); majPreview()">
