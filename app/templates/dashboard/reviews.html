@@ -91,7 +91,7 @@
     <div class="avis-commentaire">"{{ a.commentaire }}"</div>
     {% endif %}
     <div class="avis-actions">
-      <form method="POST" action="{{ url_for('dashboard.reviews_approuver') }}" style="flex:1">
+      <form method="POST" action="{{ url_for('dashboard_shop.reviews_approuver') }}" style="flex:1">
         <input type="hidden" name="avis_id" value="{{ a.id }}">
         <input type="hidden" name="approuve" value="{{ '1' if a.approuve else '0' }}">
         <button type="submit" class="btn-action btn-appr {% if not a.approuve %}off{% endif %}" style="width:100%">
@@ -99,7 +99,7 @@
           {% if a.approuve %}Masquer{% else %}Approuver{% endif %}
         </button>
       </form>
-      <form method="POST" action="{{ url_for('dashboard.reviews_supprimer') }}" style="flex:1" onsubmit="return confirm('Supprimer cet avis ?')">
+      <form method="POST" action="{{ url_for('dashboard_shop.reviews_supprimer') }}" style="flex:1" onsubmit="return confirm('Supprimer cet avis ?')">
         <input type="hidden" name="avis_id" value="{{ a.id }}">
         <button type="submit" class="btn-action btn-del" style="width:100%">
           <i class="fas fa-trash"></i> Supprimer
@@ -121,12 +121,11 @@
 </div>
 {% endif %}
 
-<!-- MODAL AJOUT -->
 <div class="modal-bg" id="modalAjout">
   <div class="modal">
     <button class="modal-close" onclick="fermerModal('modalAjout')">✕</button>
     <h3><i class="fas fa-plus-circle"></i> Nouvel avis client</h3>
-    <form method="POST" action="{{ url_for('dashboard.reviews_ajouter') }}">
+    <form method="POST" action="{{ url_for('dashboard_shop.reviews_ajouter') }}">
       <div class="fg">
         <label>Nom du client *</label>
         <input class="inp" type="text" name="client_nom" placeholder="Ex: Abdou" required maxlength="60">
