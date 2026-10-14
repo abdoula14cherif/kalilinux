@@ -21,6 +21,7 @@ from app.models.database import (
     get_revendeur_clients_detail, get_revendeur_orders
 )
 from app.models.storage import upload_image
+from app.models.serializers import produit_safe, banniere_safe, attribut_safe
 
 logger = logging.getLogger(__name__)
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -76,15 +77,24 @@ def _verifier_propriete(table, item_id, revendeur_id):
         return False
 
 
-def _verifier_categorie_revendeur(cat_id, revendeur_id):
+def _verifier_categorie_revendeur(cat_id, profile):
     try:
-        if not cat_id or not revendeur_id:
+        if not cat_id or not profile:
             return False
-        produits = get_produits_revendeur(revendeur_id)
-        for p in produits:
-            if str(p.get("categorie_id")) == str(cat_id):
-                return True
-        return False
+        type_code = profile.get("boutique_type")
+        if not type_code:
+            return False
+        from app.models.database import _url, _headers
+        import requests
+        r = requests.get(
+            _url(f"boutique_categories?id=eq.{cat_id}&type_code=eq.{type_code}&limit=1"),
+            headers=_headers(True),
+            timeout=10
+        )
+        if r.status_code >= 300:
+            return False
+        data = r.json()
+        return isinstance(data, list) and len(data) > 0
     except Exception as e:
         logger.error(f"_verifier_categorie_revendeur: {type(e).__name__}")
         return False
@@ -238,7 +248,7 @@ def boutique_enregistrer():
             data["boutique_logo_url"] = logo_url
             flash("Logo uploade !", "success")
         else:
-            flash("Erreur upload logo. Verifiez le bucket Supabase.", "warning")
+            flash("Erreur upload logo. Verifiez le format (PNG/JPG/GIF/WEBP) et la taille (max 5 Mo).", "warning")
 
     banniere_file = request.files.get("boutique_banniere")
     if banniere_file and banniere_file.filename:
@@ -247,7 +257,7 @@ def boutique_enregistrer():
             data["boutique_banniere_url"] = banniere_url
             flash("Banniere uploadee !", "success")
         else:
-            flash("Erreur upload banniere.", "warning")
+            flash("Erreur upload banniere. Verifiez le format (PNG/JPG/GIF/WEBP) et la taille (max 5 Mo).", "warning")
 
     ok = update_profile(user_id, data)
     if ok:
@@ -418,7 +428,7 @@ def produits():
     categories = get_categories_par_type(profile["boutique_type"])
     return render_template("dashboard/produits.html",
                           profile=profile,
-                          produits=liste_produits,
+                          produits=[produit_safe(p) for p in liste_produits],
                           categories=categories)
 
 
@@ -602,9 +612,11 @@ def categories():
     if redir:
         return redir
     categories_liste = get_categories_par_type(profile["boutique_type"])
+    produits_liste = get_produits_revendeur(profile["id"])
     return render_template("dashboard/categories.html",
                           profile=profile,
-                          categories=categories_liste)
+                          categories=categories_liste,
+                          produits=produits_liste)
 
 
 @dashboard_bp.route("/categories/ajouter", methods=["POST"])
@@ -644,7 +656,7 @@ def categories_modifier():
         flash("ID categorie manquant.", "error")
         return redirect(url_for("dashboard.categories"))
 
-    if not _verifier_categorie_revendeur(cat_id, profile["id"]):
+    if not _verifier_categorie_revendeur(cat_id, profile):
         flash("Action non autorisee.", "error")
         logger.warning(f"Tentative modif categorie {cat_id} par revendeur {profile['id']}")
         return redirect(url_for("dashboard.categories"))
@@ -676,7 +688,7 @@ def categories_supprimer():
         flash("ID categorie manquant.", "error")
         return redirect(url_for("dashboard.categories"))
 
-    if not _verifier_categorie_revendeur(cat_id, profile["id"]):
+    if not _verifier_categorie_revendeur(cat_id, profile):
         flash("Action non autorisee.", "error")
         logger.warning(f"Tentative suppression categorie {cat_id} par revendeur {profile['id']}")
         return redirect(url_for("dashboard.categories"))
@@ -697,7 +709,8 @@ def bannieres():
     if redir:
         return redir
     liste = get_bannieres_revendeur(profile["id"])
-    return render_template("dashboard/bannieres.html", profile=profile, bannieres=liste)
+    return render_template("dashboard/bannieres.html", profile=profile,
+                          bannieres=[banniere_safe(b) for b in liste])
 
 
 @dashboard_bp.route("/bannieres/ajouter", methods=["POST"])
@@ -868,7 +881,8 @@ def attributs():
     if redir:
         return redir
     liste = get_attributs_revendeur(profile["id"])
-    return render_template("dashboard/attributs.html", profile=profile, attributs=liste)
+    return render_template("dashboard/attributs.html", profile=profile,
+                          attributs=[attribut_safe(a) for a in liste])
 
 
 @dashboard_bp.route("/attributs/ajouter", methods=["POST"])
