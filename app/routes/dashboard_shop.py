@@ -15,7 +15,7 @@ from app.models.database import (
     get_coupons_revendeur, get_coupon_by_code, create_coupon, update_coupon, delete_coupon,
     get_commandes_boutique_revendeur, update_commande_boutique,
     get_abonnements_plans, get_fonctionnalites_premium,
-    get_all_boutique_types
+    get_all_boutique_types, toggle_boutique_active
 )
 from app.models.serializers import avis_safe, coupon_safe, commande_safe
 
@@ -525,6 +525,34 @@ def parametres():
     return render_template("dashboard/parametres.html",
                           profile=profile,
                           types_boutique=types_boutique)
+
+
+@dashboard_shop_bp.route("/boutique/toggle-active", methods=["POST"])
+@login_required
+@limiter.limit("20 per hour")
+def boutique_toggle_active():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    if not profile.get("est_revendeur"):
+        flash("Vous devez publier votre boutique avant de pouvoir la desactiver.", "info")
+        return redirect(url_for("dashboard_shop.parametres"))
+
+    actif = request.form.get("actif") == "1"
+    nouveau_statut = not actif
+
+    ok = toggle_boutique_active(profile["id"], nouveau_statut)
+
+    if ok:
+        if nouveau_statut:
+            flash("Boutique activee avec succes ! Vos clients peuvent de nouveau commander.", "success")
+        else:
+            flash("Boutique desactivee. Vos clients verront une page 'Boutique indisponible'.", "warning")
+    else:
+        flash("Erreur lors du changement de statut.", "error")
+
+    return redirect(url_for("dashboard_shop.parametres"))
 
 
 @dashboard_shop_bp.route("/test-email")
