@@ -22,44 +22,164 @@ img{max-width:100%;height:auto;display:block}
 button{font-family:inherit;cursor:pointer}
 input,textarea,select{font-family:inherit}
 
-/* Flash messages */
+/* ═══════════════════════════════════════════════════════════════ */
+/* FLASH MESSAGES - Design pro */
+/* ═══════════════════════════════════════════════════════════════ */
 .flash-container{
-  position:fixed;top:20px;right:20px;z-index:99999;
-  display:flex;flex-direction:column;gap:10px;
-  max-width:380px;width:calc(100% - 40px);
+  position:fixed;
+  top:20px;
+  right:20px;
+  z-index:99999;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  max-width:400px;
+  width:calc(100% - 40px);
   pointer-events:none;
 }
 .flash-msg{
-  display:flex;align-items:flex-start;gap:12px;
-  padding:14px 16px;border-radius:14px;
-  font-size:.88rem;font-weight:600;line-height:1.5;
-  box-shadow:0 10px 30px rgba(0,0,0,.15);
-  animation:flashIn .35s ease both;
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  padding:16px 18px;
+  border-radius:16px;
+  font-size:.9rem;
+  font-weight:600;
+  line-height:1.5;
+  box-shadow:0 12px 40px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
+  animation:flashIn .4s cubic-bezier(.34,1.56,.64,1) both;
   pointer-events:auto;
-  border-left:4px solid;
   position:relative;
+  overflow:hidden;
+  backdrop-filter:blur(20px);
+  border:1px solid;
+}
+.flash-msg::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:4px;
 }
 @keyframes flashIn{
-  from{opacity:0;transform:translateX(30px)}
-  to{opacity:1;transform:translateX(0)}
+  from{opacity:0;transform:translateX(40px) scale(.95)}
+  to{opacity:1;transform:translateX(0) scale(1)}
 }
-.flash-msg .flash-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
-.flash-msg .flash-text{flex:1;min-width:0}
-.flash-msg .flash-close{background:none;border:none;cursor:pointer;opacity:.5;font-size:.95rem;margin-left:auto;color:inherit;padding:0;line-height:1;flex-shrink:0}
-.flash-msg .flash-close:hover{opacity:1}
-.flash-success{background:#ECFDF5;color:#065F46;border-color:#10B981}
-.flash-error{background:#FEF2F2;color:#991B1B;border-color:#DC2626}
-.flash-warning{background:#FFFBEB;color:#92400E;border-color:#F59E0B}
-.flash-info{background:#EFF6FF;color:#1E40AF;border-color:#3B82F6}
-.flash-container.hidden{opacity:0;transition:opacity .5s;pointer-events:none}
+@keyframes flashOut{
+  from{opacity:1;transform:translateX(0) scale(1);max-height:200px;margin-bottom:0}
+  to{opacity:0;transform:translateX(40px) scale(.95);max-height:0;margin-bottom:-12px;padding:0}
+}
+.flash-msg.closing{
+  animation:flashOut .35s ease forwards;
+}
+.flash-msg .flash-icon-wrap{
+  width:36px;
+  height:36px;
+  border-radius:11px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  font-size:1rem;
+  color:#fff;
+}
+.flash-msg .flash-text{
+  flex:1;
+  min-width:0;
+  padding-top:6px;
+}
+.flash-msg .flash-text strong{
+  display:block;
+  font-size:.72rem;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  opacity:.75;
+  margin-bottom:3px;
+}
+.flash-msg .flash-close{
+  background:rgba(0,0,0,.06);
+  border:none;
+  cursor:pointer;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  font-size:.72rem;
+  color:inherit;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  transition:all .2s;
+  margin-top:5px;
+}
+.flash-msg .flash-close:hover{
+  background:rgba(0,0,0,.12);
+  transform:rotate(90deg);
+}
+
+/* Success */
+.flash-success{
+  background:linear-gradient(135deg,#ECFDF5,#F0FDF9);
+  color:#065F46;
+  border-color:rgba(16,185,129,.25);
+}
+.flash-success::before{background:#10B981}
+.flash-success .flash-icon-wrap{background:linear-gradient(135deg,#10B981,#059669)}
+
+/* Error */
+.flash-error{
+  background:linear-gradient(135deg,#FEF2F2,#FFF5F5);
+  color:#991B1B;
+  border-color:rgba(220,38,38,.25);
+}
+.flash-error::before{background:#DC2626}
+.flash-error .flash-icon-wrap{background:linear-gradient(135deg,#DC2626,#991B1B)}
+
+/* Warning */
+.flash-warning{
+  background:linear-gradient(135deg,#FFFBEB,#FEF9E7);
+  color:#92400E;
+  border-color:rgba(245,158,11,.25);
+}
+.flash-warning::before{background:#F59E0B}
+.flash-warning .flash-icon-wrap{background:linear-gradient(135deg,#F59E0B,#D97706)}
+
+/* Info */
+.flash-info{
+  background:linear-gradient(135deg,#EFF6FF,#F0F9FF);
+  color:#1E40AF;
+  border-color:rgba(59,130,246,.25);
+}
+.flash-info::before{background:#3B82F6}
+.flash-info .flash-icon-wrap{background:linear-gradient(135deg,#3B82F6,#2563EB)}
+
+.flash-container.hidden{
+  opacity:0;
+  transition:opacity .5s;
+  pointer-events:none;
+}
 
 /* Theme toggle */
 .theme-toggle{
-  position:fixed;bottom:24px;left:24px;width:50px;height:50px;
-  background:var(--white);border:2px solid var(--gray);
-  border-radius:50%;display:flex;align-items:center;justify-content:center;
-  color:var(--dark);font-size:1.15rem;box-shadow:0 5px 18px rgba(0,0,0,.15);
-  z-index:90;cursor:pointer;transition:all .25s;
+  position:fixed;
+  bottom:24px;
+  left:24px;
+  width:50px;
+  height:50px;
+  background:var(--white);
+  border:2px solid var(--gray);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--dark);
+  font-size:1.15rem;
+  box-shadow:0 5px 18px rgba(0,0,0,.15);
+  z-index:90;
+  cursor:pointer;
+  transition:all .25s;
 }
 .theme-toggle:hover{transform:scale(1.08)}
 :root[data-theme="dark"]{
@@ -89,8 +209,23 @@ input,textarea,select{font-family:inherit}
 h1,h2,h3,h4{color:var(--dark);line-height:1.25}
 
 @media(max-width:640px){
-  .flash-container{top:16px;right:16px;left:16px;max-width:100%;width:auto}
-  .flash-msg{padding:12px 14px;font-size:.84rem}
+  .flash-container{
+    top:14px;
+    right:14px;
+    left:14px;
+    max-width:100%;
+    width:auto;
+  }
+  .flash-msg{
+    padding:14px 14px;
+    font-size:.85rem;
+    gap:11px;
+  }
+  .flash-msg .flash-icon-wrap{
+    width:32px;
+    height:32px;
+    font-size:.9rem;
+  }
 }
 
 {% block extra_css %}{% endblock %}
@@ -102,26 +237,50 @@ h1,h2,h3,h4{color:var(--dark);line-height:1.25}
 {% if messages %}
 <div class="flash-container" id="flashContainer">
   {% for category, message in messages %}
-  <div class="flash-msg flash-{{ category }}">
-    <span class="flash-icon">
-      {% if category == 'success' %}✅
-      {% elif category == 'error' %}❌
-      {% elif category == 'warning' %}⚠️
-      {% else %}ℹ️{% endif %}
-    </span>
-    <span class="flash-text">{{ message }}</span>
-    <button class="flash-close" onclick="this.parentElement.remove()" title="Fermer">✕</button>
+  {% set cat_label = {'success': 'Succès', 'error': 'Erreur', 'warning': 'Attention', 'info': 'Information'}.get(category, 'Message') %}
+  {% set cat_icon = {'success': 'fa-check', 'error': 'fa-times', 'warning': 'fa-exclamation', 'info': 'fa-info'}.get(category, 'fa-info') %}
+  <div class="flash-msg flash-{{ category }}" data-autoclose="5000">
+    <div class="flash-icon-wrap">
+      <i class="fas {{ cat_icon }}"></i>
+    </div>
+    <div class="flash-text">
+      <strong>{{ cat_label }}</strong>
+      <span>{{ message }}</span>
+    </div>
+    <button class="flash-close" onclick="fermerFlash(this)" title="Fermer">
+      <i class="fas fa-times"></i>
+    </button>
   </div>
   {% endfor %}
 </div>
 <script>
+function fermerFlash(btn){
+  var msg = btn.closest('.flash-msg');
+  if(!msg) return;
+  msg.classList.add('closing');
   setTimeout(function(){
-    var c = document.getElementById('flashContainer');
-    if(c){
-      c.classList.add('hidden');
-      setTimeout(function(){ c.remove(); }, 500);
+    msg.remove();
+    var container = document.getElementById('flashContainer');
+    if(container && container.children.length === 0){
+      container.remove();
     }
-  }, 6000);
+  }, 350);
+}
+document.querySelectorAll('.flash-msg[data-autoclose]').forEach(function(msg){
+  var delay = parseInt(msg.getAttribute('data-autoclose')) || 5000;
+  setTimeout(function(){
+    if(msg && msg.parentElement){
+      msg.classList.add('closing');
+      setTimeout(function(){
+        msg.remove();
+        var container = document.getElementById('flashContainer');
+        if(container && container.children.length === 0){
+          container.remove();
+        }
+      }, 350);
+    }
+  }, delay);
+});
 </script>
 {% endif %}
 {% endwith %}
@@ -155,7 +314,6 @@ h1,h2,h3,h4{color:var(--dark);line-height:1.25}
 </script>
 
 <script>
-// Injection automatique du token CSRF dans tous les formulaires POST
 document.addEventListener('DOMContentLoaded', function(){
   var token = '{{ csrf_token() }}';
   document.querySelectorAll('form').forEach(function(f){
