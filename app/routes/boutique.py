@@ -1,8 +1,13 @@
 """
 Boutique publique d'un revendeur : /r/<slug>
 """
+import json
 import logging
-from flask import Blueprint, render_template, redirect, url_for, session, flash
+import re
+import secrets
+from datetime import datetime, timezone
+from flask import Blueprint, render_template, redirect, url_for, session, flash, request
+
 from app.models.database import (
     get_profile_by_slug,
     get_active_services,
@@ -13,6 +18,10 @@ from app.models.database import (
     get_bannieres_revendeur,
     get_avis_revendeur,
     get_attributs_revendeur,
+    get_produit_by_id,
+    create_commande_boutique,
+    decrementer_stock,
+    get_commande_boutique_by_reference,
 )
 
 logger = logging.getLogger(__name__)
@@ -43,6 +52,15 @@ def _template_pour_type(type_code):
     }
     return templates.get(type_code, "boutique_produits.html")
 
+
+def _generer_reference():
+    """Genere une reference unique pour la commande."""
+    return "CMD-" + secrets.token_hex(6).upper()
+
+
+# ═══════════════════════════════════════════════════════════════
+# VISITER LA BOUTIQUE
+# ═══════════════════════════════════════════════════════════════
 
 @boutique_bp.route("/r/<slug>")
 def visiter(slug):
@@ -115,9 +133,7 @@ def visiter(slug):
 
     est_connecte = "user_id" in session
 
-    # ═══════════════════════════════════════════════════════════════
-    # BANNIÈRES + AVIS + ATTRIBUTS (nouveaux)
-    # ═══════════════════════════════════════════════════════════════
+    # BANNIÈRES + AVIS + ATTRIBUTS
     try:
         bannieres = get_bannieres_revendeur(revendeur["id"], only_active=True)
     except Exception:
@@ -171,7 +187,7 @@ def visiter(slug):
             type_code=type_code,
         )
 
-    # =============== AUTRES ===============
+    # =============== AUTRES TYPES ===============
     produits = get_produits_revendeur(revendeur["id"], only_active=True)
     categories = get_categories_par_type(type_code)
 
@@ -211,15 +227,10 @@ def visiter(slug):
         type_code=type_code,
     )
 
-import re
-import secrets
-from datetime import datetime, timezone
 
-
-def _generer_reference():
-    """Genere une reference unique pour la commande."""
-    return "CMD-" + secrets.token_hex(6).upper()
-
+# ═══════════════════════════════════════════════════════════════
+# COMMANDER
+# ═══════════════════════════════════════════════════════════════
 
 @boutique_bp.route("/r/<slug>/commander", methods=["POST"])
 def commander(slug):
@@ -228,8 +239,6 @@ def commander(slug):
     if not revendeur or not revendeur.get("est_revendeur"):
         flash("Boutique introuvable.", "error")
         return redirect(url_for("home.index"))
-
-    from flask import request
 
     # Recuperer les infos client
     client_nom = request.form.get("client_nom", "").strip()
@@ -247,7 +256,6 @@ def commander(slug):
     # Recuperer les produits du panier (JSON envoye par le client)
     panier_json = request.form.get("panier_json", "[]")
     try:
-        import json
         panier = json.loads(panier_json)
     except Exception:
         panier = []
@@ -280,7 +288,7 @@ def commander(slug):
         flash("Aucun produit valide dans le panier.", "error")
         return redirect(url_for("boutique.visiter", slug=slug))
 
-    # Frais de livraison (0 par defaut, modifiable plus tard)
+    # Frais de livraison (0 par defaut)
     frais_livraison = 0
     total = sous_total + frais_livraison
 
@@ -288,8 +296,6 @@ def commander(slug):
     reference = _generer_reference()
 
     # Creer la commande
-    from app.models.database import create_commande_boutique, decrementer_stock
-
     commande_data = {
         "revendeur_id": revendeur["id"],
         "reference": reference,
@@ -314,6 +320,51 @@ def commander(slug):
         flash("Erreur lors de l'enregistrement de la commande.", "error")
         return redirect(url_for("boutique.visiter", slug=slug))
 
+    # ═══════════════════════════════════════════════════════════
+    # ENVOYER LES NOTIFICATIONS EMAIL
+    # ═══════════════════════════════════════════════════════════
+    try:
+        from app.models.mailer import (
+            email_revendeur_nouvelle_commande,
+            email_client_confirmation_commande,
+        )
+
+        nom_revendeur = revendeur.get("full_name") or revendeur.get("email", "").split("@")[0]
+        nom_boutique = revendeur.get("boutique_nom") or slug.capitalize()
+        notif_email = revendeur.get("notif_email") or revendeur.get("email")
+
+        # 1. Notifier le revendeur
+        if revendeur.get("notif_nouvelle_commande", True) and notif_email:
+            lien_cmd = "https://reseller.boostcentral.world/dashboard/commandes"
+            email_revendeur_nouvelle_commande(
+                to_email=notif_email,
+                nom_revendeur=nom_revendeur,
+                nom_boutique=nom_boutique,
+                reference=reference,
+                client_nom=client_nom,
+                client_telephone=client_telephone,
+                produits=produits_commande,
+                total=total,
+                mode_paiement=mode_paiement,
+                lien_commandes=lien_cmd
+            )
+
+        # 2. Confirmer au client (si email fourni)
+        if client_email:
+            lien_client = f"https://reseller.boostcentral.world/r/{slug}/confirmation/{reference}"
+            email_client_confirmation_commande(
+                to_email=client_email,
+                nom_client=client_nom,
+                nom_boutique=nom_boutique,
+                reference=reference,
+                produits=produits_commande,
+                total=total,
+                lien_confirmation=lien_client,
+                whatsapp_vendeur=revendeur.get("boutique_whatsapp") or ""
+            )
+    except Exception as e:
+        logger.error(f"Erreur notification commande: {e}")
+
     # Decrementer le stock
     for p in produits_commande:
         try:
@@ -321,12 +372,16 @@ def commander(slug):
         except Exception:
             pass
 
-    # Vider le panier cote client
+    # Vider le panier cote client (session)
     session.pop("panier", None)
 
     flash(f"✅ Commande {reference} enregistree ! Le vendeur va vous contacter.", "success")
     return redirect(url_for("boutique.confirmation", slug=slug, reference=reference))
 
+
+# ═══════════════════════════════════════════════════════════════
+# CONFIRMATION
+# ═══════════════════════════════════════════════════════════════
 
 @boutique_bp.route("/r/<slug>/confirmation/<reference>")
 def confirmation(slug, reference):
@@ -335,7 +390,6 @@ def confirmation(slug, reference):
     if not revendeur:
         return redirect(url_for("home.index"))
 
-    from app.models.database import get_commande_boutique_by_reference
     commande = get_commande_boutique_by_reference(reference)
 
     if not commande or commande.get("revendeur_id") != revendeur["id"]:
@@ -358,8 +412,10 @@ def confirmation(slug, reference):
         "whatsapp": revendeur.get("boutique_whatsapp"),
     }
 
-    return render_template("boutique_confirmation.html",
-                          boutique=boutique,
-                          commande=commande,
-                          revendeur=revendeur,
-                          slug=slug)
+    return render_template(
+        "boutique_confirmation.html",
+        boutique=boutique,
+        commande=commande,
+        revendeur=revendeur,
+        slug=slug
+    )
