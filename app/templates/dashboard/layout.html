@@ -98,33 +98,33 @@
 
       <div class="nav-separator"></div>
 
-      <a href="{{ url_for('dashboard.contacts') }}" class="nav-item {% if request.endpoint == 'dashboard.contacts' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.contacts') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.contacts' %}active{% endif %}">
         <i class="fas fa-address-book"></i> Contacts
       </a>
-      <a href="{{ url_for('dashboard.reviews') }}" class="nav-item {% if request.endpoint == 'dashboard.reviews' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.reviews') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.reviews' %}active{% endif %}">
         <i class="fas fa-star"></i> Avis
       </a>
-      <a href="{{ url_for('dashboard.coupons') }}" class="nav-item {% if request.endpoint == 'dashboard.coupons' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.coupons') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.coupons' %}active{% endif %}">
         <i class="fas fa-ticket-alt"></i> Coupons
       </a>
 
-      <a href="{{ url_for('dashboard.commandes') }}" class="nav-item {% if request.endpoint == 'dashboard.commandes' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.commandes') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.commandes' %}active{% endif %}">
         <i class="fas fa-shopping-bag"></i> Commandes
       </a>
-      <a href="{{ url_for('dashboard.gains') }}" class="nav-item {% if request.endpoint == 'dashboard.gains' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.gains') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.gains' %}active{% endif %}">
         <i class="fas fa-wallet"></i> Mes gains
       </a>
 
       <div class="nav-separator"></div>
 
-      <a href="{{ url_for('dashboard.notifications_prefs') }}" class="nav-item {% if request.endpoint == 'dashboard.notifications_prefs' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.notifications_prefs') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.notifications_prefs' %}active{% endif %}">
         <i class="fas fa-bell"></i> Notifications
       </a>
 
-      <a href="{{ url_for('dashboard.premium') }}" class="nav-item {% if request.endpoint == 'dashboard.premium' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.premium') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.premium' %}active{% endif %}">
         <i class="fas fa-crown"></i> Premium
       </a>
-      <a href="{{ url_for('dashboard.abonnement') }}" class="nav-item {% if request.endpoint == 'dashboard.abonnement' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.abonnement') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.abonnement' %}active{% endif %}">
         <i class="fas fa-star"></i> Abonnement
       </a>
 
@@ -133,7 +133,7 @@
       <a href="{{ url_for('dashboard.publier') }}" class="nav-item {% if request.endpoint == 'dashboard.publier' %}active{% endif %}">
         <i class="fas fa-rocket"></i> Publier
       </a>
-      <a href="{{ url_for('dashboard.parametres') }}" class="nav-item {% if request.endpoint == 'dashboard.parametres' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.parametres') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.parametres' %}active{% endif %}">
         <i class="fas fa-cog"></i> Parametres
       </a>
     </nav>
