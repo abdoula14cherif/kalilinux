@@ -369,3 +369,172 @@ def coupons_supprimer():
     delete_coupon(coupon_id)
     flash("Coupon supprime.", "success")
     return redirect(url_for("dashboard_shop.coupons"))
+
+
+
+@dashboard_shop_bp.route("/notifications-prefs", methods=["GET", "POST"])
+@login_required
+@limiter.limit("20 per hour")
+def notifications_prefs():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    if request.method == "POST":
+        data = {
+            "notif_nouvelle_commande": request.form.get("notif_nouvelle_commande") == "on",
+            "notif_paiement_recu": request.form.get("notif_paiement_recu") == "on",
+            "notif_nouvel_avis": request.form.get("notif_nouvel_avis") == "on",
+            "notif_nouveau_client": request.form.get("notif_nouveau_client") == "on",
+            "notif_resume_quotidien": request.form.get("notif_resume_quotidien") == "on",
+            "notif_stock_bas": request.form.get("notif_stock_bas") == "on",
+            "notif_email": request.form.get("notif_email", "").strip()[:150] or None,
+        }
+        ok = update_profile(profile["id"], data)
+        if ok:
+            flash("Preferences de notifications mises a jour !", "success")
+        else:
+            flash("Erreur lors de la sauvegarde.", "error")
+        return redirect(url_for("dashboard_shop.notifications_prefs"))
+
+    return render_template("dashboard/notifications_prefs.html", profile=profile)
+
+
+@dashboard_shop_bp.route("/premium")
+@login_required
+def premium():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    features = get_fonctionnalites_premium()
+    return render_template("dashboard/premium.html", profile=profile, features=features)
+
+
+def _get_plan_actuel(profile):
+    from app.models.database import _url, _headers
+    import requests
+    code = profile.get("abonnement_niveau") or "gratuit"
+    try:
+        r = requests.get(_url(f"abonnements_plans?code=eq.{code}&limit=1"), headers=_headers(True), timeout=10)
+        data = r.json()
+        return data[0] if isinstance(data, list) and data else None
+    except Exception:
+        return None
+
+
+@dashboard_shop_bp.route("/abonnement")
+@login_required
+def abonnement():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    from app.models.database import _url, _headers
+    import requests
+
+    try:
+        r = requests.get(_url("abonnements_plans?actif=eq.true&order=ordre"), headers=_headers(True), timeout=10)
+        plans = r.json() if r.status_code < 300 else []
+    except Exception:
+        plans = []
+
+    produits = get_produits_revendeur(profile["id"])
+    categories = get_categories_par_type(profile["boutique_type"])
+    bannieres = get_bannieres_revendeur(profile["id"])
+    attributs = get_attributs_revendeur(profile["id"])
+    coupons = get_coupons_revendeur(profile["id"])
+
+    usage = {
+        "produits": len(produits),
+        "categories": len(categories),
+        "bannieres": len(bannieres),
+        "attributs": len(attributs),
+        "coupons": len(coupons),
+    }
+
+    plan_actuel = _get_plan_actuel(profile)
+
+    return render_template("dashboard/abonnement.html",
+                          profile=profile,
+                          plans=plans,
+                          plan_actuel=plan_actuel,
+                          usage=usage)
+
+
+@dashboard_shop_bp.route("/abonnement/choisir", methods=["POST"])
+@login_required
+@limiter.limit("10 per hour")
+def abonnement_choisir():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    plan_code = request.form.get("plan_code", "").strip()[:30]
+    if not plan_code:
+        flash("Plan invalide.", "error")
+        return redirect(url_for("dashboard_shop.abonnement"))
+
+    from app.models.database import _url, _headers
+    import requests
+
+    try:
+        r = requests.get(_url(f"abonnements_plans?code=eq.{plan_code}&limit=1"), headers=_headers(True), timeout=10)
+        data = r.json()
+        plan = data[0] if isinstance(data, list) and data else None
+    except Exception:
+        plan = None
+
+    if not plan:
+        flash("Plan introuvable.", "error")
+        return redirect(url_for("dashboard_shop.abonnement"))
+
+    if float(plan.get("prix_mensuel", 0)) > 0:
+        flash(f"Le plan {plan['nom']} sera bientot disponible ! Contactez le support.", "info")
+        return redirect(url_for("dashboard_shop.abonnement"))
+
+    ok = update_profile(profile["id"], {"abonnement_niveau": plan_code})
+    if ok:
+        flash(f"Vous etes maintenant sur le plan {plan['nom']} !", "success")
+    else:
+        flash("Erreur lors du changement.", "error")
+
+    return redirect(url_for("dashboard_shop.abonnement"))
+
+
+@dashboard_shop_bp.route("/parametres")
+@login_required
+def parametres():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    types_boutique = get_all_boutique_types()
+    return render_template("dashboard/parametres.html",
+                          profile=profile,
+                          types_boutique=types_boutique)
+
+
+@dashboard_shop_bp.route("/test-email")
+@login_required
+@limiter.limit("5 per hour")
+def test_email():
+    from app.models.mailer import _send, _template
+
+    destinataire = request.args.get("to", "")[:150]
+    if not destinataire:
+        return "Utilise ?to=ton@email.com", 400
+
+    contenu = f"""
+<p>Bonjour,</p>
+<p>Ceci est un <b>email de test</b> envoye depuis Boost Reseller.</p>
+<p>Si tu recois cet email, la config SMTP est correcte !</p>
+"""
+    ok = _send(
+        destinataire,
+        "Test email — Boost Reseller",
+        _template("Test email reussi !", contenu, "#10B981", "#059669", emoji="✅")
+    )
+
+    if ok:
+        return f"Email envoye a {destinataire}. Verifie ta boite (et les spams)."
+    else:
+        return "Echec. Verifie MAIL_USERNAME et GMAIL_APP_PASSWORD sur Vercel."
