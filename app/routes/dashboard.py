@@ -643,12 +643,52 @@ def commandes():
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
-    orders = []
+
+    # 1. Commandes de la BOUTIQUE (produits physiques / ebooks / etc.)
+    from app.models.database import get_commandes_boutique_revendeur
+    commandes_boutique = []
     try:
-        orders = get_revendeur_orders(profile["id"], limit=200)
+        commandes_boutique = get_commandes_boutique_revendeur(profile["id"], limit=200)
     except Exception as e:
-        logger.error(f"commandes load: {e}")
-    return render_template("dashboard/commandes.html", profile=profile, orders=orders)
+        logger.error(f"commandes boutique load: {e}")
+
+    # 2. Commandes BOOST CENTRAL (services digitaux)
+    orders_services = []
+    try:
+        orders_services = get_revendeur_orders(profile["id"], limit=200)
+    except Exception as e:
+        logger.error(f"commandes services load: {e}")
+
+    return render_template("dashboard/commandes.html",
+                          profile=profile,
+                          commandes_boutique=commandes_boutique,
+                          orders=orders_services)
+
+
+@dashboard_bp.route("/commande-boutique/statut", methods=["POST"])
+@login_required
+def commande_boutique_statut():
+    """Change le statut d'une commande boutique."""
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    commande_id = request.form.get("commande_id", "")
+    statut = request.form.get("statut", "")
+
+    if not commande_id or statut not in ("en_attente", "confirmee", "en_livraison", "livree", "annulee"):
+        flash("Donnees invalides.", "error")
+        return redirect(url_for("dashboard.commandes"))
+
+    from app.models.database import update_commande_boutique
+    ok = update_commande_boutique(commande_id, {"statut": statut})
+
+    if ok:
+        flash(f"✅ Commande mise a jour : {statut}", "success")
+    else:
+        flash("Erreur lors de la mise a jour.", "error")
+
+    return redirect(url_for("dashboard.commandes"))
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -953,6 +993,7 @@ def attributs_toggle():
         update_attribut(attribut_id, {"actif": not actif})
     return redirect(url_for("dashboard.attributs"))
 
+
 # ═══════════════════════════════════════════════════════════════
 # CONTACTS (réutilise clients existants)
 # ═══════════════════════════════════════════════════════════════
@@ -1153,6 +1194,7 @@ def coupons_supprimer():
         delete_coupon(coupon_id)
         flash("Coupon supprime.", "success")
     return redirect(url_for("dashboard.coupons"))
+
 
 # ═══════════════════════════════════════════════════════════════
 # NOTIFICATIONS (préférences)
