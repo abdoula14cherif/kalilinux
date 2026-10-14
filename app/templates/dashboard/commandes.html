@@ -68,7 +68,6 @@
 .btn-wa{background:#25D366;color:#fff}
 .btn-wa:hover{background:#128C7E}
 
-/* CARTE SERVICE (ancien style digital) */
 .order-item{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:16px;margin-bottom:10px;transition:all .2s}
 .order-item:hover{border-color:#CBD5E1;box-shadow:0 4px 12px rgba(0,0,0,.04)}
 .order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;flex-wrap:wrap}
@@ -100,7 +99,6 @@
 
 {% block dashboard_content %}
 
-<!-- STATS GLOBALES -->
 {% set cb_attente = commandes_boutique|selectattr('statut', 'equalto', 'en_attente')|list %}
 {% set cb_confirmee = commandes_boutique|selectattr('statut', 'equalto', 'confirmee')|list %}
 {% set cb_livraison = commandes_boutique|selectattr('statut', 'equalto', 'en_livraison')|list %}
@@ -138,7 +136,6 @@
   </div>
 </div>
 
-<!-- ONGLETS -->
 <div class="onglets">
   <button class="onglet active" onclick="afficherOnglet('boutique', this)">
     <i class="fas fa-shopping-bag"></i> Commandes boutique
@@ -150,9 +147,6 @@
   </button>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- PANEL 1 : COMMANDES BOUTIQUE -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
 <div class="panel active" id="panel-boutique">
 
   {% if commandes_boutique %}
@@ -160,19 +154,19 @@
     {% set statut_filter = request.args.get('statut', '') %}
 
     <div class="filter-tabs">
-      <a href="{{ url_for('dashboard.commandes') }}" class="filter-tab {% if not statut_filter %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.commandes') }}" class="filter-tab {% if not statut_filter %}active{% endif %}">
         Toutes ({{ commandes_boutique|length }})
       </a>
-      <a href="{{ url_for('dashboard.commandes') }}?statut=en_attente" class="filter-tab {% if statut_filter == 'en_attente' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.commandes') }}?statut=en_attente" class="filter-tab {% if statut_filter == 'en_attente' %}active{% endif %}">
         En attente ({{ cb_attente|length }})
       </a>
-      <a href="{{ url_for('dashboard.commandes') }}?statut=confirmee" class="filter-tab {% if statut_filter == 'confirmee' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.commandes') }}?statut=confirmee" class="filter-tab {% if statut_filter == 'confirmee' %}active{% endif %}">
         Confirmees ({{ cb_confirmee|length }})
       </a>
-      <a href="{{ url_for('dashboard.commandes') }}?statut=en_livraison" class="filter-tab {% if statut_filter == 'en_livraison' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.commandes') }}?statut=en_livraison" class="filter-tab {% if statut_filter == 'en_livraison' %}active{% endif %}">
         En livraison ({{ cb_livraison|length }})
       </a>
-      <a href="{{ url_for('dashboard.commandes') }}?statut=livree" class="filter-tab {% if statut_filter == 'livree' %}active{% endif %}">
+      <a href="{{ url_for('dashboard_shop.commandes') }}?statut=livree" class="filter-tab {% if statut_filter == 'livree' %}active{% endif %}">
         Livrees ({{ cb_livree|length }})
       </a>
     </div>
@@ -205,7 +199,6 @@
           </span>
         </div>
 
-        <!-- Infos client -->
         <div class="client-box">
           <div class="client-row">
             <i class="fas fa-user"></i>
@@ -240,7 +233,6 @@
           </div>
         </div>
 
-        <!-- Produits -->
         <div class="produits-box">
           <div class="produits-box-title"><i class="fas fa-box"></i> Produits commandes</div>
           {% for p in c.produits or [] %}
@@ -259,13 +251,11 @@
           {% endfor %}
         </div>
 
-        <!-- Total -->
         <div class="total-box">
           <span class="total-box-lbl">TOTAL</span>
           <span class="total-box-val">{{ "{:,.0f}".format(c.total) }} F</span>
         </div>
 
-        <!-- Note client -->
         {% if c.note_client %}
         <div style="background:#F8FAFC;border-left:3px solid #00BFFF;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:.82rem;color:#475569;font-style:italic">
           <i class="fas fa-comment" style="color:#00BFFF;margin-right:6px"></i>
@@ -273,10 +263,9 @@
         </div>
         {% endif %}
 
-        <!-- Actions -->
         <div class="actions-row">
           {% if c.statut == 'en_attente' %}
-          <form method="POST" action="{{ url_for('dashboard.commande_boutique_statut') }}" style="display:inline">
+          <form method="POST" action="{{ url_for('dashboard_shop.commande_boutique_statut') }}" style="display:inline">
             <input type="hidden" name="commande_id" value="{{ c.id }}">
             <input type="hidden" name="statut" value="confirmee">
             <button type="submit" class="btn-action btn-confirme">
@@ -286,7 +275,7 @@
           {% endif %}
 
           {% if c.statut == 'confirmee' %}
-          <form method="POST" action="{{ url_for('dashboard.commande_boutique_statut') }}" style="display:inline">
+          <form method="POST" action="{{ url_for('dashboard_shop.commande_boutique_statut') }}" style="display:inline">
             <input type="hidden" name="commande_id" value="{{ c.id }}">
             <input type="hidden" name="statut" value="en_livraison">
             <button type="submit" class="btn-action btn-confirme">
@@ -296,7 +285,7 @@
           {% endif %}
 
           {% if c.statut == 'en_livraison' %}
-          <form method="POST" action="{{ url_for('dashboard.commande_boutique_statut') }}" style="display:inline">
+          <form method="POST" action="{{ url_for('dashboard_shop.commande_boutique_statut') }}" style="display:inline">
             <input type="hidden" name="commande_id" value="{{ c.id }}">
             <input type="hidden" name="statut" value="livree">
             <button type="submit" class="btn-action btn-livre">
@@ -306,7 +295,7 @@
           {% endif %}
 
           {% if c.statut in ('en_attente', 'confirmee') %}
-          <form method="POST" action="{{ url_for('dashboard.commande_boutique_statut') }}" style="display:inline" onsubmit="return confirm('Annuler cette commande ?')">
+          <form method="POST" action="{{ url_for('dashboard_shop.commande_boutique_statut') }}" style="display:inline" onsubmit="return confirm('Annuler cette commande ?')">
             <input type="hidden" name="commande_id" value="{{ c.id }}">
             <input type="hidden" name="statut" value="annulee">
             <button type="submit" class="btn-action btn-annule">
@@ -338,9 +327,6 @@
 
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- PANEL 2 : COMMANDES SERVICES (digital) -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
 <div class="panel" id="panel-services">
 
   {% set os_attente = orders|selectattr('statut', 'equalto', 'en_attente')|list %}
@@ -350,16 +336,16 @@
   {% if orders %}
 
     <div class="filter-tabs">
-      <a href="{{ url_for('dashboard.commandes') }}" class="filter-tab active">
+      <a href="{{ url_for('dashboard_shop.commandes') }}" class="filter-tab active">
         Toutes ({{ orders|length }})
       </a>
-      <a href="{{ url_for('dashboard.commandes') }}?statut_service=en_attente" class="filter-tab">
+      <a href="{{ url_for('dashboard_shop.commandes') }}?statut_service=en_attente" class="filter-tab">
         En attente ({{ os_attente|length }})
       </a>
-      <a href="{{ url_for('dashboard.commandes') }}?statut_service=en_cours" class="filter-tab">
+      <a href="{{ url_for('dashboard_shop.commandes') }}?statut_service=en_cours" class="filter-tab">
         En cours ({{ os_cours|length }})
       </a>
-      <a href="{{ url_for('dashboard.commandes') }}?statut_service=termine" class="filter-tab">
+      <a href="{{ url_for('dashboard_shop.commandes') }}?statut_service=termine" class="filter-tab">
         Terminees ({{ os_termines|length }})
       </a>
     </div>
@@ -424,7 +410,6 @@ function afficherOnglet(nom, btn){
   document.getElementById('panel-' + nom).classList.add('active');
   history.replaceState(null, '', '#' + nom);
 }
-// Restaurer l'onglet actif au chargement
 var hash = window.location.hash.replace('#', '');
 if(hash === 'services'){
   var btn = document.querySelectorAll('.onglet')[1];
