@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="{{ boutique.couleur_principale }}">
+<title>Mes commandes — {{ boutique.nom }}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:{{ boutique.couleur_principale }};--primary-d:{{ boutique.couleur_secondaire }};--dark:#0F172A;--mid:#475569;--light:#94A3B8;--off:#F8FAFC;--white:#fff;--gray:#E2E8F0;--green:#10B981;--orange:#F59E0B;--red:#DC2626;--purple:#7C3AED}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--off);color:var(--mid);min-height:100vh;line-height:1.5;padding-bottom:40px}
+a{color:inherit;text-decoration:none}
+.header{background:var(--white);border-bottom:1px solid var(--gray);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-logo{width:38px;height:38px;border-radius:10px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--primary-d));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:.95rem}
+.header-name{font-size:1rem;font-weight:900;color:var(--dark)}
+.btn-back{padding:8px 14px;background:var(--off);border-radius:10px;font-size:.82rem;font-weight:700;color:var(--mid);text-decoration:none;display:flex;align-items:center;gap:6px}
+.btn-deco{padding:8px 14px;background:#FEE2E2;border-radius:10px;font-size:.82rem;font-weight:700;color:#991B1B;text-decoration:none}
+main{max-width:700px;margin:0 auto;padding:20px}
+.client-info{background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:16px;padding:20px;color:#fff;margin-bottom:20px}
+.client-info .lbl{font-size:.78rem;opacity:.85;margin-bottom:4px}
+.client-info .email{font-size:1rem;font-weight:900}
+.cmd-card{background:var(--white);border-radius:14px;border:1px solid var(--gray);padding:16px;margin-bottom:12px;transition:.2s}
+.cmd-card:hover{border-color:var(--primary);box-shadow:0 4px 14px rgba(0,0,0,.05)}
+.cmd-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.cmd-ref{font-family:monospace;font-size:.9rem;font-weight:900;color:var(--dark)}
+.cmd-date{font-size:.72rem;color:var(--light);margin-top:3px}
+.cmd-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:.7rem;font-weight:900;letter-spacing:.3px}
+.b-attente{background:#FEF3C7;color:#92400E}
+.b-confirmee{background:#E0F7FF;color:#0096C7}
+.b-livraison{background:#F5F3FF;color:#7C3AED}
+.b-livree{background:#EDFFF5;color:#059669}
+.b-annulee{background:#FEE2E2;color:#991B1B}
+.cmd-produits{background:var(--off);border-radius:10px;padding:12px;margin-bottom:10px;font-size:.83rem}
+.cmd-produit{display:flex;justify-content:space-between;padding:4px 0;color:var(--dark)}
+.cmd-total{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:2px solid var(--gray)}
+.cmd-total-lbl{font-size:.85rem;font-weight:800;color:var(--dark)}
+.cmd-total-val{font-size:1.2rem;font-weight:900;color:var(--primary)}
+.empty-state{background:var(--white);border-radius:16px;padding:48px 24px;text-align:center;border:1px solid var(--gray)}
+.empty-state i{font-size:3rem;color:var(--gray);display:block;margin-bottom:14px}
+.empty-state h3{font-size:1rem;font-weight:900;color:var(--dark);margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:var(--mid);margin-bottom:20px}
+.form-email{background:var(--white);border-radius:16px;padding:24px;border:1px solid var(--gray);max-width:400px;margin:40px auto;text-align:center}
+.form-email h3{font-size:1.05rem;font-weight:900;color:var(--dark);margin-bottom:8px}
+.form-email p{font-size:.83rem;color:var(--mid);margin-bottom:18px;line-height:1.6}
+.form-email input{width:100%;padding:13px;border:2px solid var(--gray);border-radius:11px;font-size:.92rem;outline:none;margin-bottom:12px;font-family:inherit}
+.form-email input:focus{border-color:var(--primary)}
+.form-email button{width:100%;padding:14px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border:none;border-radius:12px;font-weight:900;font-size:.92rem;cursor:pointer}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    {% if boutique.logo_url %}
+    <img class="header-logo" src="{{ boutique.logo_url }}" alt="">
+    {% else %}
+    <div class="header-logo">{{ boutique.nom[0]|upper }}</div>
+    {% endif %}
+    <div class="header-name">Mes commandes</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a href="{{ url_for('boutique.visiter', slug=slug) }}" class="btn-back"><i class="fas fa-arrow-left"></i> Boutique</a>
+    <a href="{{ url_for('boutique.deconnecter_client', slug=slug) }}" class="btn-deco"><i class="fas fa-sign-out-alt"></i></a>
+  </div>
+</header>
+
+<main>
+
+  {% if client_id %}
+    <div class="client-info">
+      <div class="lbl">Connecte en tant que</div>
+      <div class="email"><i class="fas fa-user-circle"></i> {{ client_id }}</div>
+    </div>
+
+    {% if commandes %}
+      {% set badge_map = {
+        'en_attente': ('b-attente', 'En attente', 'fa-clock'),
+        'confirmee': ('b-confirmee', 'Confirmee', 'fa-check'),
+        'en_livraison': ('b-livraison', 'En livraison', 'fa-truck'),
+        'livree': ('b-livree', 'Livree', 'fa-check-circle'),
+        'annulee': ('b-annulee', 'Annulee', 'fa-times-circle')
+      } %}
+
+      {% for c in commandes %}
+        {% set badge = badge_map.get(c.statut, ('b-attente', 'En attente', 'fa-clock')) %}
+
+        <div class="cmd-card">
+          <div class="cmd-top">
+            <div>
+              <div class="cmd-ref"><i class="fas fa-receipt" style="color:var(--primary)"></i> {{ c.reference }}</div>
+              <div class="cmd-date">{{ (c.created_at or '')[:16].replace('T', ' ') }}</div>
+            </div>
+            <span class="cmd-badge {{ badge[0] }}"><i class="fas {{ badge[2] }}"></i> {{ badge[1] }}</span>
+          </div>
+
+          <div class="cmd-produits">
+            {% for p in c.produits or [] %}
+            <div class="cmd-produit">
+              <span>{{ p.qte }}x {{ p.nom }}</span>
+              <span style="font-weight:700">{{ "{:,.0f}".format(p.prix * p.qte) }} F</span>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="cmd-total">
+            <span class="cmd-total-lbl">TOTAL</span>
+            <span class="cmd-total-val">{{ "{:,.0f}".format(c.total) }} F</span>
+          </div>
+        </div>
+      {% endfor %}
+
+    {% else %}
+      <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h3>Aucune commande pour l'instant</h3>
+        <p>Vos commandes apparaitront ici une fois que vous aurez commande sur cette boutique.</p>
+        <a href="{{ url_for('boutique.visiter', slug=slug) }}" style="display:inline-flex;padding:12px 22px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border-radius:12px;font-weight:800;font-size:.88rem;text-decoration:none">
+          <i class="fas fa-shopping-bag"></i> &nbsp;Voir la boutique
+        </a>
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="form-email">
+      <div style="font-size:2.5rem;margin-bottom:12px">📧</div>
+      <h3>Entrez votre email</h3>
+      <p>Pour voir vos commandes, entrez l'email utilise lors de votre commande.</p>
+      <form method="POST" action="{{ url_for('boutique.verifier_commandes', slug=slug) }}">
+        <input type="email" name="email" placeholder="vous@exemple.com" required>
+        <button type="submit"><i class="fas fa-search"></i> Voir mes commandes</button>
+      </form>
+    </div>
+  {% endif %}
+
+</main>
+
+</body>
+</html>
