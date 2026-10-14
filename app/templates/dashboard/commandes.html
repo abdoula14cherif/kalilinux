@@ -2,7 +2,7 @@
 
 {% block title %}Commandes — Boost Reseller{% endblock %}
 {% block page_title %}Commandes{% endblock %}
-{% block page_subtitle %}Commandes passees par vos clients{% endblock %}
+{% block page_subtitle %}Gerez vos commandes clients{% endblock %}
 
 {% block extra_css %}
 .orders-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
@@ -11,36 +11,83 @@
 .stat-mini-val{font-size:1.25rem;font-weight:900;color:#0F172A;line-height:1.1}
 .stat-mini-lbl{font-size:.72rem;color:#64748B;font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
 
+.onglets{display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid #E2E8F0;overflow-x:auto;scrollbar-width:none}
+.onglets::-webkit-scrollbar{display:none}
+.onglet{padding:12px 20px;border:none;background:none;font-size:.88rem;font-weight:800;color:#64748B;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:.2s;display:flex;align-items:center;gap:8px;font-family:inherit}
+.onglet:hover{color:#0F172A}
+.onglet.active{color:#00BFFF;border-bottom-color:#00BFFF}
+.onglet-count{background:#E0F7FF;color:#0096C7;font-size:.7rem;font-weight:900;padding:2px 8px;border-radius:10px}
+.onglet.active .onglet-count{background:#00BFFF;color:#fff}
+
+.panel{display:none}
+.panel.active{display:block}
+
 .filter-tabs{display:flex;gap:6px;margin-bottom:18px;overflow-x:auto;padding-bottom:4px}
 .filter-tab{padding:9px 16px;border-radius:10px;border:2px solid #E2E8F0;background:#fff;color:#64748B;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s;text-decoration:none}
 .filter-tab:hover{border-color:#CBD5E1}
 .filter-tab.active{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;border-color:transparent}
 
+.commande-card{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:18px;margin-bottom:12px;transition:all .2s}
+.commande-card:hover{border-color:#CBD5E1;box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.commande-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.commande-ref{font-family:monospace;font-size:.92rem;font-weight:900;color:#0F172A;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.commande-date{font-size:.72rem;color:#94A3B8}
+.commande-badge{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;font-size:.72rem;font-weight:900;letter-spacing:.3px;white-space:nowrap}
+.b-attente{background:#FEF3C7;color:#92400E}
+.b-confirmee{background:#E0F7FF;color:#0096C7}
+.b-livraison{background:#F5F3FF;color:#7C3AED}
+.b-livree{background:#EDFFF5;color:#059669}
+.b-annulee{background:#FEE2E2;color:#991B1B}
+
+.client-box{background:#F8FAFC;border-radius:12px;padding:14px;margin-bottom:12px;display:grid;gap:8px}
+.client-row{display:flex;align-items:center;gap:10px;font-size:.83rem}
+.client-row i{color:#00BFFF;width:16px;text-align:center;font-size:.8rem}
+.client-row strong{color:#0F172A;font-weight:700}
+
+.produits-box{border:1px solid #E2E8F0;border-radius:12px;padding:14px;margin-bottom:12px}
+.produits-box-title{font-size:.72rem;font-weight:900;color:#64748B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.produit-row{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed #E2E8F0;align-items:center;font-size:.83rem}
+.produit-row:last-child{border-bottom:none;padding-bottom:0}
+.produit-row:first-child{padding-top:0}
+.produit-qte{font-weight:900;color:#00BFFF;min-width:30px;flex-shrink:0}
+.produit-nom{flex:1;color:#0F172A;font-weight:600}
+.produit-prix{font-weight:900;color:#0F172A;flex-shrink:0}
+
+.total-box{background:linear-gradient(135deg,#FFF3E6,#FFE6CC);border-radius:12px;padding:14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.total-box-lbl{font-size:.82rem;font-weight:800;color:#92400E}
+.total-box-val{font-size:1.4rem;font-weight:900;color:#FF6600}
+
+.actions-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn-action{padding:10px 16px;border:none;border-radius:10px;font-size:.8rem;font-weight:800;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-family:inherit;text-decoration:none}
+.btn-confirme{background:#E0F7FF;color:#0096C7}
+.btn-confirme:hover{background:#0096C7;color:#fff}
+.btn-livre{background:#EDFFF5;color:#059669}
+.btn-livre:hover{background:#059669;color:#fff}
+.btn-annule{background:#FEE2E2;color:#991B1B}
+.btn-annule:hover{background:#991B1B;color:#fff}
+.btn-wa{background:#25D366;color:#fff}
+.btn-wa:hover{background:#128C7E}
+
+/* CARTE SERVICE (ancien style digital) */
 .order-item{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:16px;margin-bottom:10px;transition:all .2s}
 .order-item:hover{border-color:#CBD5E1;box-shadow:0 4px 12px rgba(0,0,0,.04)}
 .order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;flex-wrap:wrap}
 .order-service{font-size:.92rem;font-weight:800;color:#0F172A;line-height:1.3}
 .order-reseau{font-size:.74rem;color:#64748B;margin-top:2px;display:flex;align-items:center;gap:5px}
-.order-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:.7rem;font-weight:800;letter-spacing:.3px;white-space:nowrap}
 .badge-wait{background:#FEF3C7;color:#92400E}
 .badge-run{background:#E0F7FF;color:#0096C7}
 .badge-done{background:#EDFFF5;color:#059669}
 .badge-ref{background:#FEE2E2;color:#991B1B}
-
 .order-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:.76rem;color:#64748B;padding-top:10px;border-top:1px dashed #E2E8F0}
 .order-meta-item{display:flex;align-items:center;gap:6px}
 .order-meta-item i{color:#94A3B8;font-size:.72rem}
 .order-meta-item strong{color:#0F172A;font-weight:700}
 .order-link{color:#00BFFF;text-decoration:none;font-weight:700;font-size:.74rem;word-break:break-all}
-.order-link:hover{text-decoration:underline}
 
 .empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:1px solid #E2E8F0}
 .empty-state-ico{width:70px;height:70px;border-radius:50%;background:#F0FAFF;color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
 .empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
 .empty-state p{font-size:.85rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto}
-
-.info-banner{background:#F0FAFF;border-left:4px solid #00BFFF;border-radius:14px;padding:14px 18px;margin-bottom:18px;font-size:.82rem;color:#0F172A;line-height:1.6}
-.info-banner i{color:#00BFFF;margin-right:6px}
 {% endblock %}
 
 {% block topbar_actions %}
@@ -53,125 +100,336 @@
 
 {% block dashboard_content %}
 
-{% set orders_en_attente = orders|selectattr('statut', 'equalto', 'en_attente')|list %}
-{% set orders_en_cours = orders|selectattr('statut', 'equalto', 'en_cours')|list %}
-{% set orders_termines = orders|selectattr('statut', 'equalto', 'termine')|list %}
-{% set revenus = orders|selectattr('statut', 'equalto', 'termine')|map(attribute='prix_total')|sum %}
+<!-- STATS GLOBALES -->
+{% set cb_attente = commandes_boutique|selectattr('statut', 'equalto', 'en_attente')|list %}
+{% set cb_confirmee = commandes_boutique|selectattr('statut', 'equalto', 'confirmee')|list %}
+{% set cb_livraison = commandes_boutique|selectattr('statut', 'equalto', 'en_livraison')|list %}
+{% set cb_livree = commandes_boutique|selectattr('statut', 'equalto', 'livree')|list %}
+{% set cb_total = commandes_boutique|map(attribute='total')|sum %}
 
-<!-- STATS -->
 <div class="orders-stats">
   <div class="stat-mini">
-    <div class="stat-mini-ico" style="background:#F5F3FF;color:#7C3AED"><i class="fas fa-box"></i></div>
+    <div class="stat-mini-ico" style="background:#F5F3FF;color:#7C3AED"><i class="fas fa-shopping-bag"></i></div>
     <div>
-      <div class="stat-mini-val">{{ orders|length }}</div>
-      <div class="stat-mini-lbl">Total commandes</div>
+      <div class="stat-mini-val">{{ commandes_boutique|length }}</div>
+      <div class="stat-mini-lbl">Commandes boutique</div>
     </div>
   </div>
   <div class="stat-mini">
     <div class="stat-mini-ico" style="background:#FEF3C7;color:#D97706"><i class="fas fa-hourglass-half"></i></div>
     <div>
-      <div class="stat-mini-val">{{ orders_en_attente|length + orders_en_cours|length }}</div>
+      <div class="stat-mini-val">{{ cb_attente|length + cb_confirmee|length + cb_livraison|length }}</div>
       <div class="stat-mini-lbl">En cours</div>
     </div>
   </div>
   <div class="stat-mini">
     <div class="stat-mini-ico" style="background:#EDFFF5;color:#059669"><i class="fas fa-check-circle"></i></div>
     <div>
-      <div class="stat-mini-val">{{ orders_termines|length }}</div>
-      <div class="stat-mini-lbl">Terminees</div>
+      <div class="stat-mini-val">{{ cb_livree|length }}</div>
+      <div class="stat-mini-lbl">Livrees</div>
     </div>
   </div>
   <div class="stat-mini">
     <div class="stat-mini-ico" style="background:#FFF3E6;color:#FF6600"><i class="fas fa-coins"></i></div>
     <div>
-      <div class="stat-mini-val">{{ "{:,.0f}".format(revenus) }} F</div>
-      <div class="stat-mini-lbl">Revenus</div>
+      <div class="stat-mini-val">{{ "{:,.0f}".format(cb_total) }} F</div>
+      <div class="stat-mini-lbl">Revenus boutique</div>
     </div>
   </div>
 </div>
 
-{% if orders %}
-<div class="info-banner">
-  <i class="fas fa-info-circle"></i>
-  Ces commandes ont ete passees par <strong>vos clients</strong> sur votre boutique. Vous n'avez rien a faire — elles sont traitees automatiquement par Boost Central.
+<!-- ONGLETS -->
+<div class="onglets">
+  <button class="onglet active" onclick="afficherOnglet('boutique', this)">
+    <i class="fas fa-shopping-bag"></i> Commandes boutique
+    <span class="onglet-count">{{ commandes_boutique|length }}</span>
+  </button>
+  <button class="onglet" onclick="afficherOnglet('services', this)">
+    <i class="fas fa-rocket"></i> Commandes services
+    <span class="onglet-count">{{ orders|length }}</span>
+  </button>
 </div>
 
-<!-- FILTRES -->
-<div class="filter-tabs">
-  <a href="{{ url_for('dashboard.commandes') }}" class="filter-tab {% if not request.args.get('statut') %}active{% endif %}">
-    Toutes ({{ orders|length }})
-  </a>
-  <a href="{{ url_for('dashboard.commandes') }}?statut=en_attente" class="filter-tab {% if request.args.get('statut') == 'en_attente' %}active{% endif %}">
-    En attente ({{ orders_en_attente|length }})
-  </a>
-  <a href="{{ url_for('dashboard.commandes') }}?statut=en_cours" class="filter-tab {% if request.args.get('statut') == 'en_cours' %}active{% endif %}">
-    En cours ({{ orders_en_cours|length }})
-  </a>
-  <a href="{{ url_for('dashboard.commandes') }}?statut=termine" class="filter-tab {% if request.args.get('statut') == 'termine' %}active{% endif %}">
-    Terminees ({{ orders_termines|length }})
-  </a>
-</div>
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PANEL 1 : COMMANDES BOUTIQUE -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="panel active" id="panel-boutique">
 
-{% set icons = {
-  'facebook': 'fab fa-facebook', 'instagram': 'fab fa-instagram', 'tiktok': 'fab fa-tiktok',
-  'youtube': 'fab fa-youtube', 'twitter': 'fab fa-twitter', 'telegram': 'fab fa-telegram',
-  'whatsapp': 'fab fa-whatsapp', 'spotify': 'fab fa-spotify', 'snapchat': 'fab fa-snapchat'
-} %}
+  {% if commandes_boutique %}
 
-{% set smap = {
-  'en_attente': ('badge-wait', 'En attente', 'fa-clock'),
-  'en_cours': ('badge-run', 'En cours', 'fa-spinner'),
-  'termine': ('badge-done', 'Termine', 'fa-check-circle'),
-  'refuse': ('badge-ref', 'Refuse', 'fa-times-circle')
-} %}
+    {% set statut_filter = request.args.get('statut', '') %}
 
-{% set filter_statut = request.args.get('statut', '') %}
-
-{% for o in orders %}
-  {% if not filter_statut or o.statut == filter_statut %}
-  {% set badge = smap.get(o.statut, ('badge-wait', 'En attente', 'fa-clock')) %}
-
-  <div class="order-item">
-    <div class="order-top">
-      <div style="flex:1;min-width:0">
-        <div class="order-service">{{ o.service }}</div>
-        <div class="order-reseau">
-          <i class="{{ icons.get(o.reseau, 'fas fa-share-alt') }}"></i>
-          {{ o.reseau|capitalize }}
-        </div>
-      </div>
-      <span class="order-badge {{ badge[0] }}"><i class="fas {{ badge[2] }}"></i> {{ badge[1] }}</span>
-    </div>
-
-    <div class="order-meta">
-      <div class="order-meta-item"><i class="fas fa-user"></i> <strong>{{ o.user_email }}</strong></div>
-      <div class="order-meta-item"><i class="fas fa-hashtag"></i> <strong>{{ "{:,}".format(o.quantite) }}</strong> unites</div>
-      <div class="order-meta-item"><i class="fas fa-coins"></i> <strong>{{ "{:,.0f}".format(o.prix_total) }} F</strong></div>
-      <div class="order-meta-item"><i class="fas fa-calendar"></i> {{ o.created_at[:10] if o.created_at else '' }}</div>
-    </div>
-
-    {% if o.lien %}
-    <div style="margin-top:8px">
-      <a href="{{ o.lien }}" target="_blank" class="order-link">
-        <i class="fas fa-external-link-alt"></i> {{ o.lien[:50] }}{% if o.lien|length > 50 %}...{% endif %}
+    <div class="filter-tabs">
+      <a href="{{ url_for('dashboard.commandes') }}" class="filter-tab {% if not statut_filter %}active{% endif %}">
+        Toutes ({{ commandes_boutique|length }})
+      </a>
+      <a href="{{ url_for('dashboard.commandes') }}?statut=en_attente" class="filter-tab {% if statut_filter == 'en_attente' %}active{% endif %}">
+        En attente ({{ cb_attente|length }})
+      </a>
+      <a href="{{ url_for('dashboard.commandes') }}?statut=confirmee" class="filter-tab {% if statut_filter == 'confirmee' %}active{% endif %}">
+        Confirmees ({{ cb_confirmee|length }})
+      </a>
+      <a href="{{ url_for('dashboard.commandes') }}?statut=en_livraison" class="filter-tab {% if statut_filter == 'en_livraison' %}active{% endif %}">
+        En livraison ({{ cb_livraison|length }})
+      </a>
+      <a href="{{ url_for('dashboard.commandes') }}?statut=livree" class="filter-tab {% if statut_filter == 'livree' %}active{% endif %}">
+        Livrees ({{ cb_livree|length }})
       </a>
     </div>
+
+    {% set badge_map = {
+      'en_attente': ('b-attente', 'En attente', 'fa-clock'),
+      'confirmee': ('b-confirmee', 'Confirmee', 'fa-check'),
+      'en_livraison': ('b-livraison', 'En livraison', 'fa-truck'),
+      'livree': ('b-livree', 'Livree', 'fa-check-circle'),
+      'annulee': ('b-annulee', 'Annulee', 'fa-times-circle')
+    } %}
+
+    {% for c in commandes_boutique %}
+      {% if not statut_filter or c.statut == statut_filter %}
+      {% set badge = badge_map.get(c.statut, ('b-attente', 'En attente', 'fa-clock')) %}
+
+      <div class="commande-card">
+        <div class="commande-top">
+          <div>
+            <div class="commande-ref">
+              <i class="fas fa-receipt" style="color:#00BFFF"></i>
+              {{ c.reference }}
+            </div>
+            <div class="commande-date">
+              <i class="fas fa-calendar"></i> {{ (c.created_at or '')[:16].replace('T', ' ') }}
+            </div>
+          </div>
+          <span class="commande-badge {{ badge[0] }}">
+            <i class="fas {{ badge[2] }}"></i> {{ badge[1] }}
+          </span>
+        </div>
+
+        <!-- Infos client -->
+        <div class="client-box">
+          <div class="client-row">
+            <i class="fas fa-user"></i>
+            <strong>{{ c.client_nom }}</strong>
+          </div>
+          <div class="client-row">
+            <i class="fas fa-phone"></i>
+            <a href="https://wa.me/{{ c.client_telephone }}" target="_blank" style="color:#25D366;font-weight:700;text-decoration:none">
+              {{ c.client_telephone }}
+            </a>
+          </div>
+          {% if c.client_email %}
+          <div class="client-row">
+            <i class="fas fa-envelope"></i>
+            <a href="mailto:{{ c.client_email }}" style="color:#00BFFF;text-decoration:none">{{ c.client_email }}</a>
+          </div>
+          {% endif %}
+          {% if c.client_adresse %}
+          <div class="client-row">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>{{ c.client_adresse }}{% if c.client_ville %}, {{ c.client_ville }}{% endif %}</span>
+          </div>
+          {% endif %}
+          <div class="client-row">
+            <i class="fas fa-credit-card"></i>
+            <span>
+              {% if c.mode_paiement == 'cash' %}💵 Paiement a la livraison
+              {% elif c.mode_paiement == 'mtn' %}📱 MTN Mobile Money
+              {% elif c.mode_paiement == 'orange' %}📱 Orange Money
+              {% else %}{{ c.mode_paiement }}{% endif %}
+            </span>
+          </div>
+        </div>
+
+        <!-- Produits -->
+        <div class="produits-box">
+          <div class="produits-box-title"><i class="fas fa-box"></i> Produits commandes</div>
+          {% for p in c.produits or [] %}
+          <div class="produit-row">
+            <span class="produit-qte">{{ p.qte }}x</span>
+            <span class="produit-nom">
+              {{ p.nom }}
+              {% if p.attributs %}
+              <br><small style="color:#94A3B8;font-size:.72rem">
+                {% for k, v in p.attributs.items() %}{{ k }}: {{ v }}{% if not loop.last %} · {% endif %}{% endfor %}
+              </small>
+              {% endif %}
+            </span>
+            <span class="produit-prix">{{ "{:,.0f}".format(p.prix * p.qte) }} F</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Total -->
+        <div class="total-box">
+          <span class="total-box-lbl">TOTAL</span>
+          <span class="total-box-val">{{ "{:,.0f}".format(c.total) }} F</span>
+        </div>
+
+        <!-- Note client -->
+        {% if c.note_client %}
+        <div style="background:#F8FAFC;border-left:3px solid #00BFFF;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:.82rem;color:#475569;font-style:italic">
+          <i class="fas fa-comment" style="color:#00BFFF;margin-right:6px"></i>
+          "{{ c.note_client }}"
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="actions-row">
+          {% if c.statut == 'en_attente' %}
+          <form method="POST" action="{{ url_for('dashboard.commande_boutique_statut') }}" style="display:inline">
+            <input type="hidden" name="commande_id" value="{{ c.id }}">
+            <input type="hidden" name="statut" value="confirmee">
+            <button type="submit" class="btn-action btn-confirme">
+              <i class="fas fa-check"></i> Confirmer
+            </button>
+          </form>
+          {% endif %}
+
+          {% if c.statut == 'confirmee' %}
+          <form method="POST" action="{{ url_for('dashboard.commande_boutique_statut') }}" style="display:inline">
+            <input type="hidden" name="commande_id" value="{{ c.id }}">
+            <input type="hidden" name="statut" value="en_livraison">
+            <button type="submit" class="btn-action btn-confirme">
+              <i class="fas fa-truck"></i> En livraison
+            </button>
+          </form>
+          {% endif %}
+
+          {% if c.statut == 'en_livraison' %}
+          <form method="POST" action="{{ url_for('dashboard.commande_boutique_statut') }}" style="display:inline">
+            <input type="hidden" name="commande_id" value="{{ c.id }}">
+            <input type="hidden" name="statut" value="livree">
+            <button type="submit" class="btn-action btn-livre">
+              <i class="fas fa-check-circle"></i> Marquer livre
+            </button>
+          </form>
+          {% endif %}
+
+          {% if c.statut in ('en_attente', 'confirmee') %}
+          <form method="POST" action="{{ url_for('dashboard.commande_boutique_statut') }}" style="display:inline" onsubmit="return confirm('Annuler cette commande ?')">
+            <input type="hidden" name="commande_id" value="{{ c.id }}">
+            <input type="hidden" name="statut" value="annulee">
+            <button type="submit" class="btn-action btn-annule">
+              <i class="fas fa-times"></i> Annuler
+            </button>
+          </form>
+          {% endif %}
+
+          <a href="https://wa.me/{{ c.client_telephone }}?text={{ ('Bonjour ' ~ c.client_nom ~ ', concernant votre commande ' ~ c.reference) | urlencode }}" target="_blank" class="btn-action btn-wa">
+            <i class="fab fa-whatsapp"></i> Contacter
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-ico"><i class="fas fa-shopping-bag"></i></div>
+    <h3>Aucune commande boutique pour l'instant</h3>
+    <p>Des que vos clients passeront des commandes sur votre boutique, elles apparaitront ici.</p>
+    {% if profile.est_revendeur %}
+    <a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn btn-primary" style="display:inline-flex;padding:12px 22px;font-size:.85rem">
+      <i class="fas fa-store"></i> Voir ma boutique
+    </a>
     {% endif %}
   </div>
   {% endif %}
-{% endfor %}
 
-{% else %}
-<div class="empty-state">
-  <div class="empty-state-ico"><i class="fas fa-box-open"></i></div>
-  <h3>Aucune commande pour l'instant</h3>
-  <p>Des que vos clients passeront des commandes sur votre boutique, elles apparaitront ici.</p>
-  {% if profile.est_revendeur %}
-  <a href="/r/{{ profile.revendeur_slug }}" target="_blank" class="btn btn-primary" style="display:inline-flex;padding:12px 22px;font-size:.85rem">
-    <i class="fas fa-store"></i> Voir ma boutique
-  </a>
-  {% endif %}
 </div>
-{% endif %}
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PANEL 2 : COMMANDES SERVICES (digital) -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-services">
+
+  {% set os_attente = orders|selectattr('statut', 'equalto', 'en_attente')|list %}
+  {% set os_cours = orders|selectattr('statut', 'equalto', 'en_cours')|list %}
+  {% set os_termines = orders|selectattr('statut', 'equalto', 'termine')|list %}
+
+  {% if orders %}
+
+    <div class="filter-tabs">
+      <a href="{{ url_for('dashboard.commandes') }}" class="filter-tab active">
+        Toutes ({{ orders|length }})
+      </a>
+      <a href="{{ url_for('dashboard.commandes') }}?statut_service=en_attente" class="filter-tab">
+        En attente ({{ os_attente|length }})
+      </a>
+      <a href="{{ url_for('dashboard.commandes') }}?statut_service=en_cours" class="filter-tab">
+        En cours ({{ os_cours|length }})
+      </a>
+      <a href="{{ url_for('dashboard.commandes') }}?statut_service=termine" class="filter-tab">
+        Terminees ({{ os_termines|length }})
+      </a>
+    </div>
+
+    {% set smap = {
+      'en_attente': ('badge-wait', 'En attente', 'fa-clock'),
+      'en_cours': ('badge-run', 'En cours', 'fa-spinner'),
+      'termine': ('badge-done', 'Termine', 'fa-check-circle'),
+      'refuse': ('badge-ref', 'Refuse', 'fa-times-circle')
+    } %}
+
+    {% set icons = {
+      'facebook': 'fab fa-facebook', 'instagram': 'fab fa-instagram', 'tiktok': 'fab fa-tiktok',
+      'youtube': 'fab fa-youtube', 'twitter': 'fab fa-twitter', 'telegram': 'fab fa-telegram',
+      'whatsapp': 'fab fa-whatsapp', 'spotify': 'fab fa-spotify', 'snapchat': 'fab fa-snapchat'
+    } %}
+
+    {% for o in orders %}
+    {% set badge = smap.get(o.statut, ('badge-wait', 'En attente', 'fa-clock')) %}
+    <div class="order-item">
+      <div class="order-top">
+        <div style="flex:1;min-width:0">
+          <div class="order-service">{{ o.service }}</div>
+          <div class="order-reseau">
+            <i class="{{ icons.get(o.reseau, 'fas fa-share-alt') }}"></i>
+            {{ o.reseau|capitalize }}
+          </div>
+        </div>
+        <span class="commande-badge {{ badge[0] }}"><i class="fas {{ badge[2] }}"></i> {{ badge[1] }}</span>
+      </div>
+      <div class="order-meta">
+        <div class="order-meta-item"><i class="fas fa-user"></i> <strong>{{ o.user_email }}</strong></div>
+        <div class="order-meta-item"><i class="fas fa-hashtag"></i> <strong>{{ "{:,}".format(o.quantite) }}</strong> unites</div>
+        <div class="order-meta-item"><i class="fas fa-coins"></i> <strong>{{ "{:,.0f}".format(o.prix_total) }} F</strong></div>
+        <div class="order-meta-item"><i class="fas fa-calendar"></i> {{ o.created_at[:10] if o.created_at else '' }}</div>
+      </div>
+      {% if o.lien %}
+      <div style="margin-top:8px">
+        <a href="{{ o.lien }}" target="_blank" class="order-link">
+          <i class="fas fa-external-link-alt"></i> {{ o.lien[:50] }}{% if o.lien|length > 50 %}...{% endif %}
+        </a>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-ico"><i class="fas fa-rocket"></i></div>
+    <h3>Aucune commande de services</h3>
+    <p>Vos clients n'ont pas encore commande de services Boost Central via votre boutique.</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+function afficherOnglet(nom, btn){
+  document.querySelectorAll('.onglet').forEach(function(o){ o.classList.remove('active'); });
+  btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('panel-' + nom).classList.add('active');
+  history.replaceState(null, '', '#' + nom);
+}
+// Restaurer l'onglet actif au chargement
+var hash = window.location.hash.replace('#', '');
+if(hash === 'services'){
+  var btn = document.querySelectorAll('.onglet')[1];
+  if(btn) afficherOnglet('services', btn);
+}
+</script>
 
 {% endblock %}
