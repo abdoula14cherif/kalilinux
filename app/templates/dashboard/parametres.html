@@ -37,7 +37,6 @@
 
 {% block dashboard_content %}
 
-<!-- INFOS COMPTE -->
 <div class="settings-section">
   <div class="section-title"><i class="fas fa-user-circle"></i> Mon compte</div>
   <div class="section-sub">Informations liées à votre compte Boost Central.</div>
@@ -60,7 +59,6 @@
   </div>
 </div>
 
-<!-- INFOS BOUTIQUE -->
 <div class="settings-section">
   <div class="section-title"><i class="fas fa-store"></i> Ma boutique</div>
   <div class="section-sub">Informations générales de votre boutique.</div>
@@ -95,7 +93,6 @@
   </div>
 </div>
 
-<!-- CHANGER TYPE -->
 <div class="settings-section">
   <div class="section-title"><i class="fas fa-exchange-alt"></i> Changer de type de boutique</div>
   <div class="section-sub">⚠️ Changer de type peut affecter vos produits existants. Contactez le support pour changer.</div>
@@ -112,7 +109,6 @@
   </div>
 </div>
 
-<!-- ABONNEMENT -->
 <div class="settings-section">
   <div class="section-title"><i class="fas fa-star"></i> Mon abonnement</div>
   <div class="section-sub">Votre plan actuel et les fonctionnalités incluses.</div>
@@ -126,13 +122,12 @@
     <div class="info-val">{% if profile.abonnement_expire_le %}{{ profile.abonnement_expire_le[:10] }}{% else %}—{% endif %}</div>
   </div>
   <div style="margin-top:16px">
-    <a href="{{ url_for('dashboard.abonnement') }}" class="btn btn-primary" style="padding:12px 22px;font-size:.85rem">
+    <a href="{{ url_for('dashboard_shop.abonnement') }}" class="btn btn-primary" style="padding:12px 22px;font-size:.85rem">
       <i class="fas fa-arrow-right"></i> Voir les plans
     </a>
   </div>
 </div>
 
-<!-- DANGER ZONE -->
 <div class="settings-section danger-zone">
   <div class="section-title"><i class="fas fa-exclamation-triangle"></i> Zone de danger</div>
   <div class="section-sub">Ces actions sont irréversibles. Contactez le support avant de continuer.</div>
