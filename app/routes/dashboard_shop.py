@@ -580,3 +580,39 @@ def test_email():
         return f"Email envoye a {destinataire}. Verifie ta boite (et les spams)."
     else:
         return "Echec. Verifie MAIL_USERNAME et GMAIL_APP_PASSWORD sur Vercel."
+
+
+
+@dashboard_shop_bp.route("/api/notifications-count")
+@login_required
+@limiter.limit("120 per hour")
+def api_notifications_count():
+    """
+    Retourne le compteur de notifications non lues :
+    - commandes en attente
+    - avis non approuvés
+    """
+    from flask import jsonify
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return jsonify({"error": "unauthorized"}), 401
+
+    try:
+        commandes_raw = get_commandes_boutique_revendeur(profile["id"], limit=500)
+        commandes_attente = sum(1 for c in commandes_raw if c.get("statut") == "en_attente")
+    except Exception as e:
+        logger.error(f"api_notifications_count commandes: {type(e).__name__}")
+        commandes_attente = 0
+
+    try:
+        avis_raw = get_avis_revendeur(profile["id"])
+        avis_attente = sum(1 for a in avis_raw if not a.get("approuve"))
+    except Exception as e:
+        logger.error(f"api_notifications_count avis: {type(e).__name__}")
+        avis_attente = 0
+
+    return jsonify({
+        "commandes_attente": commandes_attente,
+        "avis_attente": avis_attente,
+        "total": commandes_attente + avis_attente
+    })
