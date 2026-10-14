@@ -594,3 +594,418 @@ def produits_toggle():
     update_produit_boutique(produit_id, {"actif": not actif})
     flash(f"Produit {'desactive' if actif else 'active'}.", "success")
     return redirect(url_for("dashboard.produits"))
+
+
+
+@dashboard_bp.route("/categories")
+@login_required
+def categories():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    categories_liste = get_categories_par_type(profile["boutique_type"])
+    return render_template("dashboard/categories.html",
+                          profile=profile,
+                          categories=categories_liste)
+
+
+@dashboard_bp.route("/categories/ajouter", methods=["POST"])
+@login_required
+@limiter.limit("30 per hour")
+def categories_ajouter():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    nom = request.form.get("nom", "").strip()[:60]
+    description = request.form.get("description", "").strip()[:300] or None
+
+    if not nom:
+        flash("Le nom de la categorie est obligatoire.", "error")
+        return redirect(url_for("dashboard.categories"))
+
+    result = create_categorie(profile["boutique_type"], nom, description)
+    if result:
+        flash(f"Categorie '{nom}' creee avec succes !", "success")
+    else:
+        flash("Erreur lors de la creation de la categorie.", "error")
+
+    return redirect(url_for("dashboard.categories"))
+
+
+@dashboard_bp.route("/categories/modifier", methods=["POST"])
+@login_required
+@limiter.limit("30 per hour")
+def categories_modifier():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    cat_id = request.form.get("categorie_id", "")
+    if not cat_id:
+        flash("ID categorie manquant.", "error")
+        return redirect(url_for("dashboard.categories"))
+
+    if not _verifier_categorie_revendeur(cat_id, profile["id"]):
+        flash("Action non autorisee.", "error")
+        logger.warning(f"Tentative modif categorie {cat_id} par revendeur {profile['id']}")
+        return redirect(url_for("dashboard.categories"))
+
+    data = {
+        "nom": request.form.get("nom", "").strip()[:60],
+        "description": request.form.get("description", "").strip()[:300] or None,
+    }
+
+    ok = update_categorie(cat_id, data)
+    if ok:
+        flash("Categorie mise a jour.", "success")
+    else:
+        flash("Erreur lors de la mise a jour.", "error")
+
+    return redirect(url_for("dashboard.categories"))
+
+
+@dashboard_bp.route("/categories/supprimer", methods=["POST"])
+@login_required
+@limiter.limit("30 per hour")
+def categories_supprimer():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    cat_id = request.form.get("categorie_id", "")
+    if not cat_id:
+        flash("ID categorie manquant.", "error")
+        return redirect(url_for("dashboard.categories"))
+
+    if not _verifier_categorie_revendeur(cat_id, profile["id"]):
+        flash("Action non autorisee.", "error")
+        logger.warning(f"Tentative suppression categorie {cat_id} par revendeur {profile['id']}")
+        return redirect(url_for("dashboard.categories"))
+
+    ok = delete_categorie(cat_id)
+    if ok:
+        flash("Categorie supprimee.", "success")
+    else:
+        flash("Erreur lors de la suppression.", "error")
+
+    return redirect(url_for("dashboard.categories"))
+
+
+@dashboard_bp.route("/bannieres")
+@login_required
+def bannieres():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    liste = get_bannieres_revendeur(profile["id"])
+    return render_template("dashboard/bannieres.html", profile=profile, bannieres=liste)
+
+
+@dashboard_bp.route("/bannieres/ajouter", methods=["POST"])
+@login_required
+@limiter.limit("20 per hour")
+def bannieres_ajouter():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    titre = request.form.get("titre", "").strip()[:80] or None
+    sous_titre = request.form.get("sous_titre", "").strip()[:120] or None
+    lien = request.form.get("lien", "").strip()[:500] or None
+
+    if lien and not lien.startswith(("http://", "https://")):
+        lien = None
+
+    image_file = request.files.get("image")
+    if not image_file or not image_file.filename:
+        flash("Une image est obligatoire pour la banniere.", "error")
+        return redirect(url_for("dashboard.bannieres"))
+
+    image_url = upload_image(image_file, prefix="banniere_")
+    if not image_url:
+        flash("Erreur upload image. Verifiez le bucket Supabase.", "error")
+        return redirect(url_for("dashboard.bannieres"))
+
+    result = create_banniere({
+        "revendeur_id": profile["id"],
+        "titre": titre,
+        "sous_titre": sous_titre,
+        "image_url": image_url,
+        "lien": lien,
+        "actif": True,
+    })
+
+    if result:
+        flash("Banniere ajoutee avec succes !", "success")
+    else:
+        flash("Erreur lors de l'ajout de la banniere.", "error")
+
+    return redirect(url_for("dashboard.bannieres"))
+
+
+@dashboard_bp.route("/bannieres/modifier", methods=["POST"])
+@login_required
+@limiter.limit("30 per hour")
+def bannieres_modifier():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    banniere_id = request.form.get("banniere_id", "")
+    if not banniere_id:
+        flash("ID banniere manquant.", "error")
+        return redirect(url_for("dashboard.bannieres"))
+
+    if not _verifier_propriete("boutique_bannieres", banniere_id, profile["id"]):
+        flash("Action non autorisee.", "error")
+        logger.warning(f"Tentative modif banniere {banniere_id} par revendeur {profile['id']}")
+        return redirect(url_for("dashboard.bannieres"))
+
+    lien = request.form.get("lien", "").strip()[:500] or None
+    if lien and not lien.startswith(("http://", "https://")):
+        lien = None
+
+    data = {
+        "titre": request.form.get("titre", "").strip()[:80] or None,
+        "sous_titre": request.form.get("sous_titre", "").strip()[:120] or None,
+        "lien": lien,
+    }
+
+    image_file = request.files.get("image")
+    if image_file and image_file.filename:
+        image_url = upload_image(image_file, prefix="banniere_")
+        if image_url:
+            data["image_url"] = image_url
+
+    ok = update_banniere(banniere_id, data)
+    if ok:
+        flash("Banniere mise a jour.", "success")
+    else:
+        flash("Erreur lors de la mise a jour.", "error")
+
+    return redirect(url_for("dashboard.bannieres"))
+
+
+@dashboard_bp.route("/bannieres/supprimer", methods=["POST"])
+@login_required
+@limiter.limit("30 per hour")
+def bannieres_supprimer():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    banniere_id = request.form.get("banniere_id", "")
+    if not banniere_id:
+        flash("ID banniere manquant.", "error")
+        return redirect(url_for("dashboard.bannieres"))
+
+    if not _verifier_propriete("boutique_bannieres", banniere_id, profile["id"]):
+        flash("Action non autorisee.", "error")
+        logger.warning(f"Tentative suppression banniere {banniere_id} par revendeur {profile['id']}")
+        return redirect(url_for("dashboard.bannieres"))
+
+    delete_banniere(banniere_id)
+    flash("Banniere supprimee.", "success")
+    return redirect(url_for("dashboard.bannieres"))
+
+
+@dashboard_bp.route("/bannieres/toggle", methods=["POST"])
+@login_required
+@limiter.limit("60 per hour")
+def bannieres_toggle():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    banniere_id = request.form.get("banniere_id", "")
+    actif = request.form.get("actif") == "1"
+
+    if not banniere_id:
+        flash("ID banniere manquant.", "error")
+        return redirect(url_for("dashboard.bannieres"))
+
+    if not _verifier_propriete("boutique_bannieres", banniere_id, profile["id"]):
+        flash("Action non autorisee.", "error")
+        return redirect(url_for("dashboard.bannieres"))
+
+    update_banniere(banniere_id, {"actif": not actif})
+    flash(f"Banniere {'desactivee' if actif else 'activee'}.", "success")
+    return redirect(url_for("dashboard.bannieres"))
+
+
+@dashboard_bp.route("/bannieres/options", methods=["POST"])
+@login_required
+@limiter.limit("20 per hour")
+def bannieres_options():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    data = {
+        "boutique_banniere_arrondie": request.form.get("banniere_arrondie") == "on",
+        "boutique_banniere_flou": request.form.get("banniere_flou") == "on",
+    }
+
+    try:
+        intensite = float(request.form.get("banniere_flou_intensite", 0.45))
+        data["boutique_banniere_flou_intensite"] = max(0.1, min(1.0, intensite))
+    except Exception:
+        pass
+
+    try:
+        hauteur = int(request.form.get("banniere_hauteur", 220))
+        data["boutique_banniere_hauteur"] = max(150, min(400, hauteur))
+    except Exception:
+        pass
+
+    ok = update_profile(profile["id"], data)
+    if ok:
+        flash("Options de banniere mises a jour !", "success")
+    else:
+        flash("Erreur lors de la sauvegarde.", "error")
+
+    return redirect(url_for("dashboard.bannieres"))
+
+
+@dashboard_bp.route("/attributs")
+@login_required
+def attributs():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+    liste = get_attributs_revendeur(profile["id"])
+    return render_template("dashboard/attributs.html", profile=profile, attributs=liste)
+
+
+@dashboard_bp.route("/attributs/ajouter", methods=["POST"])
+@login_required
+@limiter.limit("20 per hour")
+def attributs_ajouter():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    nom = request.form.get("nom", "").strip()[:40]
+    type_attr = request.form.get("type", "texte")
+    valeurs_str = request.form.get("valeurs", "").strip()[:500]
+    obligatoire = request.form.get("obligatoire") == "on"
+
+    if type_attr not in ("texte", "couleur", "taille", "nombre"):
+        type_attr = "texte"
+
+    if not nom:
+        flash("Le nom de l'attribut est obligatoire.", "error")
+        return redirect(url_for("dashboard.attributs"))
+
+    valeurs = []
+    if valeurs_str:
+        valeurs = [v.strip()[:30] for v in valeurs_str.split(",") if v.strip()][:50]
+
+    result = create_attribut({
+        "revendeur_id": profile["id"],
+        "nom": nom,
+        "type": type_attr,
+        "valeurs": valeurs,
+        "obligatoire": obligatoire,
+        "actif": True,
+    })
+
+    if result:
+        flash(f"Attribut '{nom}' cree avec succes !", "success")
+    else:
+        flash("Erreur lors de la creation.", "error")
+
+    return redirect(url_for("dashboard.attributs"))
+
+
+@dashboard_bp.route("/attributs/modifier", methods=["POST"])
+@login_required
+@limiter.limit("30 per hour")
+def attributs_modifier():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    attribut_id = request.form.get("attribut_id", "")
+    if not attribut_id:
+        flash("ID attribut manquant.", "error")
+        return redirect(url_for("dashboard.attributs"))
+
+    if not _verifier_propriete("boutique_attributs", attribut_id, profile["id"]):
+        flash("Action non autorisee.", "error")
+        logger.warning(f"Tentative modif attribut {attribut_id} par revendeur {profile['id']}")
+        return redirect(url_for("dashboard.attributs"))
+
+    nom = request.form.get("nom", "").strip()[:40]
+    type_attr = request.form.get("type", "texte")
+    valeurs_str = request.form.get("valeurs", "").strip()[:500]
+    obligatoire = request.form.get("obligatoire") == "on"
+
+    if type_attr not in ("texte", "couleur", "taille", "nombre"):
+        type_attr = "texte"
+
+    valeurs = []
+    if valeurs_str:
+        valeurs = [v.strip()[:30] for v in valeurs_str.split(",") if v.strip()][:50]
+
+    ok = update_attribut(attribut_id, {
+        "nom": nom,
+        "type": type_attr,
+        "valeurs": valeurs,
+        "obligatoire": obligatoire,
+    })
+
+    if ok:
+        flash("Attribut mis a jour.", "success")
+    else:
+        flash("Erreur lors de la mise a jour.", "error")
+
+    return redirect(url_for("dashboard.attributs"))
+
+
+@dashboard_bp.route("/attributs/supprimer", methods=["POST"])
+@login_required
+@limiter.limit("30 per hour")
+def attributs_supprimer():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    attribut_id = request.form.get("attribut_id", "")
+    if not attribut_id:
+        flash("ID attribut manquant.", "error")
+        return redirect(url_for("dashboard.attributs"))
+
+    if not _verifier_propriete("boutique_attributs", attribut_id, profile["id"]):
+        flash("Action non autorisee.", "error")
+        logger.warning(f"Tentative suppression attribut {attribut_id} par revendeur {profile['id']}")
+        return redirect(url_for("dashboard.attributs"))
+
+    delete_attribut(attribut_id)
+    flash("Attribut supprime.", "success")
+    return redirect(url_for("dashboard.attributs"))
+
+
+@dashboard_bp.route("/attributs/toggle", methods=["POST"])
+@login_required
+@limiter.limit("60 per hour")
+def attributs_toggle():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    attribut_id = request.form.get("attribut_id", "")
+    actif = request.form.get("actif") == "1"
+
+    if not attribut_id:
+        flash("ID attribut manquant.", "error")
+        return redirect(url_for("dashboard.attributs"))
+
+    if not _verifier_propriete("boutique_attributs", attribut_id, profile["id"]):
+        flash("Action non autorisee.", "error")
+        return redirect(url_for("dashboard.attributs"))
+
+    update_attribut(attribut_id, {"actif": not actif})
+    flash(f"Attribut {'desactive' if actif else 'active'}.", "success")
+    return redirect(url_for("dashboard.attributs"))
