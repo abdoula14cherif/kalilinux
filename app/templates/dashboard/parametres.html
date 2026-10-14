@@ -9,7 +9,7 @@
 .section-title i{color:#00BFFF}
 .section-sub{font-size:.82rem;color:#64748B;margin-bottom:18px;line-height:1.5}
 
-.info-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #E2E8F0}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #E2E8F0;gap:16px;flex-wrap:wrap}
 .info-row:last-child{border-bottom:none;padding-bottom:0}
 .info-row:first-of-type{padding-top:0}
 .info-lbl{font-size:.85rem;color:#64748B;font-weight:600}
@@ -19,6 +19,92 @@
 .b-ok{background:#EDFFF5;color:#059669}
 .b-warn{background:#FEF3C7;color:#92400E}
 .b-info{background:#E0F7FF;color:#0096C7}
+.b-danger{background:#FEE2E2;color:#991B1B}
+
+/* Toggle boutique */
+.toggle-boutique-box{
+  background:linear-gradient(135deg,#F0FDF4,#FFFFFF);
+  border:2px solid #10B981;
+  border-radius:14px;
+  padding:20px;
+  transition:all .3s;
+}
+.toggle-boutique-box.off{
+  background:linear-gradient(135deg,#FEF2F2,#FFFFFF);
+  border-color:#DC2626;
+}
+.toggle-boutique-head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:14px;
+}
+.toggle-boutique-ico{
+  width:52px;
+  height:52px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#10B981,#059669);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.4rem;
+  flex-shrink:0;
+  box-shadow:0 6px 18px rgba(16,185,129,.3);
+}
+.toggle-boutique-box.off .toggle-boutique-ico{
+  background:linear-gradient(135deg,#DC2626,#991B1B);
+  box-shadow:0 6px 18px rgba(220,38,38,.3);
+}
+.toggle-boutique-titre{
+  font-size:.95rem;
+  font-weight:900;
+  color:#0F172A;
+  margin-bottom:4px;
+}
+.toggle-boutique-desc{
+  font-size:.8rem;
+  color:#64748B;
+  line-height:1.5;
+}
+.toggle-boutique-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.btn-toggle{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:12px 22px;
+  border-radius:11px;
+  font-weight:800;
+  font-size:.85rem;
+  border:none;
+  cursor:pointer;
+  transition:all .25s;
+  font-family:inherit;
+}
+.btn-desactiver{
+  background:linear-gradient(135deg,#FEE2E2,#FECACA);
+  color:#991B1B;
+}
+.btn-desactiver:hover{
+  background:linear-gradient(135deg,#DC2626,#991B1B);
+  color:#fff;
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(220,38,38,.3);
+}
+.btn-activer{
+  background:linear-gradient(135deg,#10B981,#059669);
+  color:#fff;
+  box-shadow:0 6px 18px rgba(16,185,129,.3);
+}
+.btn-activer:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 24px rgba(16,185,129,.45);
+}
 
 .types-mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:12px}
 .type-mini{border:2px solid #E2E8F0;border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
@@ -31,7 +117,7 @@
 .danger-zone .section-title i{color:#DC2626}
 .danger-zone .section-sub{color:#991B1B}
 
-.btn-danger{background:#FEE2E2;color:#991B1B;padding:12px 22px;border:none;border-radius:12px;font-weight:900;font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.2s}
+.btn-danger{background:#FEE2E2;color:#991B1B;padding:12px 22px;border:none;border-radius:12px;font-weight:900;font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.2s;font-family:inherit}
 .btn-danger:hover{background:#DC2626;color:#fff}
 {% endblock %}
 
@@ -78,10 +164,12 @@
   <div class="info-row">
     <div class="info-lbl">Statut</div>
     <div class="info-val">
-      {% if profile.est_revendeur %}
-      <span class="badge-statut b-ok"><i class="fas fa-check-circle"></i> En ligne</span>
-      {% else %}
+      {% if not profile.est_revendeur %}
       <span class="badge-statut b-warn"><i class="fas fa-clock"></i> Brouillon</span>
+      {% elif profile.boutique_active == False %}
+      <span class="badge-statut b-danger"><i class="fas fa-pause-circle"></i> Désactivée</span>
+      {% else %}
+      <span class="badge-statut b-ok"><i class="fas fa-check-circle"></i> En ligne</span>
       {% endif %}
     </div>
   </div>
@@ -92,6 +180,56 @@
     </div>
   </div>
 </div>
+
+{% if profile.est_revendeur %}
+<div class="settings-section">
+  <div class="section-title"><i class="fas fa-power-off"></i> Statut de la boutique</div>
+  <div class="section-sub">Activez ou désactivez temporairement votre boutique. Vos produits et données sont conservés.</div>
+
+  {% set est_active = profile.boutique_active != False %}
+
+  <div class="toggle-boutique-box {% if not est_active %}off{% endif %}">
+    <div class="toggle-boutique-head">
+      <div class="toggle-boutique-ico">
+        <i class="fas fa-{% if est_active %}store{% else %}store-slash{% endif %}"></i>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="toggle-boutique-titre">
+          {% if est_active %}
+          Votre boutique est actuellement <span style="color:#059669">EN LIGNE</span>
+          {% else %}
+          Votre boutique est actuellement <span style="color:#DC2626">DÉSACTIVÉE</span>
+          {% endif %}
+        </div>
+        <div class="toggle-boutique-desc">
+          {% if est_active %}
+          Vos clients peuvent voir et commander vos produits.
+          {% else %}
+          Vos clients voient une page "Boutique temporairement indisponible".
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('dashboard_shop.boutique_toggle_active') }}" style="margin:0">
+      <input type="hidden" name="actif" value="{{ '1' if est_active else '0' }}">
+
+      <div class="toggle-boutique-actions">
+        {% if est_active %}
+        <button type="submit" class="btn-toggle btn-desactiver"
+                onclick="return confirm('Désactiver votre boutique ?\n\nVos clients verront une page \'Boutique temporairement indisponible\'.\n\nVos données sont conservées. Vous pourrez réactiver à tout moment.')">
+          <i class="fas fa-pause-circle"></i> Désactiver ma boutique
+        </button>
+        {% else %}
+        <button type="submit" class="btn-toggle btn-activer">
+          <i class="fas fa-play-circle"></i> Réactiver ma boutique
+        </button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
 
 <div class="settings-section">
   <div class="section-title"><i class="fas fa-exchange-alt"></i> Changer de type de boutique</div>
