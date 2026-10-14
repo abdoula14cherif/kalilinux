@@ -48,7 +48,6 @@
 
 {% block dashboard_content %}
 
-<!-- CARTE STATUT -->
 {% if not profile.est_revendeur %}
 <div class="status-card draft">
   <div class="status-row">
@@ -82,7 +81,6 @@
 </div>
 {% endif %}
 
-<!-- STATS -->
 <div class="stats-grid">
   <div class="stat-card">
     <div class="stat-ico" style="background:#E0F7FF;color:#00BFFF"><i class="fas fa-box"></i></div>
@@ -106,7 +104,6 @@
   </div>
 </div>
 
-<!-- ACTIONS RAPIDES -->
 <div class="card">
   <div class="card-title"><i class="fas fa-bolt"></i> Actions rapides</div>
   <div class="actions-grid" style="margin-bottom:0">
@@ -129,14 +126,13 @@
       <div class="action-ico" style="background:#EDFFF5;color:#059669"><i class="fas fa-rocket"></i></div>
       <div class="action-label">Publier<br>ma boutique</div>
     </a>
-    <a href="{{ url_for('dashboard.premium') }}" class="action-card">
+    <a href="{{ url_for('dashboard_shop.premium') }}" class="action-card">
       <div class="action-ico" style="background:#F5F3FF;color:#7C3AED"><i class="fas fa-crown"></i></div>
       <div class="action-label">Fonctionnalites<br>premium</div>
     </a>
   </div>
 </div>
 
-<!-- SUPPORT -->
 <div class="help-card">
   <div style="font-size:1.8rem;margin-bottom:8px">💬</div>
   <h3>Besoin d'aide ?</h3>
