@@ -1,0 +1,143 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}SDK — Boost Reseller{% endblock %}
+{% block page_title %}SDK officiels{% endblock %}
+{% block page_subtitle %}Bibliothèques prêtes à l'emploi pour votre langage{% endblock %}
+
+{% block extra_css %}
+.info-banner{background:linear-gradient(135deg,#FCE7F3,#FDF2F8);border-left:4px solid #EC4899;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#831843;line-height:1.6}
+.info-banner i{color:#EC4899;margin-right:6px}
+.info-banner strong{color:#BE185D}
+
+.sdk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px}
+.sdk-card{background:#fff;border-radius:16px;padding:24px;border:1px solid #E2E8F0;transition:.25s;position:relative;overflow:hidden}
+.sdk-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.08);border-color:#EC4899}
+.sdk-ico{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#fff;margin-bottom:16px;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+.sdk-card h3{font-size:1.05rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.sdk-card p{font-size:.83rem;color:#64748B;line-height:1.6;margin-bottom:16px}
+.sdk-install{background:#0F172A;border-radius:10px;padding:12px 14px;font-family:monospace;font-size:.78rem;color:#E2E8F0;margin-bottom:14px;position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sdk-install code{color:#7DD3FC;font-weight:700}
+.sdk-install .copy-mini{background:rgba(255,255,255,.1);border:none;color:#fff;padding:5px 10px;border-radius:6px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px}
+.sdk-install .copy-mini:hover{background:rgba(255,255,255,.2)}
+.sdk-badge{position:absolute;top:14px;right:14px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;font-size:.65rem;font-weight:900;padding:4px 10px;border-radius:10px;letter-spacing:.3px}
+
+.docs-code{background:#0F172A;border-radius:12px;padding:18px 20px;margin:16px 0;overflow-x:auto;position:relative}
+.docs-code pre{margin:0;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.7;color:#E2E8F0;white-space:pre}
+
+.help-box{background:linear-gradient(135deg,#EC4899,#BE185D);border-radius:16px;padding:24px;color:#fff;margin-top:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.help-box h3{font-size:1rem;font-weight:900;margin-bottom:6px}
+.help-box p{font-size:.83rem;opacity:.92;line-height:1.5}
+.help-box a{background:#fff;color:#BE185D;padding:11px 22px;border-radius:11px;font-weight:800;font-size:.83rem;text-decoration:none;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="info-banner">
+  <i class="fas fa-cube"></i>
+  Utilisez nos <strong>SDK officiels</strong> pour intégrer Boost Reseller en 5 minutes dans vos outils.
+</div>
+
+<div class="sdk-grid">
+
+  <div class="sdk-card">
+    <span class="sdk-badge">BIENTÔT</span>
+    <div class="sdk-ico" style="background:linear-gradient(135deg,#3776AB,#FFD43B)">
+      <i class="fab fa-python"></i>
+    </div>
+    <h3>Python SDK</h3>
+    <p>Bibliothèque Python pour intégrer facilement l'API Boost Reseller dans vos scripts et applications.</p>
+    <div class="sdk-install">
+      <code>pip install boost-reseller</code>
+      <button class="copy-mini" onclick="copier('pip install boost-reseller')"><i class="fas fa-copy"></i></button>
+    </div>
+  </div>
+
+  <div class="sdk-card">
+    <span class="sdk-badge">BIENTÔT</span>
+    <div class="sdk-ico" style="background:linear-gradient(135deg,#F7DF1E,#F0DB4F)">
+      <i class="fab fa-js" style="color:#000"></i>
+    </div>
+    <h3>JavaScript SDK</h3>
+    <p>Pour Node.js et applications front-end. Compatible avec TypeScript.</p>
+    <div class="sdk-install">
+      <code>npm install boost-reseller</code>
+      <button class="copy-mini" onclick="copier('npm install boost-reseller')"><i class="fas fa-copy"></i></button>
+    </div>
+  </div>
+
+  <div class="sdk-card">
+    <span class="sdk-badge">BIENTÔT</span>
+    <div class="sdk-ico" style="background:linear-gradient(135deg,#777BB3,#5B5FA1)">
+      <i class="fab fa-php"></i>
+    </div>
+    <h3>PHP SDK</h3>
+    <p>Bibliothèque PHP moderne avec PSR-4, Composer et support Laravel/Symfony.</p>
+    <div class="sdk-install">
+      <code>composer require boost-reseller/sdk</code>
+      <button class="copy-mini" onclick="copier('composer require boost-reseller/sdk')"><i class="fas fa-copy"></i></button>
+    </div>
+  </div>
+
+</div>
+
+<h3 style="font-size:1.05rem;font-weight:900;color:#0F172A;margin:32px 0 16px;display:flex;align-items:center;gap:8px">
+  <i class="fas fa-eye" style="color:#EC4899"></i> Aperçu d'utilisation (Python)
+</h3>
+
+<div class="docs-code">
+<pre>from boost_reseller import Client
+
+# Initialisation
+client = Client(api_key="bsk_live_xxxx")
+
+# Recuperer les produits
+produits = client.produits.list(limit=20)
+for p in produits:
+    print(f"{p.nom} - {p.prix} FCFA")
+
+# Creer un produit
+nouveau = client.produits.create(
+    nom="T-shirt Nike",
+    prix=15000,
+    stock=50,
+    description="T-shirt coton bio"
+)
+print(f"Cree : {nouveau.id}")
+
+# Recuperer les commandes en attente
+commandes = client.commandes.list(statut="en_attente")
+
+# Mettre a jour une commande
+client.commandes.update("CMD-ABC123", statut="livree")
+
+# Voir les stats
+stats = client.stats.get(periode="30j")
+print(f"Revenus : {stats.revenus} FCFA")</pre>
+</div>
+
+<div class="help-box">
+  <div>
+    <h3>🚀 Vous voulez être notifié quand les SDK sortent ?</h3>
+    <p>Contactez-nous pour être prévenu en priorité dès la sortie officielle.</p>
+  </div>
+  <a href="https://wa.me/237658033690?text=Bonjour%2C%20je%20veux%20etre%20prevenu%20quand%20les%20SDK%20Boost%20Reseller%20sortent" target="_blank">
+    <i class="fab fa-whatsapp"></i> Être notifié
+  </a>
+</div>
+
+<script>
+function copier(texte){
+  navigator.clipboard.writeText(texte).then(function(){
+    alert('✅ Copié : ' + texte);
+  }).catch(function(){
+    var ta = document.createElement('textarea');
+    ta.value = texte;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('✅ Copié !');
+  });
+}
+</script>
+
+{% endblock %}
