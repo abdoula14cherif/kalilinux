@@ -1,151 +1,518 @@
 {% extends "base.html" %}
-{% block title %}Boost Reseller — Devenez revendeur Boost Central{% endblock %}
+{% block title %}Boost Reseller — Créez votre boutique en ligne en 5 minutes{% endblock %}
 
 {% block extra_css %}
-.hero{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 20px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:-50%;right:-20%;width:80%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15) 0%,transparent 65%);pointer-events:none}
-.hero-badge{position:relative;background:rgba(255,255,255,.2);padding:8px 18px;border-radius:20px;font-size:.78rem;font-weight:700;margin-bottom:22px;display:inline-block;letter-spacing:.5px;backdrop-filter:blur(10px)}
-.hero h1{position:relative;font-size:2.4rem;font-weight:900;margin-bottom:16px;line-height:1.15;color:#fff;max-width:720px}
-.hero h1 span{color:var(--accent)}
-.hero p{position:relative;font-size:1rem;opacity:.95;max-width:560px;line-height:1.7;margin-bottom:32px;color:#fff}
-.hero-cta{position:relative;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-.hero-cta .btn{min-width:200px}
+/* HERO */
+.hero{min-height:85vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 20px 60px;background:linear-gradient(135deg,#0F172A 0%,#1E293B 50%,#0F172A 100%);color:#fff;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;right:-20%;width:80%;height:200%;background:radial-gradient(circle,rgba(0,191,255,.15) 0%,transparent 65%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-50%;left:-20%;width:80%;height:200%;background:radial-gradient(circle,rgba(255,102,0,.12) 0%,transparent 65%);pointer-events:none}
+.hero-badge{position:relative;background:rgba(0,191,255,.15);border:1px solid rgba(0,191,255,.3);color:#7DD3FC;padding:8px 18px;border-radius:20px;font-size:.78rem;font-weight:800;margin-bottom:26px;letter-spacing:.5px;backdrop-filter:blur(10px);display:inline-flex;align-items:center;gap:8px}
+.hero h1{position:relative;font-size:2.8rem;font-weight:900;margin-bottom:20px;line-height:1.1;color:#fff;max-width:800px;letter-spacing:-.5px}
+.hero h1 span{background:linear-gradient(90deg,#00BFFF,#FF6600);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{position:relative;font-size:1.05rem;opacity:.85;max-width:620px;line-height:1.7;margin-bottom:36px;color:rgba(255,255,255,.85)}
+.hero-cta{position:relative;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:40px}
+.hero-cta .btn{min-width:200px;padding:16px 32px;font-size:.95rem}
+.hero-stats{position:relative;display:flex;gap:40px;flex-wrap:wrap;justify-content:center;margin-top:20px;opacity:.9}
+.hero-stat{text-align:center}
+.hero-stat-val{font-size:1.6rem;font-weight:900;color:#fff;line-height:1}
+.hero-stat-lbl{font-size:.72rem;color:rgba(255,255,255,.6);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-top:6px}
 
-/* Avantages */
-.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;max-width:1000px;margin:0 auto}
-.feat-card{background:var(--white);border-radius:16px;padding:24px;border:1px solid var(--gray);transition:transform .25s,box-shadow .25s}
-.feat-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.08)}
-.feat-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--primary-l),#fff);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--primary);margin-bottom:16px}
-.feat-card h3{font-size:1rem;font-weight:800;margin-bottom:8px;color:var(--dark)}
-.feat-card p{font-size:.85rem;color:var(--mid);line-height:1.6}
+/* TRUST BAR */
+.trust-bar{background:#fff;border-bottom:1px solid var(--gray);padding:24px 20px}
+.trust-grid{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;align-items:center;max-width:1000px;margin:0 auto}
+.trust-item{display:flex;align-items:center;gap:10px;color:var(--mid);font-size:.85rem;font-weight:700}
+.trust-item i{color:#00BFFF;font-size:1.1rem}
 
-/* Etape */
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;max-width:1000px;margin:0 auto}
-.step{text-align:center;position:relative}
-.step-num{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;font-size:1.3rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 20px rgba(0,191,255,.3)}
-.step h3{font-size:.98rem;font-weight:800;margin-bottom:6px;color:var(--dark)}
-.step p{font-size:.82rem;color:var(--mid);line-height:1.6}
+/* SECTIONS */
+.land-section{padding:80px 20px;position:relative}
+.land-section.alt{background:#fff}
+.land-container{max-width:1100px;margin:0 auto}
+.section-badge{display:inline-block;background:#E0F7FF;color:#0096C7;padding:6px 14px;border-radius:20px;font-size:.72rem;font-weight:900;letter-spacing:.5px;margin-bottom:16px;text-transform:uppercase}
+.section-title{font-size:2.2rem;font-weight:900;color:var(--dark);margin-bottom:14px;line-height:1.2;letter-spacing:-.5px}
+.section-sub{font-size:1rem;color:var(--mid);line-height:1.7;max-width:600px;margin-bottom:48px}
+.section-header{text-align:center;margin-bottom:48px}
+.section-header .section-sub{margin-left:auto;margin-right:auto}
 
-/* CTA final */
-.cta-final{background:linear-gradient(135deg,var(--dark),#1E293B);border-radius:24px;padding:50px 30px;text-align:center;color:#fff;max-width:900px;margin:0 auto}
-.cta-final h2{font-size:1.7rem;font-weight:900;margin-bottom:14px;color:#fff}
-.cta-final p{font-size:.95rem;opacity:.85;margin-bottom:28px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.6}
+/* FEATURES */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.feat-box{background:#F8FAFC;border-radius:20px;padding:32px 26px;border:1px solid var(--gray);transition:all .25s;position:relative;overflow:hidden}
+.feat-box:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(0,0,0,.08);border-color:#00BFFF;background:#fff}
+.feat-box-ico{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin-bottom:22px;box-shadow:0 8px 22px rgba(0,191,255,.28)}
+.feat-box h3{font-size:1.15rem;font-weight:900;color:var(--dark);margin-bottom:12px;line-height:1.3}
+.feat-box p{font-size:.9rem;color:var(--mid);line-height:1.7}
 
-/* Section titres */
-.section-title{text-align:center;font-size:1.6rem;font-weight:900;color:var(--dark);margin-bottom:12px}
-.section-sub{text-align:center;font-size:.92rem;color:var(--mid);max-width:520px;margin:0 auto 40px;line-height:1.6}
+/* HOW IT WORKS */
+.steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:32px;margin-top:20px}
+.step-box{text-align:center;position:relative}
+.step-num{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-size:1.5rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 10px 24px rgba(0,191,255,.35);position:relative}
+.step-num::after{content:'';position:absolute;top:50%;right:-40px;width:40px;height:2px;background:linear-gradient(90deg,#00BFFF,transparent);transform:translateY(-50%)}
+.step-box:last-child .step-num::after{display:none}
+.step-box h3{font-size:1.05rem;font-weight:900;color:var(--dark);margin-bottom:10px}
+.step-box p{font-size:.88rem;color:var(--mid);line-height:1.7}
 
-.footer{text-align:center;padding:30px 20px;font-size:.8rem;color:var(--light);border-top:1px solid var(--gray);margin-top:40px}
+/* TYPES */
+.types-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}
+.type-box{background:#fff;border-radius:16px;padding:24px 16px;text-align:center;border:2px solid var(--gray);transition:all .25s;cursor:default}
+.type-box:hover{border-color:#00BFFF;transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,191,255,.12)}
+.type-box-ico{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#fff;margin:0 auto 14px;box-shadow:0 6px 16px rgba(0,0,0,.15)}
+.type-box-name{font-size:.9rem;font-weight:900;color:var(--dark)}
+
+/* PRICING */
+.pricing-card{background:linear-gradient(135deg,#0F172A,#1E293B);border-radius:24px;padding:48px 36px;text-align:center;color:#fff;max-width:620px;margin:0 auto;position:relative;overflow:hidden}
+.pricing-card::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(0,191,255,.2),transparent 65%);pointer-events:none}
+.pricing-amount{font-size:4rem;font-weight:900;line-height:1;margin-bottom:8px;position:relative;z-index:1}
+.pricing-amount small{font-size:1.2rem;font-weight:700;opacity:.7;margin-left:8px}
+.pricing-label{font-size:.95rem;color:rgba(255,255,255,.7);margin-bottom:32px;position:relative;z-index:1}
+.pricing-features{list-style:none;padding:0;margin:0 0 32px 0;text-align:left;position:relative;z-index:1;display:inline-block}
+.pricing-features li{font-size:.92rem;color:rgba(255,255,255,.85);padding:10px 0;display:flex;align-items:center;gap:12px}
+.pricing-features li i{color:#10B981;font-size:1rem;flex-shrink:0}
+.pricing-card .btn{position:relative;z-index:1;width:100%;max-width:320px;padding:18px;font-size:1rem}
+
+/* TESTIMONIALS */
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.testi-card{background:#F8FAFC;border-radius:18px;padding:28px;border:1px solid var(--gray);position:relative}
+.testi-stars{color:#F59E0B;font-size:1rem;margin-bottom:14px;letter-spacing:2px}
+.testi-text{font-size:.92rem;color:var(--mid);line-height:1.75;margin-bottom:22px;font-style:italic}
+.testi-author{display:flex;align-items:center;gap:12px}
+.testi-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#00BFFF,#FF6600);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;flex-shrink:0}
+.testi-name{font-size:.9rem;font-weight:900;color:var(--dark)}
+.testi-role{font-size:.75rem;color:var(--light);margin-top:2px}
+
+/* FAQ */
+.faq-list{max-width:780px;margin:0 auto}
+.faq-item-land{background:#fff;border-radius:14px;padding:20px 24px;margin-bottom:12px;border:1px solid var(--gray);transition:.2s}
+.faq-item-land[open]{border-color:#00BFFF;box-shadow:0 8px 20px rgba(0,191,255,.08)}
+.faq-item-land summary{font-size:1rem;font-weight:900;color:var(--dark);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.faq-item-land summary::-webkit-details-marker{display:none}
+.faq-item-land summary::after{content:'+';font-size:1.5rem;color:#00BFFF;font-weight:300;transition:transform .3s;flex-shrink:0}
+.faq-item-land[open] summary::after{transform:rotate(45deg)}
+.faq-item-land p{font-size:.9rem;color:var(--mid);line-height:1.75;margin-top:16px;padding-top:16px;border-top:1px solid var(--gray)}
+
+/* CTA FINAL */
+.cta-final-land{background:linear-gradient(135deg,#00BFFF,#FF6600);border-radius:24px;padding:60px 32px;text-align:center;color:#fff;max-width:900px;margin:0 auto;position:relative;overflow:hidden}
+.cta-final-land::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.2),transparent 65%);pointer-events:none}
+.cta-final-land h2{font-size:2rem;font-weight:900;margin-bottom:14px;position:relative;line-height:1.2}
+.cta-final-land p{font-size:1rem;opacity:.95;margin-bottom:30px;position:relative;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.7}
+.cta-final-land .btn{background:#fff;color:#0096C7;position:relative;padding:16px 36px;font-size:1rem}
+
+/* FOOTER */
+.land-footer{background:#0F172A;color:rgba(255,255,255,.65);padding:60px 20px 30px;margin-top:0}
+.land-footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+@media(max-width:768px){.land-footer-grid{grid-template-columns:1fr 1fr;gap:30px}}
+.footer-brand{font-size:1.3rem;font-weight:900;background:linear-gradient(90deg,#00BFFF,#FF6600);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:14px}
+.land-footer h4{color:#fff;font-size:.85rem;font-weight:900;text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px}
+.land-footer ul{list-style:none;padding:0;margin:0}
+.land-footer li{margin-bottom:10px}
+.land-footer a{color:rgba(255,255,255,.65);text-decoration:none;font-size:.88rem;transition:.2s}
+.land-footer a:hover{color:#00BFFF}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:24px;text-align:center;font-size:.8rem;max-width:1100px;margin:0 auto}
+
+@media(max-width:640px){
+  .hero h1{font-size:2rem}
+  .hero p{font-size:.95rem}
+  .section-title{font-size:1.6rem}
+  .section-sub{font-size:.9rem}
+  .hero-stats{gap:24px}
+  .hero-stat-val{font-size:1.3rem}
+  .pricing-card{padding:36px 24px}
+  .pricing-amount{font-size:3rem}
+  .cta-final-land h2{font-size:1.5rem}
+}
 {% endblock %}
 
 {% block nav %}
-<header class="pub-header">
-  <div class="pub-logo">BOOST RESELLER</div>
+<header class="pub-header" style="position:absolute;top:0;left:0;right:0;background:transparent;border-bottom:1px solid rgba(255,255,255,.1);z-index:10">
+  <div class="pub-logo" style="color:#fff;background:linear-gradient(90deg,#00BFFF,#FF6600);-webkit-background-clip:text;background-clip:text">BOOST RESELLER</div>
   <div class="pub-nav">
-    <a href="#" class="btn btn-outline" style="padding:8px 16px;font-size:.82rem">Connexion</a>
-    <a href="#" class="btn btn-primary" style="padding:8px 18px;font-size:.82rem">Devenir revendeur</a>
+    {% if session.get("user_id") %}
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary" style="padding:9px 20px;font-size:.84rem">Mon espace</a>
+    {% else %}
+    <a href="{{ url_for('auth.connexion') }}" class="btn btn-outline" style="padding:9px 20px;font-size:.84rem;color:#fff;border-color:rgba(255,255,255,.3)">Connexion</a>
+    <a href="{{ url_for('auth.connexion') }}" class="btn btn-primary" style="padding:9px 20px;font-size:.84rem">Devenir revendeur</a>
+    {% endif %}
   </div>
 </header>
 {% endblock %}
 
 {% block content %}
 
+<!-- ═══════════════════════════════════════════════════════ -->
 <!-- HERO -->
+<!-- ═══════════════════════════════════════════════════════ -->
 <section class="hero">
-  <div class="hero-badge">🚀 PLATEFORME REVENDEUR</div>
-  <h1>Créez votre <span>propre boutique</span> en quelques minutes</h1>
-  <p>Vendez des services digitaux sous votre marque, fixez vos prix, encaissez vos gains. Boost Reseller est la plateforme qui vous propulse.</p>
+  <div class="hero-badge">
+    <i class="fas fa-rocket"></i> PLATEFORME SAAS REVENDEUR
+  </div>
+  <h1>Lancez votre <span>boutique en ligne</span> en 5 minutes</h1>
+  <p>Vendez vos produits et services sous votre propre marque. Fixez vos prix, encaissez Mobile Money, recevez vos commandes. Boost Reseller s'occupe de tout.</p>
+
   <div class="hero-cta">
-    <a href="#" class="btn btn-accent"><i class="fas fa-rocket"></i> Commencer maintenant</a>
-    <a href="#" class="btn btn-outline" style="background:rgba(255,255,255,.15);border-color:#fff;color:#fff"><i class="fas fa-play"></i> Voir la démo</a>
+    {% if session.get("user_id") %}
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-accent">
+      <i class="fas fa-rocket"></i> Accéder à mon espace
+    </a>
+    {% else %}
+    <a href="{{ url_for('auth.connexion') }}" class="btn btn-accent">
+      <i class="fas fa-rocket"></i> Créer ma boutique
+    </a>
+    <a href="#demo" class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)">
+      <i class="fas fa-play"></i> Voir comment ça marche
+    </a>
+    {% endif %}
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-val">500+</div>
+      <div class="hero-stat-lbl">Revendeurs actifs</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">10K+</div>
+      <div class="hero-stat-lbl">Commandes traitées</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">99.9%</div>
+      <div class="hero-stat-lbl">Uptime</div>
+    </div>
   </div>
 </section>
 
-<!-- AVANTAGES -->
-<section class="section">
-  <div class="container">
-    <h2 class="section-title">Pourquoi devenir revendeur ?</h2>
-    <p class="section-sub">Une plateforme complète pour lancer votre business digital dès aujourd'hui.</p>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TRUST BAR -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="trust-bar">
+  <div class="trust-grid">
+    <div class="trust-item"><i class="fas fa-bolt"></i> Activation en 5 min</div>
+    <div class="trust-item"><i class="fas fa-shield-alt"></i> Paiement sécurisé</div>
+    <div class="trust-item"><i class="fas fa-mobile-alt"></i> Mobile Money</div>
+    <div class="trust-item"><i class="fas fa-headset"></i> Support 24/7</div>
+    <div class="trust-item"><i class="fas fa-globe"></i> Accessible partout</div>
+  </div>
+</div>
 
-    <div class="features">
-      <div class="feat-card">
-        <div class="feat-icon"><i class="fas fa-store"></i></div>
-        <h3>Votre propre boutique</h3>
-        <p>Personnalisez votre nom, logo, couleurs et vendez sous votre propre marque.</p>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- FEATURES -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="land-section">
+  <div class="land-container">
+    <div class="section-header">
+      <div class="section-badge">✨ Fonctionnalités</div>
+      <h2 class="section-title">Tout ce qu'il faut pour vendre en ligne</h2>
+      <p class="section-sub">Une plateforme complète pensée pour les revendeurs camerounais et africains.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feat-box">
+        <div class="feat-box-ico"><i class="fas fa-store"></i></div>
+        <h3>Votre boutique personnalisée</h3>
+        <p>Nom, logo, couleurs, bannières, réseaux sociaux. Créez une boutique qui vous ressemble en quelques clics.</p>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon"><i class="fas fa-tags"></i></div>
+
+      <div class="feat-box">
+        <div class="feat-box-ico"><i class="fas fa-tags"></i></div>
         <h3>Vos propres prix</h3>
-        <p>Fixez librement vos tarifs. Vous gardez toute la marge que vous ajoutez.</p>
+        <p>Fixez librement vos tarifs. Vous gardez toute la marge que vous ajoutez. Aucun frais caché.</p>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon"><i class="fas fa-bolt"></i></div>
-        <h3>Automatique</h3>
-        <p>Vos clients paient, vous recevez, tout est automatisé sans intervention.</p>
+
+      <div class="feat-box">
+        <div class="feat-box-ico"><i class="fas fa-mobile-alt"></i></div>
+        <h3>Paiement Mobile Money</h3>
+        <p>Vos clients paient via MTN, Orange Money ou carte bancaire. Recevez les paiements automatiquement.</p>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon"><i class="fas fa-chart-line"></i></div>
-        <h3>Statistiques en temps réel</h3>
-        <p>Suivez vos ventes, vos gains et la progression de vos clients.</p>
+
+      <div class="feat-box">
+        <div class="feat-box-ico"><i class="fas fa-bell"></i></div>
+        <h3>Notifications en temps réel</h3>
+        <p>Recevez un email et une notification WhatsApp à chaque nouvelle commande. Ne manquez jamais rien.</p>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon"><i class="fas fa-mobile-alt"></i></div>
-        <h3>Mobile Money</h3>
-        <p>Vos clients paient en Orange Money, MTN Money ou carte bancaire.</p>
+
+      <div class="feat-box">
+        <div class="feat-box-ico"><i class="fas fa-chart-line"></i></div>
+        <h3>Statistiques détaillées</h3>
+        <p>Suivez vos ventes, vos revenus, vos clients et vos performances. Prenez de meilleures décisions.</p>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon"><i class="fas fa-headset"></i></div>
-        <h3>Support dédié</h3>
-        <p>Une équipe disponible 7j/7 pour vous accompagner.</p>
+
+      <div class="feat-box">
+        <div class="feat-box-ico"><i class="fas fa-code"></i></div>
+        <h3>API & Webhooks</h3>
+        <p>Automatisez tout grâce à notre API REST. Intégrez Boost Reseller avec vos outils préférés.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- COMMENT CA MARCHE -->
-<section class="section" style="background:var(--white)">
-  <div class="container">
-    <h2 class="section-title">Comment ça marche ?</h2>
-    <p class="section-sub">4 étapes simples pour lancer votre activité.</p>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- HOW IT WORKS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="land-section alt" id="demo">
+  <div class="land-container">
+    <div class="section-header">
+      <div class="section-badge">🚀 Comment ça marche</div>
+      <h2 class="section-title">Lancez votre business en 4 étapes</h2>
+      <p class="section-sub">De l'inscription à votre première vente, tout est simple et rapide.</p>
+    </div>
 
-    <div class="steps">
-      <div class="step">
+    <div class="steps-grid">
+      <div class="step-box">
         <div class="step-num">1</div>
         <h3>Inscrivez-vous</h3>
-        <p>Créez votre compte revendeur en 2 minutes.</p>
+        <p>Créez votre compte revendeur en 2 minutes. Inscription gratuite.</p>
       </div>
-      <div class="step">
+
+      <div class="step-box">
         <div class="step-num">2</div>
         <h3>Personnalisez</h3>
-        <p>Ajoutez votre logo, vos couleurs, votre nom.</p>
+        <p>Ajoutez votre logo, vos couleurs, votre slogan. Choisissez votre type de boutique.</p>
       </div>
-      <div class="step">
+
+      <div class="step-box">
         <div class="step-num">3</div>
-        <h3>Partagez</h3>
-        <p>Diffusez votre lien sur WhatsApp et les réseaux.</p>
+        <h3>Publiez</h3>
+        <p>Payez 5 000 FCFA une seule fois. Votre boutique est en ligne avec son lien unique.</p>
       </div>
-      <div class="step">
+
+      <div class="step-box">
         <div class="step-num">4</div>
-        <h3>Encaissez</h3>
-        <p>Recevez vos gains automatiquement.</p>
+        <h3>Vendez</h3>
+        <p>Partagez votre lien sur WhatsApp et les réseaux. Recevez vos commandes et encaissez.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CTA FINAL -->
-<section class="section">
-  <div class="container">
-    <div class="cta-final">
-      <h2>Prêt à lancer votre business ?</h2>
-      <p>Rejoignez des dizaines de revendeurs qui développent leur activité avec Boost Reseller.</p>
-      <a href="#" class="btn btn-accent" style="padding:16px 32px;font-size:1rem"><i class="fas fa-rocket"></i> Créer mon compte revendeur</a>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TYPES DE BOUTIQUE -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="land-section">
+  <div class="land-container">
+    <div class="section-header">
+      <div class="section-badge">🏪 Types de boutique</div>
+      <h2 class="section-title">Quel business voulez-vous lancer ?</h2>
+      <p class="section-sub">Chaque type de boutique a son design unique et ses fonctionnalités adaptées.</p>
+    </div>
+
+    <div class="types-grid">
+      <div class="type-box">
+        <div class="type-box-ico" style="background:linear-gradient(135deg,#0066FF,#0047CC)"><i class="fas fa-rocket"></i></div>
+        <div class="type-box-name">Services digitaux</div>
+      </div>
+      <div class="type-box">
+        <div class="type-box-ico" style="background:linear-gradient(135deg,#EC4899,#DB2777)"><i class="fas fa-tshirt"></i></div>
+        <div class="type-box-name">Mode</div>
+      </div>
+      <div class="type-box">
+        <div class="type-box-ico" style="background:linear-gradient(135deg,#F472B6,#BE185D)"><i class="fas fa-spa"></i></div>
+        <div class="type-box-name">Beauté</div>
+      </div>
+      <div class="type-box">
+        <div class="type-box-ico" style="background:linear-gradient(135deg,#F97316,#DC2626)"><i class="fas fa-utensils"></i></div>
+        <div class="type-box-name">Restauration</div>
+      </div>
+      <div class="type-box">
+        <div class="type-box-ico" style="background:linear-gradient(135deg,#7C3AED,#5B21B6)"><i class="fas fa-graduation-cap"></i></div>
+        <div class="type-box-name">Formations</div>
+      </div>
+      <div class="type-box">
+        <div class="type-box-ico" style="background:linear-gradient(135deg,#10B981,#059669)"><i class="fas fa-mobile-alt"></i></div>
+        <div class="type-box-name">Électronique</div>
+      </div>
     </div>
   </div>
 </section>
 
-<footer class="footer">
-  <p>Boost Reseller — © 2026 — Propulsé par Boost Central</p>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PRICING -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="land-section alt">
+  <div class="land-container">
+    <div class="section-header">
+      <div class="section-badge">💰 Tarif simple</div>
+      <h2 class="section-title">Un seul paiement. Aucun abonnement obligatoire.</h2>
+      <p class="section-sub">Payez une fois, vendez pour toujours. Zéro frais caché.</p>
+    </div>
+
+    <div class="pricing-card">
+      <div class="pricing-amount">5 000<small>FCFA</small></div>
+      <div class="pricing-label">Paiement unique à l'activation</div>
+
+      <ul class="pricing-features">
+        <li><i class="fas fa-check-circle"></i> Boutique en ligne avec lien unique</li>
+        <li><i class="fas fa-check-circle"></i> Produits illimités (selon plan gratuit)</li>
+        <li><i class="fas fa-check-circle"></i> Bannières et personnalisation</li>
+        <li><i class="fas fa-check-circle"></i> Coupons et promotions</li>
+        <li><i class="fas fa-check-circle"></i> Avis clients</li>
+        <li><i class="fas fa-check-circle"></i> Notifications par email</li>
+        <li><i class="fas fa-check-circle"></i> Support WhatsApp</li>
+        <li><i class="fas fa-check-circle"></i> 0% de commission (mode Marge)</li>
+      </ul>
+
+      <a href="{{ url_for('auth.connexion') }}" class="btn btn-accent">
+        <i class="fas fa-rocket"></i> Commencer maintenant
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TESTIMONIALS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="land-section">
+  <div class="land-container">
+    <div class="section-header">
+      <div class="section-badge">⭐ Témoignages</div>
+      <h2 class="section-title">Ils ont lancé leur business</h2>
+      <p class="section-sub">Des revendeurs comme vous qui ont transformé leur activité.</p>
+    </div>
+
+    <div class="testi-grid">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"En 2 semaines, j'ai fait plus de ventes que pendant 3 mois sur Facebook. Mes clients adorent la boutique en ligne."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">A</div>
+          <div>
+            <div class="testi-name">Aïcha M.</div>
+            <div class="testi-role">Boutique Beauté - Douala</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Je vends des services réseaux sociaux depuis des années. Boost Reseller m'a permis d'automatiser 80% de mon travail."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">J</div>
+          <div>
+            <div class="testi-name">Jean K.</div>
+            <div class="testi-role">Services digitaux - Yaoundé</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Le système est simple et rapide. J'ai créé ma boutique en une heure et j'ai reçu ma première commande le lendemain."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">M</div>
+          <div>
+            <div class="testi-name">Marie T.</div>
+            <div class="testi-role">Formations en ligne - Bafoussam</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- FAQ -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="land-section alt">
+  <div class="land-container">
+    <div class="section-header">
+      <div class="section-badge">❓ FAQ</div>
+      <h2 class="section-title">Questions fréquentes</h2>
+      <p class="section-sub">Tout ce que vous devez savoir avant de commencer.</p>
+    </div>
+
+    <div class="faq-list">
+      <details class="faq-item-land">
+        <summary>Comment créer ma boutique ?</summary>
+        <p>Cliquez sur "Créer ma boutique", inscrivez-vous en 2 minutes, choisissez votre type de boutique, personnalisez-la et publiez. Vous serez en ligne en moins de 10 minutes.</p>
+      </details>
+
+      <details class="faq-item-land">
+        <summary>Combien ça coûte ?</summary>
+        <p>L'inscription est gratuite. La publication coûte 5 000 FCFA en paiement unique. Ensuite, vous pouvez vendre pour toujours sans abonnement obligatoire.</p>
+      </details>
+
+      <details class="faq-item-land">
+        <summary>Comment mes clients paient ?</summary>
+        <p>Vos clients peuvent payer par MTN Mobile Money, Orange Money ou carte bancaire. Vous recevez l'argent directement.</p>
+      </details>
+
+      <details class="faq-item-land">
+        <summary>Est-ce que je garde toute la marge ?</summary>
+        <p>Oui, avec le mode "Marge", vous fixez vos prix librement et gardez 100% de la différence. Aucun pourcentage prélevé.</p>
+      </details>
+
+      <details class="faq-item-land">
+        <summary>Puis-je vendre n'importe quel produit ?</summary>
+        <p>Vous pouvez vendre tout type de produit légal : mode, beauté, électronique, formations, services digitaux... La seule condition est de respecter la législation en vigueur.</p>
+      </details>
+
+      <details class="faq-item-land">
+        <summary>Y a-t-il un support si j'ai un problème ?</summary>
+        <p>Oui, notre équipe est disponible 24/7 via WhatsApp pour vous aider à chaque étape.</p>
+      </details>
+
+      <details class="faq-item-land">
+        <summary>Est-ce que je peux utiliser mon propre domaine ?</summary>
+        <p>Actuellement, votre boutique est accessible via une URL personnalisée (boostcentral.world/r/votre-nom). Le support des domaines personnalisés arrive bientôt.</p>
+      </details>
+
+      <details class="faq-item-land">
+        <summary>Puis-je vendre depuis mon téléphone ?</summary>
+        <p>Absolument ! Boost Reseller est 100% optimisé pour mobile. Vous pouvez gérer votre boutique entièrement depuis votre téléphone.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- CTA FINAL -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="land-section">
+  <div class="land-container">
+    <div class="cta-final-land">
+      <h2>Prêt à lancer votre business ?</h2>
+      <p>Rejoignez des centaines de revendeurs qui développent leur activité avec Boost Reseller.</p>
+      <a href="{{ url_for('auth.connexion') }}" class="btn">
+        <i class="fas fa-rocket"></i> Créer ma boutique gratuitement
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<footer class="land-footer">
+  <div class="land-footer-grid">
+    <div>
+      <div class="footer-brand">BOOST RESELLER</div>
+      <p style="font-size:.85rem;line-height:1.7;max-width:340px;opacity:.85">La plateforme SaaS qui propulse les revendeurs camerounais et africains dans l'e-commerce.</p>
+    </div>
+
+    <div>
+      <h4>Produits</h4>
+      <ul>
+        <li><a href="{{ url_for('home.index') }}#features">Fonctionnalités</a></li>
+        <li><a href="{{ url_for('home.index') }}#demo">Comment ça marche</a></li>
+        <li><a href="{{ url_for('auth.connexion') }}">Tarifs</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4>Légal</h4>
+      <ul>
+        <li><a href="{{ url_for('home.cgu') }}">Conditions d'utilisation</a></li>
+        <li><a href="{{ url_for('home.confidentialite') }}">Confidentialité</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="https://wa.me/237658033690" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a></li>
+        <li><a href="mailto:boostcentralsupport@gmail.com"><i class="fas fa-envelope"></i> Support email</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    © 2026 Boost Reseller — Propulsé par <a href="https://boostcentral.world" target="_blank" style="color:#00BFFF;font-weight:700">Boost Central</a>
+  </div>
 </footer>
 
 {% endblock %}
