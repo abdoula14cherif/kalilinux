@@ -1,0 +1,159 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Notifications globales — Admin{% endblock %}
+{% block page_title %}Notifications globales{% endblock %}
+{% block page_subtitle %}Envoyez un message à tous les revendeurs{% endblock %}
+
+{% block topbar_actions %}
+<button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-plus"></i> Nouvelle notification
+</button>
+{% endblock %}
+
+{% block extra_css %}
+.info-banner{background:linear-gradient(135deg,#FEF3C7,#FFFBEB);border-left:4px solid #F59E0B;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#78350F;line-height:1.6}
+.info-banner i{color:#F59E0B;margin-right:6px}
+
+.notifs-list{display:grid;gap:14px}
+.notif-item{background:#fff;border-radius:14px;padding:18px;border:1px solid #E2E8F0;transition:.2s;position:relative;overflow:hidden;border-left-width:5px}
+.notif-item:hover{box-shadow:0 6px 18px rgba(0,0,0,.06)}
+.notif-item.info{border-left-color:#3B82F6}
+.notif-item.success{border-left-color:#10B981}
+.notif-item.warning{border-left-color:#F59E0B}
+.notif-item.danger{border-left-color:#DC2626}
+.notif-item.inactive{opacity:.5;background:#F8FAFC}
+
+.notif-head{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.notif-ico{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;flex-shrink:0}
+.notif-info .notif-titre{font-size:.92rem;font-weight:900;color:#0F172A;margin-bottom:3px}
+.notif-info .notif-date{font-size:.72rem;color:#94A3B8}
+.notif-badge{font-size:.65rem;font-weight:900;padding:3px 9px;border-radius:8px;letter-spacing:.3px;margin-left:auto}
+.badge-actif{background:#EDFFF5;color:#059669}
+.badge-inactif{background:#F1F5F9;color:#64748B}
+
+.notif-message{font-size:.85rem;color:#475569;line-height:1.7;padding:12px 14px;background:#F8FAFC;border-radius:10px;margin-bottom:12px}
+
+.notif-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-action{padding:8px 14px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:5px;font-family:inherit}
+.btn-toggle{background:#FEF3C7;color:#92400E}
+.btn-toggle:hover{background:#D97706;color:#fff}
+.btn-del{background:#FEE2E2;color:#991B1B}
+.btn-del:hover{background:#991B1B;color:#fff}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:70px;height:70px;border-radius:50%;background:#FEF3C7;color:#F59E0B;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B;margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px 22px;max-width:520px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94A3B8}
+.modal h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal h3 i{color:#F59E0B}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.inp,.txta,.sel{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus,.txta:focus,.sel:focus{border-color:#F59E0B}
+.txta{min-height:120px;resize:vertical;line-height:1.6}
+.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;box-shadow:0 6px 18px rgba(245,158,11,.3)}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="info-banner">
+  <i class="fas fa-bullhorn"></i>
+  Les notifications globales apparaissent dans le <strong>dashboard</strong> de <strong>tous les revendeurs</strong> tant qu'elles sont actives.
+</div>
+
+{% if notifications %}
+<div class="notifs-list">
+  {% for n in notifications %}
+  {% set type_class = n.type if n.type in ['info', 'success', 'warning', 'danger'] else 'info' %}
+  {% set ico_map = {'info': 'fa-info', 'success': 'fa-check', 'warning': 'fa-exclamation', 'danger': 'fa-times'} %}
+  {% set color_map = {'info': '#3B82F6', 'success': '#10B981', 'warning': '#F59E0B', 'danger': '#DC2626'} %}
+
+  <div class="notif-item {{ type_class }} {% if not n.actif %}inactive{% endif %}">
+    <div class="notif-head">
+      <div class="notif-ico" style="background:{{ color_map.get(type_class, '#3B82F6') }}">
+        <i class="fas {{ ico_map.get(type_class, 'fa-info') }}"></i>
+      </div>
+      <div class="notif-info" style="flex:1;min-width:0">
+        <div class="notif-titre">{{ n.titre }}</div>
+        <div class="notif-date"><i class="fas fa-clock"></i> {{ (n.created_at or '')[:16].replace('T', ' ') }}</div>
+      </div>
+      {% if n.actif %}
+      <span class="notif-badge badge-actif">ACTIF</span>
+      {% else %}
+      <span class="notif-badge badge-inactif">INACTIF</span>
+      {% endif %}
+    </div>
+
+    <div class="notif-message">{{ n.message }}</div>
+
+    <div class="notif-actions">
+      <form method="POST" action="{{ url_for('dashboard_admin.notification_toggle', notif_id=n.id) }}" style="flex:1">
+        <input type="hidden" name="actif" value="{{ '1' if n.actif else '0' }}">
+        <button type="submit" class="btn-action btn-toggle" style="width:100%">
+          <i class="fas fa-{% if n.actif %}eye-slash{% else %}eye{% endif %}"></i>
+          {% if n.actif %}Désactiver{% else %}Réactiver{% endif %}
+        </button>
+      </form>
+      <form method="POST" action="{{ url_for('dashboard_admin.notification_supprimer', notif_id=n.id) }}" style="flex:1" onsubmit="return confirm('Supprimer cette notification ?')">
+        <button type="submit" class="btn-action btn-del" style="width:100%">
+          <i class="fas fa-trash"></i> Supprimer
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-bullhorn"></i></div>
+  <h3>Aucune notification pour l'instant</h3>
+  <p>Envoyez votre première notification à tous vos revendeurs.</p>
+  <button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:12px 24px;font-size:.88rem">
+    <i class="fas fa-plus"></i> Créer une notification
+  </button>
+</div>
+{% endif %}
+
+<div class="modal-bg" id="modalAjout">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalAjout')">✕</button>
+    <h3><i class="fas fa-bullhorn"></i> Nouvelle notification globale</h3>
+    <form method="POST" action="{{ url_for('dashboard_admin.notification_creer') }}">
+      <div class="fg">
+        <label>Titre *</label>
+        <input class="inp" type="text" name="titre" required maxlength="100" placeholder="Ex : Nouvelle fonctionnalité disponible !">
+      </div>
+      <div class="fg">
+        <label>Message *</label>
+        <textarea class="txta" name="message" required maxlength="500" placeholder="Décrivez votre annonce..."></textarea>
+      </div>
+      <div class="fg">
+        <label>Type</label>
+        <select class="sel" name="type">
+          <option value="info">ℹ️ Information (bleu)</option>
+          <option value="success">✅ Succès (vert)</option>
+          <option value="warning">⚠️ Attention (orange)</option>
+          <option value="danger">🚨 Urgent (rouge)</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-paper-plane"></i> Envoyer à tous</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function ouvrirAjout(){ document.getElementById('modalAjout').classList.add('open'); }
+function fermerModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('open');
+  });
+});
+</script>
+
+{% endblock %}
