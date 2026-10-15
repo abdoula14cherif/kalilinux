@@ -38,12 +38,16 @@ def create_app(config_name="production"):
     from app.routes.auth import auth_bp
     from app.routes.dashboard import dashboard_bp
     from app.routes.dashboard_shop import dashboard_shop_bp
+    from app.routes.dashboard_dev import dashboard_dev_bp
+    from app.routes.dashboard_admin import dashboard_admin_bp
     from app.routes.boutique import boutique_bp
 
     app.register_blueprint(home_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
     app.register_blueprint(dashboard_shop_bp, url_prefix="/dashboard")
+    app.register_blueprint(dashboard_dev_bp, url_prefix="/dashboard/developpeur")
+    app.register_blueprint(dashboard_admin_bp, url_prefix="/dashboard/admin")
     app.register_blueprint(boutique_bp)
 
     @app.route("/sw.js")
