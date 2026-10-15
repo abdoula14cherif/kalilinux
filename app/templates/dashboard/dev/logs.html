@@ -1,0 +1,45 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Logs API — Boost Reseller{% endblock %}
+{% block page_title %}Logs d'activité{% endblock %}
+{% block page_subtitle %}Historique de vos appels API{% endblock %}
+
+{% block extra_css %}
+.info-banner{background:linear-gradient(135deg,#E0F7FF,#F0FAFF);border-left:4px solid #00BFFF;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#0F172A;line-height:1.6}
+.info-banner i{color:#00BFFF;margin-right:6px}
+.info-banner strong{color:#0096C7}
+
+.empty-state{background:#fff;border-radius:16px;padding:60px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#E0F7FF,#F0FAFF);color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 20px}
+.empty-state h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:10px}
+.empty-state p{font-size:.88rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto}
+
+.help-box{background:linear-gradient(135deg,#0F172A,#1E293B);border-radius:16px;padding:24px;color:#fff;margin-top:22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.help-box h3{font-size:1rem;font-weight:900;margin-bottom:6px}
+.help-box p{font-size:.83rem;opacity:.85;line-height:1.5}
+.help-box a{background:#fff;color:#0096C7;padding:11px 22px;border-radius:11px;font-weight:800;font-size:.83rem;text-decoration:none;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="info-banner">
+  <i class="fas fa-list-alt"></i>
+  Retrouvez ici l'historique de tous vos appels API : <strong>date, endpoint, code HTTP, durée</strong>. Utile pour le debug et la surveillance.
+</div>
+
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-clipboard-list"></i></div>
+  <h3>Aucun log d'activité pour l'instant</h3>
+  <p>Dès que vos applications feront des appels API avec vos clés, l'historique apparaîtra ici automatiquement.</p>
+</div>
+
+<div class="help-box">
+  <div>
+    <h3>💡 Comment générer des logs ?</h3>
+    <p>Créez une clé API et testez vos premiers appels dans le Playground.</p>
+  </div>
+  <a href="{{ url_for('dashboard_dev.playground') }}">
+    <i class="fas fa-flask"></i> Ouvrir le Playground
+  </a>
+</div>
+
+{% endblock %}
