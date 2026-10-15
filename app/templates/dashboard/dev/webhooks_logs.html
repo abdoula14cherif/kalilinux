@@ -1,0 +1,104 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Logs Webhook — Boost Reseller{% endblock %}
+{% block page_title %}Logs du webhook{% endblock %}
+{% block page_subtitle %}{{ webhook.url[:60] }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{{ url_for('dashboard_dev.webhooks') }}" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-arrow-left"></i> Retour
+</a>
+{% endblock %}
+
+{% block extra_css %}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat-mini{background:#fff;border-radius:14px;padding:16px;border:1px solid #E2E8F0;display:flex;align-items:center;gap:12px}
+.stat-mini-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0}
+.stat-mini-val{font-size:1.25rem;font-weight:900;color:#0F172A;line-height:1.1}
+.stat-mini-lbl{font-size:.72rem;color:#64748B;font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+
+.logs-table{background:#fff;border-radius:16px;border:1px solid #E2E8F0;overflow:hidden}
+.log-row{display:grid;grid-template-columns:160px 1fr 120px 100px 1fr;gap:14px;padding:14px 18px;border-bottom:1px solid #F1F5F9;font-size:.82rem;align-items:center}
+.log-row:hover{background:#F8FAFC}
+.log-row:last-child{border-bottom:none}
+.log-row.header{background:#F8FAFC;font-weight:900;color:#0F172A;text-transform:uppercase;font-size:.7rem;letter-spacing:.4px;border-bottom:2px solid #E2E8F0}
+.log-date{font-family:monospace;font-size:.75rem;color:#64748B;font-weight:700}
+.log-event{font-family:monospace;font-size:.78rem;font-weight:800;color:#0F172A}
+.log-status{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:.72rem;font-weight:900;font-family:monospace}
+.log-status.ok{background:#EDFFF5;color:#059669}
+.log-status.err{background:#FEE2E2;color:#991B1B}
+.log-duration{font-family:monospace;font-size:.75rem;color:#64748B}
+.log-body{font-size:.72rem;color:#94A3B8;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.empty-state{background:#fff;border-radius:16px;padding:60px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-state i{font-size:2.5rem;color:#CBD5E1;display:block;margin-bottom:14px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B}
+
+@media(max-width:900px){
+  .log-row{grid-template-columns:1fr;gap:6px}
+  .log-row.header{display:none}
+}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="stats-row">
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#E0F7FF;color:#00BFFF"><i class="fas fa-paper-plane"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ webhook.total_envois or 0 }}</div>
+      <div class="stat-mini-lbl">Envois totaux</div>
+    </div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#EDFFF5;color:#059669"><i class="fas fa-check-circle"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ webhook.total_succes or 0 }}</div>
+      <div class="stat-mini-lbl">Succès</div>
+    </div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-ico" style="background:#FEE2E2;color:#DC2626"><i class="fas fa-times-circle"></i></div>
+    <div>
+      <div class="stat-mini-val">{{ webhook.total_echecs or 0 }}</div>
+      <div class="stat-mini-lbl">Échecs</div>
+    </div>
+  </div>
+</div>
+
+{% if logs %}
+<div class="logs-table">
+  <div class="log-row header">
+    <div>Date</div>
+    <div>Événement</div>
+    <div>Statut</div>
+    <div>Durée</div>
+    <div>Réponse</div>
+  </div>
+
+  {% for l in logs %}
+  <div class="log-row">
+    <div class="log-date">{{ (l.created_at or '')[:19].replace('T', ' ') }}</div>
+    <div class="log-event">{{ l.event }}</div>
+    <div>
+      {% if l.succes %}
+      <span class="log-status ok"><i class="fas fa-check"></i> {{ l.response_status }}</span>
+      {% else %}
+      <span class="log-status err"><i class="fas fa-times"></i> {{ l.response_status or 'ERR' }}</span>
+      {% endif %}
+    </div>
+    <div class="log-duration">{{ l.duration_ms or 0 }}ms</div>
+    <div class="log-body" title="{{ l.response_body or '' }}">{{ (l.response_body or '')[:60] }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <i class="fas fa-inbox"></i>
+  <h3>Aucun log pour l'instant</h3>
+  <p>Les envois apparaîtront ici dès qu'un événement sera déclenché.</p>
+</div>
+{% endif %}
+
+{% endblock %}
