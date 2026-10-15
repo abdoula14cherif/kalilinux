@@ -144,6 +144,9 @@ def index():
     type_boutique = get_boutique_type(profile["boutique_type"]) or {}
 
     stats = {"nb_produits": 0, "nb_commandes": 0, "revenus": 0, "nb_clients": 0}
+    dernieres_commandes = []
+    nb_commandes_attente = 0
+    nb_avis_attente = 0
 
     if profile["boutique_type"] == "digital":
         mes_prix = get_revendeur_prix_all(profile["id"]) if profile.get("est_revendeur") else []
@@ -166,10 +169,30 @@ def index():
     except Exception:
         pass
 
+    # Commandes en attente + 5 dernières commandes
+    try:
+        from app.models.database import get_commandes_boutique_revendeur
+        commandes_boutique = get_commandes_boutique_revendeur(profile["id"], limit=50)
+        nb_commandes_attente = sum(1 for c in commandes_boutique if c.get("statut") == "en_attente")
+        dernieres_commandes = commandes_boutique[:5]
+    except Exception as e:
+        logger.error(f"index commandes load: {type(e).__name__}")
+
+    # Avis à approuver
+    try:
+        from app.models.database import get_avis_revendeur
+        avis = get_avis_revendeur(profile["id"])
+        nb_avis_attente = sum(1 for a in avis if not a.get("approuve"))
+    except Exception as e:
+        logger.error(f"index avis load: {type(e).__name__}")
+
     return render_template("dashboard/index.html",
                           profile=profile,
                           type_boutique=type_boutique,
-                          stats=stats)
+                          stats=stats,
+                          nb_commandes_attente=nb_commandes_attente,
+                          nb_avis_attente=nb_avis_attente,
+                          dernieres_commandes=dernieres_commandes)
 
 
 @dashboard_bp.route("/boutique")
