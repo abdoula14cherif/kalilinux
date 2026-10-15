@@ -64,7 +64,7 @@ def _log_securite(message, niveau="warning"):
 def connexion():
     """Affiche la page de connexion."""
     if "user_id" in session:
-        return redirect(url_for("home.dashboard"))
+        return redirect(url_for("home.dashboard_redirect"))
     return render_template("auth/connexion.html")
 
 
@@ -132,7 +132,7 @@ def sso_callback():
     _log_securite(f"SSO succes : {email}", "info")
 
     flash(f"Bienvenue {full_name.split()[0]} !", "success")
-    return redirect(url_for("home.dashboard"))
+    return redirect(url_for("home.dashboard_redirect"))
 
 
 @auth_bp.route("/login-classique", methods=["POST"])
@@ -201,7 +201,7 @@ def login_classique():
             set_session(user_id, email, full_name)
             _log_securite(f"Login succes : {email}", "info")
             flash(f"Bienvenue {full_name.split()[0]} !", "success")
-            return redirect(url_for("home.dashboard"))
+            return redirect(url_for("home.dashboard_redirect"))
         else:
             _enregistrer_tentative(email)
             msg = data.get("error_description", data.get("msg", "Email ou mot de passe incorrect."))
