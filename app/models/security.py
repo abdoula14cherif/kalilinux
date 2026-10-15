@@ -1,6 +1,6 @@
 """
-Helpers de securite : sessions, JWT, decorateurs.
-SÉCURITÉ SÉVÈRE : sessions 24h max, JWT anti-replay, bannissement global.
+Helpers de securite : sessions, JWT, decorateurs, anti-bot.
+SÉCURITÉ SÉVÈRE : sessions, bannissement, detection bots, honeypot.
 """
 import logging
 import secrets
@@ -15,11 +15,12 @@ logger = logging.getLogger(__name__)
 
 
 # ═══════════════════════════════════════════════════════════════
-# ANTI-REPLAY DES JTI
+# ANTI-REPLAY JTI + SESSION
 # ═══════════════════════════════════════════════════════════════
 
 _USED_JTIS = {}
-SESSION_MAX_AGE = 24 * 3600  # 24 heures en secondes
+SESSION_MAX_AGE = 24 * 3600  # 24h
+SESSION_INACTIVITY = 8 * 3600  # 8h d'inactivite max
 
 
 def _cleanup_expired_jtis():
@@ -41,11 +42,94 @@ def _marquer_jti_utilise(jti, expiration_ts):
 
 
 # ═══════════════════════════════════════════════════════════════
+# DETECTION DE BOTS
+# ═══════════════════════════════════════════════════════════════
+
+_BOTS_CONNUS = (
+    "curl", "wget", "python-requests", "python-urllib", "scrapy",
+    "httrack", "ahrefs", "semrushbot", "mj12bot", "dotbot",
+    "petalbot", "bytespider", "gptbot", "chatgpt", "claudebot",
+    "googlebot-news", "yandexbot", "baiduspider", "sogou",
+    "exabot", "facebot", "ia_archiver", "netcraft", "zgrab",
+    "masscan", "nmap", "sqlmap", "nikto", "acunetix", "nessus",
+    "openvas", "havij", "whatweb", "dirbuster", "gobuster",
+    "wfuzz", "hydra", "medusa", "patator",
+)
+
+_UA_AUTORISES = (
+    "boostreseller-python/",
+    "boostreseller-js/",
+)
+
+
+def est_bot():
+    """
+    Detecte les bots/scrapers/scanners basiques (via User-Agent).
+    Retourne True si l'utilisateur semble etre un bot.
+    """
+    ua = (request.headers.get("User-Agent") or "").lower().strip()
+
+    if not ua:
+        return True
+
+    if any(a in ua for a in _UA_AUTORISES):
+        return False
+
+    if any(bot in ua for bot in _BOTS_CONNUS):
+        return True
+
+    if len(ua) < 15:
+        return True
+
+    return False
+
+
+def est_bot_fort():
+    """
+    Detection renforcee : combine User-Agent + headers suspects.
+    Plus stricte que est_bot().
+    """
+    if est_bot():
+        return True
+
+    # Pas d'Accept-Language (navigateur reel en envoie toujours)
+    if not request.headers.get("Accept-Language"):
+        return True
+
+    # Pas d'Accept
+    if not request.headers.get("Accept"):
+        return True
+
+    return False
+
+
+def _log_bot(endpoint):
+    """Log une tentative de bot."""
+    ip = (request.headers.get("X-Forwarded-For", request.remote_addr or "")).split(",")[0].strip()
+    ua = (request.headers.get("User-Agent") or "")[:120]
+    logger.warning(f"[BOT DETECTE] endpoint={endpoint} | IP={ip} | UA={ua}")
+
+
+# ═══════════════════════════════════════════════════════════════
+# HONEYPOT
+# ═══════════════════════════════════════════════════════════════
+
+def verifier_honeypot():
+    """
+    Verifie que le champ cache 'website' n'a pas ete rempli.
+    Si rempli → c'est un bot.
+    Retourne True si OK (pas de bot), False si bot.
+    """
+    honeypot = request.form.get("website", "").strip()
+    return not honeypot
+
+
+# ═══════════════════════════════════════════════════════════════
 # SESSIONS UTILISATEUR
 # ═══════════════════════════════════════════════════════════════
 
 def set_session(user_id, email, full_name=""):
-    """Cree une session utilisateur securisee."""
+    """Cree une session securisee."""
     session.clear()
     session.permanent = True
     session["user_id"] = user_id
@@ -53,15 +137,14 @@ def set_session(user_id, email, full_name=""):
     session["user_name"] = full_name
     session["login_at"] = time.time()
     session["last_activity"] = time.time()
+    session["_fp"] = _empreinte_client()
 
 
 def clear_session():
-    """Detruit completement la session."""
     session.clear()
 
 
 def get_current_user():
-    """Retourne les infos de l'utilisateur connecte (ou None)."""
     if "user_id" not in session:
         return None
     return {
@@ -71,28 +154,40 @@ def get_current_user():
     }
 
 
+def _empreinte_client():
+    """Genere une empreinte du client pour detecter le vol de session."""
+    ua = request.headers.get("User-Agent", "")
+    lang = request.headers.get("Accept-Language", "")
+    return f"{ua[:50]}|{lang[:30]}"
+
+
 def _session_valide():
-    """Verifie que la session est encore valide (age + activite)."""
+    """Verifie session + empreinte."""
     if "user_id" not in session:
         return False
 
     login_at = session.get("login_at", 0)
     now = time.time()
 
-    # Session expiree (24h)
+    # Duree absolue
     if now - login_at > SESSION_MAX_AGE:
         return False
 
-    # Session inactive depuis plus de 8h
+    # Inactivite
     last_activity = session.get("last_activity", login_at)
-    if now - last_activity > 8 * 3600:
+    if now - last_activity > SESSION_INACTIVITY:
+        return False
+
+    # Empreinte client
+    fp_actuelle = _empreinte_client()
+    if session.get("_fp") and session["_fp"] != fp_actuelle:
+        logger.warning(f"[SECURITE] Empreinte client modifiee pour {session.get('user_email')}")
         return False
 
     return True
 
 
 def _verifier_banni(user_id):
-    """Verifie que l'utilisateur n'est pas banni."""
     try:
         from app.models.database import get_profile
         profile = get_profile(user_id)
@@ -104,14 +199,11 @@ def _verifier_banni(user_id):
 
 
 # ═══════════════════════════════════════════════════════════════
-# DECORATEUR login_required
+# DECORATEURS
 # ═══════════════════════════════════════════════════════════════
 
 def login_required(f):
-    """
-    Decorateur : oblige l'utilisateur a etre connecte.
-    SÉCURITÉ : verifie session valide + utilisateur non banni.
-    """
+    """Decorateur : oblige l'utilisateur a etre connecte."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if "user_id" not in session:
@@ -121,13 +213,11 @@ def login_required(f):
             flash("Connectez-vous pour continuer.", "info")
             return redirect(url_for("auth.connexion"))
 
-        # Verifie la duree de vie de la session
         if not _session_valide():
             clear_session()
             flash("Votre session a expire. Reconnectez-vous.", "warning")
             return redirect(url_for("auth.connexion"))
 
-        # Verifie que l'utilisateur n'est pas banni (1 fois par minute max)
         last_check = session.get("_ban_check", 0)
         now = time.time()
         if now - last_check > 60:
@@ -137,19 +227,30 @@ def login_required(f):
                 return redirect(url_for("auth.connexion"))
             session["_ban_check"] = now
 
-        # Met a jour l'activite
         session["last_activity"] = now
+        return f(*args, **kwargs)
+    return decorated_function
 
+
+def bot_blocked(f):
+    """
+    Decorateur : bloque les bots/scrapers.
+    A utiliser sur les routes publiques sensibles.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if est_bot_fort():
+            _log_bot(request.path)
+            return "Forbidden", 403
         return f(*args, **kwargs)
     return decorated_function
 
 
 # ═══════════════════════════════════════════════════════════════
-# JWT SSO
+# JWT SSO (garde pour compatibilite)
 # ═══════════════════════════════════════════════════════════════
 
 def generer_token_sso(user_id, email, duree_minutes=5):
-    """Genere un JWT signe pour le SSO."""
     now = datetime.now(timezone.utc)
     expiration = now + timedelta(minutes=duree_minutes)
 
@@ -172,7 +273,6 @@ def generer_token_sso(user_id, email, duree_minutes=5):
 
 
 def verifier_token_sso(token):
-    """Verifie un JWT SSO avec anti-replay."""
     try:
         secret = current_app.config.get("JWT_SECRET") or current_app.config.get("SECRET_KEY")
         if not secret:
@@ -196,7 +296,6 @@ def verifier_token_sso(token):
         )
 
         if not payload.get("user_id") or not payload.get("email"):
-            logger.warning("JWT SSO : champs manquants.")
             return None
 
         jti = payload["jti"]
@@ -223,26 +322,20 @@ def verifier_token_sso(token):
 # ═══════════════════════════════════════════════════════════════
 
 def valider_url(url, domaines_autorises=None):
-    """Valide une URL pour eviter les injections javascript:, data:, etc."""
     if not url or not isinstance(url, str):
         return None
     url = url.strip()
-    if not url:
+    if not url or len(url) > 500:
         return None
-    if len(url) > 500:
-        return None
-    url_lower = url.lower()
-    if not url_lower.startswith(("http://", "https://")):
+    if not url.lower().startswith(("http://", "https://")):
         return None
     interdits = ("javascript:", "data:", "vbscript:", "file:", "about:")
-    for interdit in interdits:
-        if interdit in url_lower:
-            return None
+    if any(i in url.lower() for i in interdits):
+        return None
     if domaines_autorises:
         from urllib.parse import urlparse
         try:
-            host = urlparse(url).hostname or ""
-            host = host.lower()
+            host = (urlparse(url).hostname or "").lower()
             if not any(host == d or host.endswith("." + d) for d in domaines_autorises):
                 return None
         except Exception:
@@ -251,7 +344,6 @@ def valider_url(url, domaines_autorises=None):
 
 
 def valider_url_reseau_social(url):
-    """Valide une URL de reseau social."""
     domaines = (
         "facebook.com", "fb.com", "instagram.com", "tiktok.com",
         "twitter.com", "x.com", "youtube.com", "youtu.be",
@@ -264,5 +356,4 @@ def valider_url_reseau_social(url):
 
 
 def valider_url_generique(url):
-    """Valide une URL generique."""
     return valider_url(url)
