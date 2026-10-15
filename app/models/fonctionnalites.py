@@ -97,14 +97,19 @@ def revendeur_a_feature(revendeur_id, code, profile=None):
     Verifie si un revendeur a acces a une fonctionnalite.
     Logique :
     1. Si la feature n'existe pas ou n'est pas active → False
-    2. Si la feature est gratuite → True
-    3. Si la feature est premium :
+    2. Si le revendeur est admin → True (acces total)
+    3. Si la feature est gratuite → True
+    4. Si la feature est premium :
        - Verifier si le revendeur est abonne (abonnement_niveau != 'gratuit')
-       - OU si un admin a active la feature manuellement (revendeur_features.actif = TRUE)
+       - OU si un admin a active la feature manuellement
     """
     feature = get_fonctionnalite(code)
     if not feature or not feature.get("actif"):
         return False
+
+    # Admin : acces total a tout
+    if profile and profile.get("est_admin"):
+        return True
 
     if not feature.get("est_premium"):
         return True
@@ -115,7 +120,6 @@ def revendeur_a_feature(revendeur_id, code, profile=None):
         if niveau and niveau != "gratuit":
             return True
 
-    # Verification manuelle
     try:
         r = requests.get(
             _url(f"revendeur_features?revendeur_id=eq.{revendeur_id}&feature_code=eq.{code}&actif=eq.true&limit=1"),
@@ -136,7 +140,7 @@ def activer_feature_revendeur(revendeur_id, code, actif=True):
             headers=_headers(), timeout=10
         ).json()
 
-        if existant:
+        if existant and isinstance(existant, list):
             r = requests.patch(
                 _url(f"revendeur_features?id=eq.{existant[0]['id']}"),
                 json={"actif": actif},
@@ -157,12 +161,17 @@ def activer_feature_revendeur(revendeur_id, code, actif=True):
 def get_features_actives_pour_revendeur(revendeur_id, profile=None):
     """
     Retourne la liste des fonctionnalites dev accessibles a un revendeur.
-    Utilisee pour afficher la sidebar 'Developpeur'.
+    Si le revendeur est admin, il voit TOUTES les fonctionnalites actives.
     """
     toutes = get_toutes_fonctionnalites()
+    est_admin = bool(profile.get("est_admin")) if profile else False
+
     resultat = []
     for f in toutes:
         if not f.get("actif"):
+            continue
+        if est_admin:
+            resultat.append(f)
             continue
         if revendeur_a_feature(revendeur_id, f["code"], profile):
             resultat.append(f)
