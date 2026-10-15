@@ -1,50 +1,262 @@
 {% extends "dashboard/layout.html" %}
-{% block title %}OAuth Applications — Boost Reseller{% endblock %}
-{% block page_title %}Applications OAuth{% endblock %}
+{% block title %}Applications OAuth — Boost Reseller{% endblock %}
+{% block page_title %}Applications OAuth 2.0{% endblock %}
 {% block page_subtitle %}Créez des applications tierces connectées à votre compte{% endblock %}
 
+{% block topbar_actions %}
+<button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-plus"></i> Nouvelle application
+</button>
+{% endblock %}
+
 {% block extra_css %}
-.info-banner{background:linear-gradient(135deg,#FEE2E2,#FEF2F2);border-left:4px solid #EF4444;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#7F1D1D;line-height:1.6}
+.info-banner{background:linear-gradient(135deg,#FEF2F2,#FEE2E2);border-left:4px solid #EF4444;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#7F1D1D;line-height:1.6}
 .info-banner i{color:#EF4444;margin-right:6px}
 .info-banner strong{color:#991B1B}
+.info-banner code{background:#fff;padding:2px 6px;border-radius:6px;font-size:.78rem;color:#991B1B;font-weight:700}
 
-.soon-box{background:linear-gradient(135deg,#FEF3C7,#FFFBEB);border:2px dashed #F59E0B;border-radius:16px;padding:50px 24px;text-align:center;max-width:600px;margin:0 auto}
-.soon-box i{font-size:3rem;color:#F59E0B;display:block;margin-bottom:16px}
-.soon-box h3{font-size:1.15rem;font-weight:900;color:#78350F;margin-bottom:12px}
-.soon-box p{font-size:.9rem;color:#92400E;line-height:1.7;margin-bottom:20px}
+.nouveau-secret{background:linear-gradient(135deg,#FEF3C7,#FFFBEB);border:2px solid #F59E0B;border-radius:16px;padding:20px;margin-bottom:20px;position:relative;overflow:hidden}
+.nouveau-secret::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#F59E0B,#D97706)}
+.nouveau-secret-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.nouveau-secret-ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.nouveau-secret-title{font-size:.95rem;font-weight:900;color:#78350F;margin-bottom:3px}
+.nouveau-secret-sub{font-size:.8rem;color:#92400E;line-height:1.5}
+.cred-box{background:#fff;border:2px dashed #F59E0B;border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cred-lbl{font-size:.7rem;color:#92400E;font-weight:800;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.cred-val{font-family:monospace;font-size:.8rem;font-weight:700;color:#78350F;word-break:break-all;flex:1;min-width:0}
+.cred-copy{background:#F59E0B;color:#fff;border:none;padding:7px 14px;border-radius:8px;font-weight:800;font-size:.75rem;cursor:pointer;flex-shrink:0;font-family:inherit;display:flex;align-items:center;gap:5px}
 
-.feature-list{background:#fff;border-radius:16px;padding:24px;border:1px solid #E2E8F0;max-width:700px;margin:32px auto 0}
-.feature-list h4{font-size:.95rem;font-weight:900;color:#0F172A;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.feature-list h4 i{color:#EF4444}
-.feature-list ul{list-style:none;padding:0}
-.feature-list li{font-size:.85rem;color:#475569;padding:8px 0;padding-left:24px;position:relative;line-height:1.6;border-bottom:1px solid #F1F5F9}
-.feature-list li:last-child{border-bottom:none}
-.feature-list li::before{content:'✦';position:absolute;left:0;color:#EF4444;font-weight:900}
+.apps-grid{display:grid;gap:14px;margin-bottom:20px}
+.app-card{background:#fff;border-radius:16px;padding:20px;border:1px solid #E2E8F0;transition:.2s;position:relative}
+.app-card:hover{border-color:#EF4444;box-shadow:0 6px 20px rgba(239,68,68,.08)}
+.app-card.inactif{opacity:.6;background:#F8FAFC}
+.app-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.app-ico{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+.app-info{flex:1;min-width:0}
+.app-nom{font-size:.95rem;font-weight:900;color:#0F172A;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.app-badge{font-size:.65rem;font-weight:900;padding:3px 8px;border-radius:8px;letter-spacing:.3px}
+.b-actif{background:#EDFFF5;color:#059669}
+.b-inactif{background:#FEE2E2;color:#991B1B}
+.app-desc{font-size:.8rem;color:#64748B;line-height:1.5;margin-bottom:6px}
+.app-date{font-size:.72rem;color:#94A3B8}
+
+.app-creds{background:#F8FAFC;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-family:monospace;font-size:.76rem;color:#475569;line-height:1.6}
+.app-creds strong{color:#0F172A;font-weight:800}
+
+.app-scopes{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+.scope-chip{background:#FEE2E2;color:#991B1B;font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:6px;font-family:monospace}
+
+.app-actions{display:flex;gap:6px;flex-wrap:wrap}
+.btn-act{padding:8px 14px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:5px;font-family:inherit;text-decoration:none}
+.btn-logs{background:#E0F7FF;color:#0096C7;flex:1}
+.btn-logs:hover{background:#0096C7;color:#fff}
+.btn-reg{background:#FEF3C7;color:#92400E}
+.btn-reg:hover{background:#D97706;color:#fff}
+.btn-toggle{background:#FEF3C7;color:#92400E}
+.btn-toggle:hover{background:#D97706;color:#fff}
+.btn-del{background:#FEE2E2;color:#991B1B}
+.btn-del:hover{background:#991B1B;color:#fff}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#FEF2F2,#FEE2E2);color:#EF4444;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 16px}
+.empty-state h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px 22px;max-width:560px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94A3B8}
+.modal h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal h3 i{color:#EF4444}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.fg .hint{font-size:.72rem;color:#94A3B8;margin-top:5px;font-weight:400;line-height:1.5}
+.inp,.txta{width:100%;padding:12px 14px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus,.txta:focus{border-color:#EF4444}
+.txta{min-height:80px;resize:vertical;font-family:monospace;font-size:.82rem}
+.scopes-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+@media(max-width:480px){.scopes-grid{grid-template-columns:1fr}}
+.scope-option{display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid #E2E8F0;border-radius:10px;cursor:pointer;font-size:.76rem;font-family:monospace;font-weight:600;color:#475569;transition:.2s}
+.scope-option:hover{border-color:#EF4444;background:#FEF2F2}
+.scope-option.checked{border-color:#EF4444;background:#FEF2F2;color:#991B1B}
+.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(239,68,68,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;font-family:inherit}
 {% endblock %}
 
 {% block dashboard_content %}
 
 <div class="info-banner">
   <i class="fas fa-shield-alt"></i>
-  Les <strong>applications OAuth 2.0</strong> permettent à des apps tierces (Zapier, Make, outils internes) de se connecter à votre compte Boost Reseller avec votre consentement.
+  Les <strong>applications OAuth 2.0</strong> permettent à des apps tierces de se connecter à votre compte avec votre consentement. Un <code>client_id</code> et un <code>client_secret</code> sont générés à la création.
 </div>
 
-<div class="soon-box">
-  <i class="fas fa-hourglass-half"></i>
-  <h3>Fonctionnalité en cours de développement</h3>
-  <p>Le système OAuth 2.0 arrive très bientôt. Vous pourrez créer des applications tierces qui accéderont à votre compte avec votre permission.</p>
+{% if nouveau_client_secret %}
+<div class="nouveau-secret">
+  <div class="nouveau-secret-head">
+    <div class="nouveau-secret-ico"><i class="fas fa-key"></i></div>
+    <div>
+      <div class="nouveau-secret-title">Nouveau client secret</div>
+      <div class="nouveau-secret-sub">⚠️ Copiez-le maintenant. Il ne sera <strong>plus jamais affiché</strong>.</div>
+    </div>
+  </div>
+  {% if nouveau_client_id %}
+  <div class="cred-box">
+    <div style="flex:1;min-width:0">
+      <div class="cred-lbl">Client ID</div>
+      <div class="cred-val" id="newClientId">{{ nouveau_client_id }}</div>
+    </div>
+    <button type="button" class="cred-copy" onclick="copierEl('newClientId')">
+      <i class="fas fa-copy"></i> Copier
+    </button>
+  </div>
+  {% endif %}
+  <div class="cred-box">
+    <div style="flex:1;min-width:0">
+      <div class="cred-lbl">Client Secret</div>
+      <div class="cred-val" id="newClientSecret">{{ nouveau_client_secret }}</div>
+    </div>
+    <button type="button" class="cred-copy" onclick="copierEl('newClientSecret')">
+      <i class="fas fa-copy"></i> Copier
+    </button>
+  </div>
+</div>
+{% endif %}
+
+{% if apps %}
+<div class="apps-grid">
+  {% for a in apps %}
+  <div class="app-card {% if not a.actif %}inactif{% endif %}">
+    <div class="app-head">
+      <div class="app-ico"><i class="fas fa-shield-alt"></i></div>
+      <div class="app-info">
+        <div class="app-nom">
+          {{ a.nom }}
+          {% if a.actif %}
+          <span class="app-badge b-actif">ACTIVE</span>
+          {% else %}
+          <span class="app-badge b-inactif">INACTIVE</span>
+          {% endif %}
+        </div>
+        {% if a.description %}<div class="app-desc">{{ a.description }}</div>{% endif %}
+        <div class="app-date">
+          <i class="fas fa-calendar"></i> Créée le {{ (a.created_at or '')[:10] }}
+        </div>
+      </div>
+    </div>
+
+    <div class="app-creds">
+      <strong>Client ID :</strong> {{ a.client_id }}<br>
+      <strong>Redirect URIs :</strong> {{ (a.redirect_uris or [])|join(', ') }}
+    </div>
+
+    <div class="app-scopes">
+      {% for s in a.scopes or [] %}
+      <span class="scope-chip">{{ s }}</span>
+      {% endfor %}
+    </div>
+
+    <div class="app-actions">
+      <a href="{{ url_for('dashboard_dev.oauth_apps_logs', app_id=a.id) }}" class="btn-act btn-logs">
+        <i class="fas fa-list"></i> Logs
+      </a>
+      <form method="POST" action="{{ url_for('dashboard_dev.oauth_apps_regenerer', app_id=a.id) }}" onsubmit="return confirm('Régénérer le secret ? L\'ancien ne marchera plus.')">
+        <button type="submit" class="btn-act btn-reg">
+          <i class="fas fa-sync"></i> Renouveler secret
+        </button>
+      </form>
+      <form method="POST" action="{{ url_for('dashboard_dev.oauth_apps_toggle', app_id=a.id) }}">
+        <input type="hidden" name="actif" value="{{ '1' if a.actif else '0' }}">
+        <button type="submit" class="btn-act btn-toggle">
+          <i class="fas fa-{% if a.actif %}pause{% else %}play{% endif %}"></i>
+        </button>
+      </form>
+      <form method="POST" action="{{ url_for('dashboard_dev.oauth_apps_supprimer', app_id=a.id) }}" onsubmit="return confirm('Supprimer cette application ?')">
+        <button type="submit" class="btn-act btn-del">
+          <i class="fas fa-trash"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
 </div>
 
-<div class="feature-list">
-  <h4><i class="fas fa-star"></i> Ce que permettra OAuth 2.0</h4>
-  <ul>
-    <li>Créer des applications tierces (Zapier, Make, apps internes)</li>
-    <li>Autoriser un accès granulaire (scopes personnalisés)</li>
-    <li>Révoquer l'accès à tout moment</li>
-    <li>Consulter l'historique des accès par application</li>
-    <li>Recevoir des notifications à chaque nouveau consentement</li>
-    <li>Gérer plusieurs applications simultanément</li>
-  </ul>
+{% else %}
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-shield-alt"></i></div>
+  <h3>Aucune application OAuth</h3>
+  <p>Créez votre première application OAuth 2.0 pour connecter des services tiers à votre compte.</p>
+  <button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:12px 24px;font-size:.88rem">
+    <i class="fas fa-plus"></i> Créer ma première application
+  </button>
 </div>
+{% endif %}
+
+<div class="modal-bg" id="modalAjout">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalAjout')">✕</button>
+    <h3><i class="fas fa-shield-alt"></i> Nouvelle application OAuth</h3>
+    <form method="POST" action="{{ url_for('dashboard_dev.oauth_apps_creer') }}">
+      <div class="fg">
+        <label>Nom de l'application *</label>
+        <input class="inp" type="text" name="nom" placeholder="Ex: Mon ERP, Zapier, Make..." required maxlength="80">
+      </div>
+
+      <div class="fg">
+        <label>Description (optionnel)</label>
+        <input class="inp" type="text" name="description" placeholder="Ex: Synchronisation des commandes" maxlength="500">
+      </div>
+
+      <div class="fg">
+        <label>URLs de redirection * (une par ligne)</label>
+        <textarea class="txta" name="redirect_uris" placeholder="https://mon-app.com/oauth/callback&#10;https://localhost:3000/callback" required></textarea>
+        <div class="hint">Doit commencer par http:// ou https://. Une URL par ligne.</div>
+      </div>
+
+      <div class="fg">
+        <label>Scopes (permissions)</label>
+        <div class="scopes-grid">
+          {% for s in scopes_dispo %}
+          <label class="scope-option">
+            <input type="checkbox" name="scopes" value="{{ s }}" onchange="toggleScope(this)">
+            {{ s }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <button type="submit" class="btn-save"><i class="fas fa-check"></i> Créer l'application</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function ouvrirAjout(){ document.getElementById('modalAjout').classList.add('open'); }
+function fermerModal(id){ document.getElementById(id).classList.remove('open'); }
+function toggleScope(input){
+  var label = input.closest('.scope-option');
+  if(input.checked) label.classList.add('checked');
+  else label.classList.remove('checked');
+}
+function copierEl(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+  var texte = el.textContent;
+  navigator.clipboard.writeText(texte).then(function(){
+    alert('Copié !');
+  }).catch(function(){
+    var ta = document.createElement('textarea');
+    ta.value = texte;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('Copié !');
+  });
+}
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('open');
+  });
+});
+</script>
 
 {% endblock %}
