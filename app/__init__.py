@@ -1,5 +1,6 @@
 """
 Factory Flask pour Boost Reseller.
+SÉCURITÉ SÉVÈRE : headers, handler global, exclusions CSRF.
 """
 import os
 import logging
@@ -7,6 +8,7 @@ from flask import Flask, render_template, send_from_directory, request, jsonify
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect, CSRFError
+from werkzeug.exceptions import HTTPException
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -53,6 +55,9 @@ def create_app(config_name="production"):
     app.register_blueprint(boutique_bp)
     app.register_blueprint(api_v1_bp, url_prefix="/api/v1")
 
+    # ─── CSRF exempt pour API (auth par cle) ──────────────────
+    csrf.exempt(api_v1_bp)
+
     # ─── Fichiers statiques (PWA) ─────────────────────────────
     @app.route("/sw.js")
     def sw():
@@ -62,19 +67,28 @@ def create_app(config_name="production"):
     def manifest():
         return send_from_directory("static", "manifest.json", mimetype="application/manifest+json")
 
-    # ─── Headers de sécurité ──────────────────────────────────
+    # ─── Headers de securite renforces ────────────────────────
     @app.after_request
     def add_security_headers(response):
+        # Anti-sniffing
         response.headers["X-Content-Type-Options"] = "nosniff"
+        # Anti-clickjacking
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        # Referrer
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # Permissions
         response.headers["Permissions-Policy"] = (
-            "geolocation=(), microphone=(), camera=(), payment=()"
+            "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
         )
+        # Isolation cross-origin
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Resource-Policy"] = "same-site"
+        # HSTS (prod seulement)
         if not app.debug:
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains; preload"
             )
+        # CSP strict
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
@@ -82,10 +96,13 @@ def create_app(config_name="production"):
             "font-src 'self' https://cdnjs.cloudflare.com data:; "
             "img-src 'self' data: https: blob:; "
             "connect-src 'self' https://*.supabase.co https://*.supabase.in; "
-            "frame-ancestors 'self';"
+            "frame-ancestors 'self'; "
+            "base-uri 'self'; "
+            "form-action 'self';"
         )
-        if request.path.startswith(("/dashboard", "/auth")):
-            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+        # Cache-control pour pages sensibles
+        if request.path.startswith(("/dashboard", "/auth", "/api/")):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
             response.headers["Pragma"] = "no-cache"
         return response
 
@@ -98,7 +115,7 @@ def create_app(config_name="production"):
 
     @app.errorhandler(500)
     def internal_error(e):
-        logger.exception("Erreur 500 non geree")
+        logger.exception("Erreur 500")
         if request.path.startswith("/api/"):
             return jsonify({"error": "Internal server error"}), 500
         return render_template("errors/500.html"), 500
@@ -114,15 +131,28 @@ def create_app(config_name="production"):
 
     @app.errorhandler(CSRFError)
     def csrf_error(e):
-        logger.warning(f"CSRF echec : {e.description} | path={request.path}")
+        ip = request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()
+        logger.warning(f"[SECURITE] CSRF echec : {e.description} | IP={ip} | path={request.path}")
         if request.path.startswith("/api/"):
             return jsonify({"error": "CSRF token invalide ou manquant"}), 400
         return render_template("errors/400.html",
                               message="Session expiree, rechargez la page."), 400
 
-    # ─── CSRF : exempter les routes /api/ (auth par clé API) ──
-    csrf.exempt(api_v1_bp)
+    # ⚠️ SÉCURITÉ : handler global pour TOUTE exception non geree
+    # Empeche la fuite de traceback en production
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        # Laisse passer les erreurs HTTP standards
+        if isinstance(e, HTTPException):
+            return e
 
+        logger.exception(f"Exception non geree : {type(e).__name__}")
+
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "Erreur interne du serveur"}), 500
+        return render_template("errors/500.html"), 500
+
+    # ─── Logging ──────────────────────────────────────────────
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
