@@ -1,0 +1,758 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Documentation API — Boost Reseller{% endblock %}
+{% block page_title %}Documentation API{% endblock %}
+{% block page_subtitle %}Guide complet pour intégrer Boost Reseller{% endblock %}
+
+{% block extra_css %}
+.docs-layout{display:grid;grid-template-columns:280px 1fr;gap:24px;position:relative}
+@media(max-width:900px){.docs-layout{grid-template-columns:1fr;gap:16px}}
+
+/* Bouton burger 3 traits */
+.docs-toggle{display:none;background:#fff;border:2px solid #E2E8F0;border-radius:12px;padding:12px 16px;font-family:inherit;font-weight:800;font-size:.85rem;color:#0F172A;cursor:pointer;align-items:center;justify-content:space-between;gap:10px;width:100%;margin-bottom:12px;transition:.2s}
+.docs-toggle:hover{border-color:#00BFFF;background:#F0FAFF}
+.docs-toggle-left{display:flex;align-items:center;gap:10px}
+.burger-icon{width:22px;height:16px;position:relative;display:inline-block;flex-shrink:0}
+.burger-icon::before,.burger-icon::after,.burger-icon span{content:'';position:absolute;left:0;width:100%;height:2px;background:#00BFFF;border-radius:2px;transition:.3s}
+.burger-icon::before{top:0}
+.burger-icon span{top:7px}
+.burger-icon::after{bottom:0}
+.docs-toggle.open .burger-icon::before{transform:rotate(45deg);top:7px}
+.docs-toggle.open .burger-icon span{opacity:0}
+.docs-toggle.open .burger-icon::after{transform:rotate(-45deg);bottom:7px}
+
+@media(max-width:900px){
+  .docs-toggle{display:flex}
+  .docs-sidebar{display:none}
+  .docs-sidebar.open{display:block}
+}
+
+/* Sidebar docs */
+.docs-sidebar{background:#fff;border-radius:16px;border:1px solid #E2E8F0;padding:18px 14px;position:sticky;top:90px;max-height:calc(100vh - 110px);overflow-y:auto}
+.docs-sidebar::-webkit-scrollbar{width:4px}
+.docs-sidebar::-webkit-scrollbar-thumb{background:#E2E8F0;border-radius:4px}
+.docs-nav-group{margin-bottom:8px}
+.docs-nav-group-title{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#F8FAFC;border-radius:10px;font-size:.78rem;font-weight:900;color:#0F172A;cursor:pointer;transition:.2s;text-transform:uppercase;letter-spacing:.3px;user-select:none}
+.docs-nav-group-title:hover{background:#F0FAFF;color:#0096C7}
+.docs-nav-group-title i.chev{color:#94A3B8;font-size:.7rem;transition:transform .25s}
+.docs-nav-group.open .docs-nav-group-title i.chev{transform:rotate(90deg)}
+.docs-nav-group-title .g-ico{color:#00BFFF;margin-right:6px;font-size:.85rem}
+.docs-nav-links{display:none;padding:6px 0 6px 8px;flex-direction:column;gap:2px}
+.docs-nav-group.open .docs-nav-links{display:flex}
+.docs-nav-link{padding:8px 12px;font-size:.8rem;font-weight:600;color:#475569;text-decoration:none;border-radius:8px;transition:.2s;border-left:2px solid transparent}
+.docs-nav-link:hover{background:#F0FAFF;color:#0096C7;border-left-color:#00BFFF}
+.docs-nav-link.active{background:#E0F7FF;color:#0096C7;font-weight:800;border-left-color:#00BFFF}
+
+/* Contenu docs */
+.docs-content{background:#fff;border-radius:16px;border:1px solid #E2E8F0;padding:32px 30px}
+@media(max-width:600px){.docs-content{padding:22px 18px}}
+
+.docs-content h1{font-size:1.75rem;font-weight:900;color:#0F172A;margin-bottom:8px;line-height:1.2}
+.docs-content .docs-lead{font-size:.95rem;color:#64748B;line-height:1.7;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid #E2E8F0}
+.docs-content h2{font-size:1.35rem;font-weight:900;color:#0F172A;margin:36px 0 16px;padding-bottom:10px;border-bottom:2px solid #F1F5F9;line-height:1.3;scroll-margin-top:90px}
+.docs-content h2:first-of-type{margin-top:0}
+.docs-content h3{font-size:1.05rem;font-weight:900;color:#0F172A;margin:24px 0 12px;scroll-margin-top:90px}
+.docs-content h4{font-size:.92rem;font-weight:800;color:#0F172A;margin:18px 0 8px}
+.docs-content p{font-size:.9rem;color:#475569;line-height:1.75;margin-bottom:14px}
+.docs-content ul,.docs-content ol{margin:0 0 16px;padding-left:22px}
+.docs-content li{font-size:.9rem;color:#475569;line-height:1.75;margin-bottom:8px}
+.docs-content li strong{color:#0F172A}
+.docs-content a{color:#0096C7;font-weight:700;text-decoration:none}
+.docs-content a:hover{text-decoration:underline}
+.docs-content code{background:#F1F5F9;padding:2px 7px;border-radius:6px;font-size:.82rem;color:#DC2626;font-weight:700;font-family:'Courier New',monospace}
+
+.docs-callout{border-radius:12px;padding:16px 20px;margin:20px 0;font-size:.87rem;line-height:1.7;display:flex;gap:12px;align-items:flex-start}
+.docs-callout i{font-size:1.1rem;flex-shrink:0;margin-top:2px}
+.docs-callout.info{background:#EFF6FF;border-left:4px solid #3B82F6;color:#1E3A8A}
+.docs-callout.info i{color:#3B82F6}
+.docs-callout.warn{background:#FFFBEB;border-left:4px solid #F59E0B;color:#78350F}
+.docs-callout.warn i{color:#F59E0B}
+.docs-callout.danger{background:#FEF2F2;border-left:4px solid #DC2626;color:#7F1D1D}
+.docs-callout.danger i{color:#DC2626}
+.docs-callout.success{background:#ECFDF5;border-left:4px solid #10B981;color:#065F46}
+.docs-callout.success i{color:#10B981}
+
+.docs-code{background:#0F172A;border-radius:12px;padding:18px 20px;margin:16px 0;overflow-x:auto;position:relative}
+.docs-code pre{margin:0;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.7;color:#E2E8F0;white-space:pre}
+.docs-code .copy-btn{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;padding:6px 12px;border-radius:8px;font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px}
+.docs-code .copy-btn:hover{background:rgba(255,255,255,.2)}
+
+.endpoint{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:8px;font-family:'Courier New',monospace;font-size:.82rem;font-weight:900;margin:6px 0}
+.endpoint .method{padding:3px 8px;border-radius:6px;font-size:.7rem;color:#fff;font-weight:900;letter-spacing:.5px}
+.method.get{background:#10B981}
+.method.post{background:#3B82F6}
+.method.patch{background:#F59E0B}
+.method.delete{background:#DC2626}
+
+.docs-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.85rem;border-radius:12px;overflow:hidden;border:1px solid #E2E8F0}
+.docs-table th{background:#F8FAFC;padding:12px 14px;text-align:left;font-weight:800;color:#0F172A;font-size:.78rem;text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid #E2E8F0}
+.docs-table td{padding:12px 14px;border-bottom:1px solid #F1F5F9;color:#475569;line-height:1.6;vertical-align:top}
+.docs-table tr:last-child td{border-bottom:none}
+.docs-table code{font-size:.78rem;background:#F1F5F9;padding:2px 6px;border-radius:5px;color:#DC2626}
+
+.scope-pill{display:inline-block;background:#E0F7FF;color:#0096C7;padding:3px 10px;border-radius:8px;font-size:.72rem;font-weight:800;font-family:'Courier New',monospace;margin:2px 2px 2px 0}
+
+/* TOC flottant (retour en haut) */
+.back-top{position:fixed;bottom:24px;right:24px;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;border:none;font-size:1rem;cursor:pointer;box-shadow:0 6px 20px rgba(0,191,255,.35);z-index:80;opacity:0;pointer-events:none;transition:.3s}
+.back-top.show{opacity:1;pointer-events:auto}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<button type="button" class="docs-toggle" onclick="toggleDocs()">
+  <span class="docs-toggle-left">
+    <span class="burger-icon"><span></span></span>
+    <span>Sommaire de la documentation</span>
+  </span>
+  <i class="fas fa-chevron-down" style="font-size:.7rem;color:#94A3B8"></i>
+</button>
+
+<div class="docs-layout">
+
+  <aside class="docs-sidebar" id="docsSidebar">
+    <div class="docs-nav-group open">
+      <div class="docs-nav-group-title" onclick="toggleGroup(this)">
+        <span><i class="fas fa-play-circle g-ico"></i>Démarrage</span>
+        <i class="fas fa-chevron-right chev"></i>
+      </div>
+      <div class="docs-nav-links">
+        <a href="#intro" class="docs-nav-link active">Introduction</a>
+        <a href="#auth" class="docs-nav-link">Authentification</a>
+        <a href="#base-url" class="docs-nav-link">URL de base</a>
+        <a href="#format" class="docs-nav-link">Format des réponses</a>
+        <a href="#rate-limits" class="docs-nav-link">Rate limits</a>
+      </div>
+    </div>
+
+    <div class="docs-nav-group">
+      <div class="docs-nav-group-title" onclick="toggleGroup(this)">
+        <span><i class="fas fa-shield-alt g-ico"></i>Sécurité</span>
+        <i class="fas fa-chevron-right chev"></i>
+      </div>
+      <div class="docs-nav-links">
+        <a href="#scopes" class="docs-nav-link">Scopes & permissions</a>
+        <a href="#bons-pratiques" class="docs-nav-link">Bonnes pratiques</a>
+        <a href="#erreurs" class="docs-nav-link">Gestion des erreurs</a>
+      </div>
+    </div>
+
+    <div class="docs-nav-group">
+      <div class="docs-nav-group-title" onclick="toggleGroup(this)">
+        <span><i class="fas fa-store g-ico"></i>Boutique</span>
+        <i class="fas fa-chevron-right chev"></i>
+      </div>
+      <div class="docs-nav-links">
+        <a href="#get-boutique" class="docs-nav-link">GET /boutique</a>
+        <a href="#update-boutique" class="docs-nav-link">PATCH /boutique</a>
+      </div>
+    </div>
+
+    <div class="docs-nav-group">
+      <div class="docs-nav-group-title" onclick="toggleGroup(this)">
+        <span><i class="fas fa-box g-ico"></i>Produits</span>
+        <i class="fas fa-chevron-right chev"></i>
+      </div>
+      <div class="docs-nav-links">
+        <a href="#list-produits" class="docs-nav-link">GET /produits</a>
+        <a href="#get-produit" class="docs-nav-link">GET /produits/:id</a>
+        <a href="#create-produit" class="docs-nav-link">POST /produits</a>
+        <a href="#update-produit" class="docs-nav-link">PATCH /produits/:id</a>
+        <a href="#delete-produit" class="docs-nav-link">DELETE /produits/:id</a>
+      </div>
+    </div>
+
+    <div class="docs-nav-group">
+      <div class="docs-nav-group-title" onclick="toggleGroup(this)">
+        <span><i class="fas fa-shopping-bag g-ico"></i>Commandes</span>
+        <i class="fas fa-chevron-right chev"></i>
+      </div>
+      <div class="docs-nav-links">
+        <a href="#list-commandes" class="docs-nav-link">GET /commandes</a>
+        <a href="#get-commande" class="docs-nav-link">GET /commandes/:id</a>
+        <a href="#update-commande" class="docs-nav-link">PATCH /commandes/:id</a>
+      </div>
+    </div>
+
+    <div class="docs-nav-group">
+      <div class="docs-nav-group-title" onclick="toggleGroup(this)">
+        <span><i class="fas fa-users g-ico"></i>Clients</span>
+        <i class="fas fa-chevron-right chev"></i>
+      </div>
+      <div class="docs-nav-links">
+        <a href="#list-clients" class="docs-nav-link">GET /clients</a>
+      </div>
+    </div>
+
+    <div class="docs-nav-group">
+      <div class="docs-nav-group-title" onclick="toggleGroup(this)">
+        <span><i class="fas fa-chart-line g-ico"></i>Statistiques</span>
+        <i class="fas fa-chevron-right chev"></i>
+      </div>
+      <div class="docs-nav-links">
+        <a href="#stats" class="docs-nav-link">GET /stats</a>
+      </div>
+    </div>
+
+    <div class="docs-nav-group">
+      <div class="docs-nav-group-title" onclick="toggleGroup(this)">
+        <span><i class="fas fa-code-branch g-ico"></i>Exemples complets</span>
+        <i class="fas fa-chevron-right chev"></i>
+      </div>
+      <div class="docs-nav-links">
+        <a href="#ex-python" class="docs-nav-link">Python</a>
+        <a href="#ex-javascript" class="docs-nav-link">JavaScript</a>
+        <a href="#ex-php" class="docs-nav-link">PHP</a>
+        <a href="#ex-curl" class="docs-nav-link">cURL</a>
+      </div>
+    </div>
+
+    <div class="docs-nav-group">
+      <div class="docs-nav-group-title" onclick="toggleGroup(this)">
+        <span><i class="fas fa-question-circle g-ico"></i>FAQ</span>
+        <i class="fas fa-chevron-right chev"></i>
+      </div>
+      <div class="docs-nav-links">
+        <a href="#faq" class="docs-nav-link">Questions fréquentes</a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="docs-content" id="docsContent">
+
+    <h1>Documentation API Boost Reseller</h1>
+    <p class="docs-lead">Bienvenue dans la documentation officielle de l'API Boost Reseller. Cette API vous permet d'automatiser la gestion de votre boutique : produits, commandes, clients, statistiques et bien plus encore. Version : <strong>v1</strong> · Dernière mise à jour : 15 octobre 2026.</p>
+
+    <!-- ═══ DÉMARRAGE ═══ -->
+    <h2 id="intro"><i class="fas fa-play-circle" style="color:#00BFFF;margin-right:8px"></i>Introduction</h2>
+    <p>L'API Boost Reseller est une <strong>API REST</strong> qui utilise les standards HTTP (GET, POST, PATCH, DELETE). Toutes les réponses sont au format <strong>JSON</strong>, encodées en UTF-8.</p>
+    <p>Avec cette API, vous pouvez :</p>
+    <ul>
+      <li>Récupérer et modifier les informations de votre boutique.</li>
+      <li>Créer, modifier et supprimer des produits.</li>
+      <li>Consulter et mettre à jour les commandes de vos clients.</li>
+      <li>Lister vos clients inscrits.</li>
+      <li>Obtenir des statistiques détaillées sur vos ventes.</li>
+    </ul>
+
+    <div class="docs-callout info">
+      <i class="fas fa-info-circle"></i>
+      <div><strong>Prérequis :</strong> Pour utiliser l'API, vous devez disposer d'une <a href="{{ url_for('dashboard_dev.api_keys') }}">clé API valide</a>. Chaque clé possède des permissions (scopes) précises que vous définissez à la création.</div>
+    </div>
+
+    <h2 id="auth"><i class="fas fa-shield-alt" style="color:#00BFFF;margin-right:8px"></i>Authentification</h2>
+    <p>Toutes les requêtes doivent inclure votre clé API dans le header <code>Authorization</code> au format <strong>Bearer</strong> :</p>
+
+    <div class="docs-code">
+      <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
+      <pre>Authorization: Bearer bsk_live_votre_cle_ici</pre>
+    </div>
+
+    <div class="docs-callout warn">
+      <i class="fas fa-exclamation-triangle"></i>
+      <div><strong>Ne partagez jamais votre clé API.</strong> Ne la committez pas dans un dépôt Git public. Ne l'incluez pas dans du code côté client (JavaScript navigateur). Utilisez-la uniquement depuis votre serveur.</div>
+    </div>
+
+    <h3>Exemple d'appel authentifié</h3>
+    <div class="docs-code">
+      <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
+      <pre>curl https://reseller.boostcentral.world/api/v1/boutique \
+  -H "Authorization: Bearer bsk_live_xxxx"</pre>
+    </div>
+
+    <h2 id="base-url"><i class="fas fa-globe" style="color:#00BFFF;margin-right:8px"></i>URL de base</h2>
+    <p>Toutes les requêtes API doivent être faites sur cette URL :</p>
+    <div class="docs-code">
+      <pre>https://reseller.boostcentral.world/api/v1</pre>
+    </div>
+
+    <h2 id="format"><i class="fas fa-code" style="color:#00BFFF;margin-right:8px"></i>Format des réponses</h2>
+    <p>Les réponses de succès sont renvoyées avec un code HTTP <code>200</code> (ou <code>201</code> pour les créations) et un contenu JSON. Les erreurs utilisent des codes HTTP standards (<code>400</code>, <code>401</code>, <code>403</code>, <code>404</code>, <code>429</code>, <code>500</code>).</p>
+
+    <h4>Réponse de succès</h4>
+    <div class="docs-code">
+      <pre>{
+  "success": true,
+  "data": {
+    "id": "abc-123",
+    "nom": "T-shirt Nike"
+  }
+}</pre>
+    </div>
+
+    <h4>Réponse d'erreur</h4>
+    <div class="docs-code">
+      <pre>{
+  "success": false,
+  "error": {
+    "code": "invalid_scope",
+    "message": "Votre clé ne possede pas le scope 'produits:write'"
+  }
+}</pre>
+    </div>
+
+    <h2 id="rate-limits"><i class="fas fa-tachometer-alt" style="color:#00BFFF;margin-right:8px"></i>Rate limits</h2>
+    <p>Pour garantir la stabilité du service, chaque clé API est limitée à :</p>
+    <table class="docs-table">
+      <thead>
+        <tr><th>Type de requête</th><th>Limite</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Requêtes GET (lecture)</td><td>1 000 / heure</td></tr>
+        <tr><td>Requêtes POST/PATCH/DELETE (écriture)</td><td>200 / heure</td></tr>
+        <tr><td>Rafale maximale</td><td>30 / minute</td></tr>
+      </tbody>
+    </table>
+    <p>Les headers <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code> et <code>X-RateLimit-Reset</code> sont renvoyés dans chaque réponse pour vous aider à gérer vos appels.</p>
+
+    <div class="docs-callout warn">
+      <i class="fas fa-exclamation-triangle"></i>
+      <div>En cas de dépassement, vous recevrez un code <code>429 Too Many Requests</code>. Attendez le temps indiqué dans le header <code>Retry-After</code> avant de réessayer.</div>
+    </div>
+
+    <!-- ═══ SÉCURITÉ ═══ -->
+    <h2 id="scopes"><i class="fas fa-key" style="color:#00BFFF;margin-right:8px"></i>Scopes & permissions</h2>
+    <p>Chaque clé API possède un ensemble de <strong>scopes</strong> qui définissent ce qu'elle peut faire. Vous pouvez choisir les scopes à la création d'une clé.</p>
+
+    <table class="docs-table">
+      <thead>
+        <tr><th>Scope</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="scope-pill">boutique:read</span></td><td>Lire les informations de votre boutique (nom, slogan, contacts...)</td></tr>
+        <tr><td><span class="scope-pill">boutique:write</span></td><td>Modifier les informations de votre boutique</td></tr>
+        <tr><td><span class="scope-pill">produits:read</span></td><td>Lister et consulter vos produits</td></tr>
+        <tr><td><span class="scope-pill">produits:write</span></td><td>Créer, modifier et supprimer des produits</td></tr>
+        <tr><td><span class="scope-pill">commandes:read</span></td><td>Consulter les commandes de vos clients</td></tr>
+        <tr><td><span class="scope-pill">commandes:write</span></td><td>Modifier le statut des commandes</td></tr>
+        <tr><td><span class="scope-pill">clients:read</span></td><td>Lister vos clients inscrits</td></tr>
+        <tr><td><span class="scope-pill">stats:read</span></td><td>Accéder aux statistiques de vente</td></tr>
+      </tbody>
+    </table>
+
+    <div class="docs-callout info">
+      <i class="fas fa-info-circle"></i>
+      <div><strong>Principe du moindre privilège :</strong> Donnez uniquement les scopes strictement nécessaires à votre usage. Si votre app ne fait que lire les commandes, ne lui donnez pas <code>commandes:write</code>.</div>
+    </div>
+
+    <h2 id="bons-pratiques"><i class="fas fa-check-circle" style="color:#00BFFF;margin-right:8px"></i>Bonnes pratiques</h2>
+    <ul>
+      <li><strong>Une clé par environnement :</strong> une clé pour le développement, une pour la production.</li>
+      <li><strong>Rotation régulière :</strong> révoquez et régénérez vos clés tous les 6 mois.</li>
+      <li><strong>Stockage sécurisé :</strong> utilisez des variables d'environnement, jamais en clair dans le code.</li>
+      <li><strong>Révoquez immédiatement</strong> toute clé compromise depuis l'interface.</li>
+      <li><strong>Idempotence :</strong> pour les POST critiques, envoyez un header <code>X-Idempotency-Key</code> pour éviter les doublons.</li>
+      <li><strong>Gestion des erreurs :</strong> implémentez des retry avec backoff exponentiel pour les erreurs 5xx et 429.</li>
+    </ul>
+
+    <h2 id="erreurs"><i class="fas fa-bug" style="color:#00BFFF;margin-right:8px"></i>Gestion des erreurs</h2>
+    <table class="docs-table">
+      <thead>
+        <tr><th>Code HTTP</th><th>Signification</th><th>Que faire ?</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>400</code></td><td>Requête invalide (paramètres manquants ou malformés)</td><td>Vérifiez votre payload JSON</td></tr>
+        <tr><td><code>401</code></td><td>Clé API manquante ou invalide</td><td>Vérifiez le header Authorization</td></tr>
+        <tr><td><code>403</code></td><td>Scope manquant pour cette action</td><td>Ajoutez le scope requis à votre clé</td></tr>
+        <tr><td><code>404</code></td><td>Ressource introuvable</td><td>Vérifiez l'ID ou le chemin</td></tr>
+        <tr><td><code>422</code></td><td>Données valides mais logiquement impossibles</td><td>Vérifiez les règles métier</td></tr>
+        <tr><td><code>429</code></td><td>Trop de requêtes</td><td>Attendez et réessayez avec backoff</td></tr>
+        <tr><td><code>500</code></td><td>Erreur serveur</td><td>Réessayez plus tard, contactez le support si persistant</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ═══ BOUTIQUE ═══ -->
+    <h2 id="get-boutique"><i class="fas fa-store" style="color:#00BFFF;margin-right:8px"></i>Récupérer sa boutique</h2>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span>/api/v1/boutique</span>
+    </div>
+    <p>Retourne les informations de votre boutique (nom, slogan, contacts, statut, statistiques globales).</p>
+    <p><strong>Scope requis :</strong> <span class="scope-pill">boutique:read</span></p>
+
+    <div class="docs-code">
+      <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
+      <pre>curl https://reseller.boostcentral.world/api/v1/boutique \
+  -H "Authorization: Bearer bsk_live_xxxx"</pre>
+    </div>
+
+    <h4>Réponse</h4>
+    <div class="docs-code">
+      <pre>{
+  "success": true,
+  "data": {
+    "nom": "Ma Super Boutique",
+    "slug": "ma-super-boutique",
+    "slogan": "Les meilleurs produits",
+    "statut": "en_ligne",
+    "whatsapp": "237658033690",
+    "nb_produits": 42,
+    "nb_commandes": 156,
+    "revenus_total": 4500000
+  }
+}</pre>
+    </div>
+
+    <h2 id="update-boutique"><i class="fas fa-edit" style="color:#00BFFF;margin-right:8px"></i>Modifier sa boutique</h2>
+    <div class="endpoint">
+      <span class="method patch">PATCH</span>
+      <span>/api/v1/boutique</span>
+    </div>
+    <p>Modifie un ou plusieurs champs de votre boutique.</p>
+    <p><strong>Scope requis :</strong> <span class="scope-pill">boutique:write</span></p>
+
+    <table class="docs-table">
+      <thead>
+        <tr><th>Champ</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>nom</code></td><td>string</td><td>Nom de la boutique (max 60 caractères)</td></tr>
+        <tr><td><code>slogan</code></td><td>string</td><td>Slogan (max 100 caractères)</td></tr>
+        <tr><td><code>message_accueil</code></td><td>string</td><td>Message d'accueil (max 300 caractères)</td></tr>
+        <tr><td><code>whatsapp</code></td><td>string</td><td>Numéro WhatsApp au format international</td></tr>
+        <tr><td><code>email</code></td><td>string</td><td>Email de contact</td></tr>
+        <tr><td><code>facebook</code></td><td>string</td><td>URL de la page Facebook</td></tr>
+        <tr><td><code>instagram</code></td><td>string</td><td>URL du profil Instagram</td></tr>
+      </tbody>
+    </table>
+
+    <div class="docs-code">
+      <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
+      <pre>curl -X PATCH https://reseller.boostcentral.world/api/v1/boutique \
+  -H "Authorization: Bearer bsk_live_xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"slogan": "Nouveau slogan"}'</pre>
+    </div>
+
+    <!-- ═══ PRODUITS ═══ -->
+    <h2 id="list-produits"><i class="fas fa-list" style="color:#00BFFF;margin-right:8px"></i>Lister ses produits</h2>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span>/api/v1/produits</span>
+    </div>
+    <p>Retourne la liste de tous vos produits, triés par date de création (plus récents en premier).</p>
+    <p><strong>Scope requis :</strong> <span class="scope-pill">produits:read</span></p>
+
+    <table class="docs-table">
+      <thead>
+        <tr><th>Paramètre</th><th>Type</th><th>Défaut</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>limit</code></td><td>int</td><td>50</td><td>Nombre de produits à retourner (max 200)</td></tr>
+        <tr><td><code>offset</code></td><td>int</td><td>0</td><td>Décalage pour la pagination</td></tr>
+        <tr><td><code>actif</code></td><td>bool</td><td>-</td><td>Filtrer par statut (true/false)</td></tr>
+        <tr><td><code>categorie_id</code></td><td>int</td><td>-</td><td>Filtrer par catégorie</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="get-produit"><i class="fas fa-search" style="color:#00BFFF;margin-right:8px"></i>Récupérer un produit</h2>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span>/api/v1/produits/:id</span>
+    </div>
+    <p><strong>Scope requis :</strong> <span class="scope-pill">produits:read</span></p>
+
+    <h2 id="create-produit"><i class="fas fa-plus" style="color:#00BFFF;margin-right:8px"></i>Créer un produit</h2>
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <span>/api/v1/produits</span>
+    </div>
+    <p><strong>Scope requis :</strong> <span class="scope-pill">produits:write</span></p>
+
+    <table class="docs-table">
+      <thead>
+        <tr><th>Champ</th><th>Type</th><th>Obligatoire</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>nom</code></td><td>string</td><td>✅ Oui</td><td>Nom du produit (max 100 caractères)</td></tr>
+        <tr><td><code>prix</code></td><td>number</td><td>✅ Oui</td><td>Prix en FCFA (nombre positif)</td></tr>
+        <tr><td><code>description</code></td><td>string</td><td>Non</td><td>Description (max 1000 caractères)</td></tr>
+        <tr><td><code>stock</code></td><td>int</td><td>Non</td><td>Stock disponible (-1 pour illimité)</td></tr>
+        <tr><td><code>categorie_id</code></td><td>int</td><td>Non</td><td>ID de la catégorie</td></tr>
+      </tbody>
+    </table>
+
+    <div class="docs-code">
+      <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
+      <pre>curl -X POST https://reseller.boostcentral.world/api/v1/produits \
+  -H "Authorization: Bearer bsk_live_xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nom": "T-shirt Nike",
+    "prix": 15000,
+    "stock": 50,
+    "description": "T-shirt coton bio"
+  }'</pre>
+    </div>
+
+    <h2 id="update-produit"><i class="fas fa-edit" style="color:#00BFFF;margin-right:8px"></i>Modifier un produit</h2>
+    <div class="endpoint">
+      <span class="method patch">PATCH</span>
+      <span>/api/v1/produits/:id</span>
+    </div>
+    <p><strong>Scope requis :</strong> <span class="scope-pill">produits:write</span></p>
+
+    <h2 id="delete-produit"><i class="fas fa-trash" style="color:#00BFFF;margin-right:8px"></i>Supprimer un produit</h2>
+    <div class="endpoint">
+      <span class="method delete">DELETE</span>
+      <span>/api/v1/produits/:id</span>
+    </div>
+    <p><strong>Scope requis :</strong> <span class="scope-pill">produits:write</span></p>
+    <div class="docs-callout danger">
+      <i class="fas fa-exclamation-triangle"></i>
+      <div>La suppression est <strong>définitive</strong>. Les commandes liées ne sont pas supprimées.</div>
+    </div>
+
+    <!-- ═══ COMMANDES ═══ -->
+    <h2 id="list-commandes"><i class="fas fa-shopping-bag" style="color:#00BFFF;margin-right:8px"></i>Lister les commandes</h2>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span>/api/v1/commandes</span>
+    </div>
+    <p><strong>Scope requis :</strong> <span class="scope-pill">commandes:read</span></p>
+
+    <table class="docs-table">
+      <thead>
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>statut</code></td><td>string</td><td>Filtrer : <code>en_attente</code>, <code>confirmee</code>, <code>en_livraison</code>, <code>livree</code>, <code>annulee</code></td></tr>
+        <tr><td><code>limit</code></td><td>int</td><td>Nombre max (défaut 50, max 200)</td></tr>
+        <tr><td><code>offset</code></td><td>int</td><td>Décalage pour pagination</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="get-commande"><i class="fas fa-receipt" style="color:#00BFFF;margin-right:8px"></i>Récupérer une commande</h2>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span>/api/v1/commandes/:reference</span>
+    </div>
+    <p>Utilisez la référence de commande (ex: <code>CMD-ABC123</code>) pour récupérer les détails.</p>
+
+    <h2 id="update-commande"><i class="fas fa-sync" style="color:#00BFFF;margin-right:8px"></i>Modifier le statut d'une commande</h2>
+    <div class="endpoint">
+      <span class="method patch">PATCH</span>
+      <span>/api/v1/commandes/:reference</span>
+    </div>
+    <p><strong>Scope requis :</strong> <span class="scope-pill">commandes:write</span></p>
+
+    <div class="docs-code">
+      <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
+      <pre>curl -X PATCH https://reseller.boostcentral.world/api/v1/commandes/CMD-ABC123 \
+  -H "Authorization: Bearer bsk_live_xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"statut": "livree"}'</pre>
+    </div>
+
+    <!-- ═══ CLIENTS ═══ -->
+    <h2 id="list-clients"><i class="fas fa-users" style="color:#00BFFF;margin-right:8px"></i>Lister les clients</h2>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span>/api/v1/clients</span>
+    </div>
+    <p>Retourne la liste de tous les clients inscrits via votre boutique (rattachés à votre compte revendeur).</p>
+    <p><strong>Scope requis :</strong> <span class="scope-pill">clients:read</span></p>
+
+    <h4>Réponse</h4>
+    <div class="docs-code">
+      <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid-xxx",
+      "email": "client@example.com",
+      "full_name": "Jean Dupont",
+      "country": "Cameroun",
+      "rattache_le": "2026-10-15T10:23:00Z"
+    }
+  ]
+}</pre>
+    </div>
+
+    <!-- ═══ STATS ═══ -->
+    <h2 id="stats"><i class="fas fa-chart-line" style="color:#00BFFF;margin-right:8px"></i>Statistiques</h2>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span>/api/v1/stats</span>
+    </div>
+    <p>Retourne les statistiques globales de votre boutique : nombre de commandes, revenus, meilleurs produits, etc.</p>
+    <p><strong>Scope requis :</strong> <span class="scope-pill">stats:read</span></p>
+
+    <table class="docs-table">
+      <thead>
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>periode</code></td><td>string</td><td><code>7j</code>, <code>30j</code>, <code>90j</code>, <code>1an</code>, <code>all</code></td></tr>
+      </tbody>
+    </table>
+
+    <h4>Réponse</h4>
+    <div class="docs-code">
+      <pre>{
+  "success": true,
+  "data": {
+    "periode": "30j",
+    "nb_commandes": 45,
+    "revenus": 1250000,
+    "nb_clients": 38,
+    "visiteurs": 2340,
+    "taux_conversion": 1.92,
+    "top_produits": [
+      { "nom": "T-shirt Nike", "ventes": 18 }
+    ]
+  }
+}</pre>
+    </div>
+
+    <!-- ═══ EXEMPLES ═══ -->
+    <h2 id="ex-python"><i class="fab fa-python" style="color:#00BFFF;margin-right:8px"></i>Exemple Python</h2>
+    <div class="docs-code">
+      <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
+      <pre>import requests
+
+API_KEY = "bsk_live_xxxx"
+BASE = "https://reseller.boostcentral.world/api/v1"
+
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
+}
+
+# Lister les produits
+r = requests.get(f"{BASE}/produits", headers=headers)
+produits = r.json()["data"]
+print(f"{len(produits)} produits")
+
+# Creer un produit
+nouveau = {
+    "nom": "Casquette",
+    "prix": 5000,
+    "stock": 100
+}
+r = requests.post(f"{BASE}/produits", headers=headers, json=nouveau)
+print(r.json())</pre>
+    </div>
+
+    <h2 id="ex-javascript"><i class="fab fa-js" style="color:#00BFFF;margin-right:8px"></i>Exemple JavaScript (Node.js)</h2>
+    <div class="docs-code">
+      <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
+      <pre>const API_KEY = "bsk_live_xxxx";
+const BASE = "https://reseller.boostcentral.world/api/v1";
+
+async function listerProduits() {
+  const r = await fetch(`${BASE}/produits`, {
+    headers: { "Authorization": `Bearer ${API_KEY}` }
+  });
+  const data = await r.json();
+  console.log(data.data.length, "produits");
+}
+
+listerProduits();</pre>
+    </div>
+
+    <h2 id="ex-php"><i class="fab fa-php" style="color:#00BFFF;margin-right:8px"></i>Exemple PHP</h2>
+    <div class="docs-code">
+      <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
+      <pre>&lt;?php
+$apiKey = "bsk_live_xxxx";
+$base = "https://reseller.boostcentral.world/api/v1";
+
+$ch = curl_init("$base/produits");
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "Authorization: Bearer $apiKey"
+]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$response = curl_exec($ch);
+$data = json_decode($response, true);
+print_r($data);
+?&gt;</pre>
+    </div>
+
+    <h2 id="ex-curl"><i class="fas fa-terminal" style="color:#00BFFF;margin-right:8px"></i>Exemple cURL</h2>
+    <div class="docs-code">
+      <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
+      <pre># Lister les commandes en attente
+curl "https://reseller.boostcentral.world/api/v1/commandes?statut=en_attente" \
+  -H "Authorization: Bearer bsk_live_xxxx"
+
+# Recuperer les stats des 30 derniers jours
+curl "https://reseller.boostcentral.world/api/v1/stats?periode=30j" \
+  -H "Authorization: Bearer bsk_live_xxxx"</pre>
+    </div>
+
+    <!-- ═══ FAQ ═══ -->
+    <h2 id="faq"><i class="fas fa-question-circle" style="color:#00BFFF;margin-right:8px"></i>Questions fréquentes</h2>
+
+    <h3>Ma clé API ne fonctionne pas, que faire ?</h3>
+    <p>Vérifiez que : (1) la clé n'a pas été révoquée depuis votre dashboard, (2) vous avez bien mis <code>Bearer</code> avant la clé, (3) la clé possède le bon scope pour l'action demandée.</p>
+
+    <h3>Je reçois une erreur 403 forbidden_scope, que faire ?</h3>
+    <p>Votre clé n'a pas le scope nécessaire. Rendez-vous dans <a href="{{ url_for('dashboard_dev.api_keys') }}">Clés API</a>, révoquez l'ancienne clé et créez-en une nouvelle avec les scopes adéquats.</p>
+
+    <h3>Combien de clés API puis-je créer ?</h3>
+    <p>Vous pouvez créer jusqu'à <strong>10 clés actives</strong> simultanément. Les clés révoquées ne comptent pas.</p>
+
+    <h3>Y a-t-il un SDK officiel ?</h3>
+    <p>Une bibliothèque Python et JavaScript sont en cours de développement. En attendant, utilisez <code>requests</code> (Python) ou <code>fetch</code> (JavaScript) directement.</p>
+
+    <h3>Comment tester mes appels sans risque ?</h3>
+    <p>Utilisez l'onglet <a href="{{ url_for('dashboard_dev.playground') }}">Playground</a> pour tester vos appels depuis le dashboard, sans écrire de code.</p>
+
+    <h3>Comment recevoir des notifications en temps réel ?</h3>
+    <p>Configurez un <strong>webhook</strong> dans la section dédiée. Nous vous enverrons une requête HTTP POST sur votre URL à chaque événement (nouvelle commande, paiement reçu, etc.).</p>
+
+    <h3>L'API est-elle disponible 24/7 ?</h3>
+    <p>Oui, l'API est disponible en permanence, avec un objectif d'uptime de 99,9 %. Les périodes de maintenance sont annoncées à l'avance.</p>
+
+    <h3>Que faire en cas de problème non résolu ?</h3>
+    <p>Contactez le support technique via WhatsApp avec : l'endpoint appelé, la clé (préfixe uniquement), le code HTTP, et le message d'erreur.</p>
+
+    <div class="docs-callout success">
+      <i class="fas fa-check-circle"></i>
+      <div><strong>Vous êtes prêt !</strong> Vous avez maintenant toutes les informations pour intégrer Boost Reseller dans vos outils. Bon développement 🚀</div>
+    </div>
+
+  </main>
+
+</div>
+
+<button class="back-top" id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="fas fa-arrow-up"></i>
+</button>
+
+<script>
+function toggleDocs(){
+  var sidebar = document.getElementById('docsSidebar');
+  var toggle = document.querySelector('.docs-toggle');
+  sidebar.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+function toggleGroup(el){
+  el.closest('.docs-nav-group').classList.toggle('open');
+}
+function copierCode(btn){
+  var pre = btn.parentElement.querySelector('pre');
+  var texte = pre.textContent;
+  navigator.clipboard.writeText(texte).then(function(){
+    var original = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> Copié !';
+    setTimeout(function(){ btn.innerHTML = original; }, 1500);
+  });
+}
+document.querySelectorAll('.docs-nav-link').forEach(function(link){
+  link.addEventListener('click', function(){
+    document.querySelectorAll('.docs-nav-link').forEach(function(l){ l.classList.remove('active'); });
+    this.classList.add('active');
+    if(window.innerWidth <= 900){
+      document.getElementById('docsSidebar').classList.remove('open');
+      document.querySelector('.docs-toggle').classList.remove('open');
+    }
+  });
+});
+window.addEventListener('scroll', function(){
+  var btn = document.getElementById('backTop');
+  if(window.scrollY > 400) btn.classList.add('show');
+  else btn.classList.remove('show');
+});
+</script>
+
+{% endblock %}
