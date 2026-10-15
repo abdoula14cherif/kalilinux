@@ -1,0 +1,118 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Fonctionnalités — Admin{% endblock %}
+{% block page_title %}Gestion des fonctionnalités{% endblock %}
+{% block page_subtitle %}Activez ou désactivez les fonctionnalités de la plateforme{% endblock %}
+
+{% block extra_css %}
+.admin-hero{background:linear-gradient(135deg,#DC2626,#991B1B);border-radius:20px;padding:24px 26px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden}
+.admin-hero::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 65%);pointer-events:none}
+.admin-hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.22);backdrop-filter:blur(10px);padding:6px 14px;border-radius:20px;font-size:.72rem;font-weight:800;letter-spacing:.5px;margin-bottom:14px;position:relative;z-index:1}
+.admin-hero h2{font-size:1.15rem;font-weight:900;margin-bottom:6px;position:relative;z-index:1}
+.admin-hero p{font-size:.85rem;opacity:.92;line-height:1.6;position:relative;z-index:1}
+
+.features-grid{display:grid;gap:14px}
+.feat-card{background:#fff;border-radius:16px;padding:20px;border:1px solid #E2E8F0;transition:.25s;position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
+.feat-card:hover{border-color:#00BFFF;box-shadow:0 8px 20px rgba(0,191,255,.1)}
+.feat-card.inactive{opacity:.55;background:#F8FAFC}
+.feat-ico{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;flex-shrink:0;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.feat-info{min-width:0}
+.feat-name{font-size:.95rem;font-weight:900;color:#0F172A;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.feat-code{font-family:monospace;font-size:.7rem;color:#64748B;background:#F1F5F9;padding:2px 8px;border-radius:6px;font-weight:700}
+.feat-desc{font-size:.8rem;color:#64748B;line-height:1.55;margin-bottom:8px}
+.feat-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:.72rem;color:#94A3B8;font-weight:600}
+.feat-meta-item{display:flex;align-items:center;gap:5px}
+.feat-meta-item i{color:#CBD5E1}
+.feat-badges{display:flex;gap:6px;flex-wrap:wrap}
+.feat-badge{font-size:.65rem;font-weight:900;padding:4px 10px;border-radius:8px;letter-spacing:.3px;text-transform:uppercase}
+.badge-premium{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;box-shadow:0 2px 8px rgba(245,158,11,.3)}
+.badge-gratuit{background:#EDFFF5;color:#059669}
+.badge-actif{background:#E0F7FF;color:#0096C7}
+.badge-inactif{background:#FEE2E2;color:#991B1B}
+
+.feat-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.btn-toggle{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border:none;border-radius:10px;font-size:.75rem;font-weight:800;cursor:pointer;transition:.2s;font-family:inherit}
+.btn-toggle.off{background:#FEE2E2;color:#991B1B}
+.btn-toggle.off:hover{background:#DC2626;color:#fff}
+.btn-toggle.on{background:#EDFFF5;color:#059669}
+.btn-toggle.on:hover{background:#059669;color:#fff}
+.btn-toggle.prem{background:#FEF3C7;color:#92400E}
+.btn-toggle.prem:hover{background:#D97706;color:#fff}
+.btn-toggle.grat{background:#E0F7FF;color:#0096C7}
+.btn-toggle.grat:hover{background:#0096C7;color:#fff}
+
+@media(max-width:720px){
+  .feat-card{grid-template-columns:auto 1fr;gap:12px}
+  .feat-actions{grid-column:1/-1;justify-content:stretch}
+  .feat-actions .btn-toggle{flex:1;justify-content:center}
+}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="admin-hero">
+  <div class="admin-hero-badge">🔐 ZONE ADMIN</div>
+  <h2>Contrôle total de la plateforme</h2>
+  <p>Activez ou désactivez les fonctionnalités de la section Développeur. Marquez-les comme Premium ou gratuites.</p>
+</div>
+
+<div class="features-grid">
+  {% for f in features %}
+  <div class="feat-card {% if not f.actif %}inactive{% endif %}">
+    <div class="feat-ico" style="background:linear-gradient(135deg,{{ f.couleur }},{{ f.couleur }}cc)">
+      <i class="{{ f.icone }}"></i>
+    </div>
+
+    <div class="feat-info">
+      <div class="feat-name">
+        {{ f.nom }}
+        <span class="feat-code">{{ f.code }}</span>
+        {% if f.est_premium %}
+        <span class="feat-badge badge-premium">PREMIUM</span>
+        {% else %}
+        <span class="feat-badge badge-gratuit">GRATUIT</span>
+        {% endif %}
+        {% if f.actif %}
+        <span class="feat-badge badge-actif">ACTIF</span>
+        {% else %}
+        <span class="feat-badge badge-inactif">INACTIF</span>
+        {% endif %}
+      </div>
+      <div class="feat-desc">{{ f.description }}</div>
+      <div class="feat-meta">
+        <span class="feat-meta-item"><i class="fas fa-sort-numeric-up"></i> Ordre : {{ f.ordre }}</span>
+        <span class="feat-meta-item"><i class="fas fa-calendar"></i> Ajouté le {{ (f.created_at or '')[:10] }}</span>
+      </div>
+    </div>
+
+    <div class="feat-actions">
+      <form method="POST" action="{{ url_for('dashboard_admin.fonctionnalite_toggle', code=f.code) }}">
+        <input type="hidden" name="actif" value="{{ '1' if f.actif else '0' }}">
+        {% if f.actif %}
+        <button type="submit" class="btn-toggle off">
+          <i class="fas fa-eye-slash"></i> Désactiver
+        </button>
+        {% else %}
+        <button type="submit" class="btn-toggle on">
+          <i class="fas fa-eye"></i> Activer
+        </button>
+        {% endif %}
+      </form>
+
+      <form method="POST" action="{{ url_for('dashboard_admin.fonctionnalite_premium', code=f.code) }}">
+        <input type="hidden" name="est_premium" value="{{ '1' if f.est_premium else '0' }}">
+        {% if f.est_premium %}
+        <button type="submit" class="btn-toggle grat">
+          <i class="fas fa-unlock"></i> Rendre gratuit
+        </button>
+        {% else %}
+        <button type="submit" class="btn-toggle prem">
+          <i class="fas fa-crown"></i> Rendre Premium
+        </button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}
