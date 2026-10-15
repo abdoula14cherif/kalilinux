@@ -1,5 +1,5 @@
 """
-Dashboard développeur — Clés API, webhooks, documentation, playground.
+Dashboard développeur — Clés API, webhooks, documentation, playground, logs, sdk, oauth.
 """
 import logging
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
@@ -31,10 +31,13 @@ def _get_profile_ou_redirect():
 
 
 def _check_feature(profile, code):
-    """Verifie si le revendeur a acces a la fonctionnalite. Sinon 403."""
-    if not revendeur_a_feature(profile["id"], code, profile):
-        flash("Cette fonctionnalite n'est pas activee sur votre compte.", "warning")
-        return redirect(url_for("dashboard_dev.index"))
+    """Verifie si le revendeur a acces a la fonctionnalite. Sinon redirect."""
+    try:
+        if not revendeur_a_feature(profile["id"], code, profile):
+            flash("Cette fonctionnalite n'est pas activee sur votre compte.", "warning")
+            return redirect(url_for("dashboard_dev.index"))
+    except Exception as e:
+        logger.error(f"_check_feature {code}: {type(e).__name__}")
     return None
 
 
@@ -46,12 +49,20 @@ def index():
     if redir:
         return redir
 
-    features = get_features_actives_pour_revendeur(profile["id"], profile)
+    try:
+        features = get_features_actives_pour_revendeur(profile["id"], profile)
+    except Exception as e:
+        logger.error(f"index features: {type(e).__name__}")
+        features = []
 
     return render_template("dashboard/dev/index.html",
                           profile=profile,
                           features=features)
 
+
+# ═══════════════════════════════════════════════════════════════
+# CLES API
+# ═══════════════════════════════════════════════════════════════
 
 @dashboard_dev_bp.route("/api-keys")
 @login_required
@@ -67,10 +78,6 @@ def api_keys():
         return redir_check
 
     cles = lister_cles(profile["id"])
-
-    # On ajoute un flag pour savoir si la cle a ete utilisee recemment
-    for c in cles:
-        c["est_active"] = c.get("actif", True) and not c.get("revoked_at")
 
     return render_template("dashboard/dev/api_keys.html",
                           profile=profile,
@@ -112,7 +119,7 @@ def api_keys_creer():
         flash("Erreur lors de la creation de la cle.", "error")
         return redirect(url_for("dashboard_dev.api_keys"))
 
-    flash(f"Cle API '{nom}' creee avec succes ! Copiez-la maintenant, elle ne sera plus affichee.", "success")
+    flash(f"Cle API '{nom}' creee avec succes ! Copiez-la maintenant.", "success")
     return render_template("dashboard/dev/api_keys.html",
                           profile=profile,
                           cles=lister_cles(profile["id"]),
@@ -134,7 +141,7 @@ def api_keys_revoquer(cle_id):
 
     ok = revoquer_cle(cle_id, profile["id"])
     if ok:
-        flash("Cle API revoquee. Elle ne peut plus etre utilisee.", "success")
+        flash("Cle API revoquee.", "success")
     else:
         flash("Erreur lors de la revocation.", "error")
     return redirect(url_for("dashboard_dev.api_keys"))
@@ -160,6 +167,10 @@ def api_keys_supprimer(cle_id):
     return redirect(url_for("dashboard_dev.api_keys"))
 
 
+# ═══════════════════════════════════════════════════════════════
+# DOCUMENTATION
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_dev_bp.route("/documentation")
 @login_required
 def documentation():
@@ -173,6 +184,10 @@ def documentation():
 
     return render_template("dashboard/dev/documentation.html", profile=profile)
 
+
+# ═══════════════════════════════════════════════════════════════
+# PLAYGROUND
+# ═══════════════════════════════════════════════════════════════
 
 @dashboard_dev_bp.route("/playground")
 @login_required
@@ -188,6 +203,10 @@ def playground():
     return render_template("dashboard/dev/playground.html", profile=profile)
 
 
+# ═══════════════════════════════════════════════════════════════
+# WEBHOOKS
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_dev_bp.route("/webhooks")
 @login_required
 def webhooks():
@@ -199,9 +218,12 @@ def webhooks():
     if redir_check:
         return redir_check
 
-    flash("Cette fonctionnalite sera bientot disponible.", "info")
-    return redirect(url_for("dashboard_dev.index"))
+    return render_template("dashboard/dev/webhooks.html", profile=profile)
 
+
+# ═══════════════════════════════════════════════════════════════
+# LOGS
+# ═══════════════════════════════════════════════════════════════
 
 @dashboard_dev_bp.route("/logs")
 @login_required
@@ -214,9 +236,12 @@ def logs():
     if redir_check:
         return redir_check
 
-    flash("Cette fonctionnalite sera bientot disponible.", "info")
-    return redirect(url_for("dashboard_dev.index"))
+    return render_template("dashboard/dev/logs.html", profile=profile)
 
+
+# ═══════════════════════════════════════════════════════════════
+# SDK
+# ═══════════════════════════════════════════════════════════════
 
 @dashboard_dev_bp.route("/sdk")
 @login_required
@@ -229,5 +254,22 @@ def sdk():
     if redir_check:
         return redir_check
 
-    flash("Cette fonctionnalite sera bientot disponible.", "info")
-    return redirect(url_for("dashboard_dev.index"))
+    return render_template("dashboard/dev/sdk.html", profile=profile)
+
+
+# ═══════════════════════════════════════════════════════════════
+# OAUTH APPS
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_dev_bp.route("/oauth-apps")
+@login_required
+def oauth_apps():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    redir_check = _check_feature(profile, "oauth_apps")
+    if redir_check:
+        return redir_check
+
+    return render_template("dashboard/dev/oauth_apps.html", profile=profile)
