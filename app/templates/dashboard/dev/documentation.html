@@ -1,13 +1,13 @@
 {% extends "dashboard/layout.html" %}
 {% block title %}Documentation API — Boost Reseller{% endblock %}
 {% block page_title %}Documentation API{% endblock %}
-{% block page_subtitle %}Guide complet pour intégrer Boost Reseller{% endblock %}
+{% block page_subtitle %}Guide complet pour intégrer Boost Reseller dans vos applications{% endblock %}
 
 {% block extra_css %}
 .docs-layout{display:grid;grid-template-columns:280px 1fr;gap:24px;position:relative}
 @media(max-width:900px){.docs-layout{grid-template-columns:1fr;gap:16px}}
 
-/* Bouton burger 3 traits */
+/* Bouton burger */
 .docs-toggle{display:none;background:#fff;border:2px solid #E2E8F0;border-radius:12px;padding:12px 16px;font-family:inherit;font-weight:800;font-size:.85rem;color:#0F172A;cursor:pointer;align-items:center;justify-content:space-between;gap:10px;width:100%;margin-bottom:12px;transition:.2s}
 .docs-toggle:hover{border-color:#00BFFF;background:#F0FAFF}
 .docs-toggle-left{display:flex;align-items:center;gap:10px}
@@ -19,7 +19,6 @@
 .docs-toggle.open .burger-icon::before{transform:rotate(45deg);top:7px}
 .docs-toggle.open .burger-icon span{opacity:0}
 .docs-toggle.open .burger-icon::after{transform:rotate(-45deg);bottom:7px}
-
 @media(max-width:900px){
   .docs-toggle{display:flex}
   .docs-sidebar{display:none}
@@ -91,7 +90,6 @@
 
 .scope-pill{display:inline-block;background:#E0F7FF;color:#0096C7;padding:3px 10px;border-radius:8px;font-size:.72rem;font-weight:800;font-family:'Courier New',monospace;margin:2px 2px 2px 0}
 
-/* TOC flottant (retour en haut) */
 .back-top{position:fixed;bottom:24px;right:24px;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;border:none;font-size:1rem;cursor:pointer;box-shadow:0 6px 20px rgba(0,191,255,.35);z-index:80;opacity:0;pointer-events:none;transition:.3s}
 .back-top.show{opacity:1;pointer-events:auto}
 {% endblock %}
@@ -167,8 +165,8 @@
       </div>
       <div class="docs-nav-links">
         <a href="#list-commandes" class="docs-nav-link">GET /commandes</a>
-        <a href="#get-commande" class="docs-nav-link">GET /commandes/:id</a>
-        <a href="#update-commande" class="docs-nav-link">PATCH /commandes/:id</a>
+        <a href="#get-commande" class="docs-nav-link">GET /commandes/:ref</a>
+        <a href="#update-commande" class="docs-nav-link">PATCH /commandes/:ref</a>
       </div>
     </div>
 
@@ -194,12 +192,24 @@
 
     <div class="docs-nav-group">
       <div class="docs-nav-group-title" onclick="toggleGroup(this)">
-        <span><i class="fas fa-code-branch g-ico"></i>Exemples complets</span>
+        <span><i class="fas fa-bell g-ico"></i>Webhooks</span>
+        <i class="fas fa-chevron-right chev"></i>
+      </div>
+      <div class="docs-nav-links">
+        <a href="#webhooks-intro" class="docs-nav-link">Introduction</a>
+        <a href="#webhooks-events" class="docs-nav-link">Événements</a>
+        <a href="#webhooks-signature" class="docs-nav-link">Signature HMAC</a>
+      </div>
+    </div>
+
+    <div class="docs-nav-group">
+      <div class="docs-nav-group-title" onclick="toggleGroup(this)">
+        <span><i class="fas fa-code-branch g-ico"></i>Exemples</span>
         <i class="fas fa-chevron-right chev"></i>
       </div>
       <div class="docs-nav-links">
         <a href="#ex-python" class="docs-nav-link">Python</a>
-        <a href="#ex-javascript" class="docs-nav-link">JavaScript</a>
+        <a href="#ex-js" class="docs-nav-link">JavaScript</a>
         <a href="#ex-php" class="docs-nav-link">PHP</a>
         <a href="#ex-curl" class="docs-nav-link">cURL</a>
       </div>
@@ -219,18 +229,20 @@
   <main class="docs-content" id="docsContent">
 
     <h1>Documentation API Boost Reseller</h1>
-    <p class="docs-lead">Bienvenue dans la documentation officielle de l'API Boost Reseller. Cette API vous permet d'automatiser la gestion de votre boutique : produits, commandes, clients, statistiques et bien plus encore. Version : <strong>v1</strong> · Dernière mise à jour : 15 octobre 2026.</p>
+    <p class="docs-lead">Bienvenue dans la documentation officielle de l'API Boost Reseller (v1). Cette API vous permet d'automatiser la gestion de votre boutique : produits, commandes, clients, statistiques, webhooks et bien plus. Toutes les requêtes sont en HTTPS et les réponses sont en JSON.</p>
 
-    <!-- ═══ DÉMARRAGE ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="intro"><i class="fas fa-play-circle" style="color:#00BFFF;margin-right:8px"></i>Introduction</h2>
-    <p>L'API Boost Reseller est une <strong>API REST</strong> qui utilise les standards HTTP (GET, POST, PATCH, DELETE). Toutes les réponses sont au format <strong>JSON</strong>, encodées en UTF-8.</p>
+    <p>L'API Boost Reseller est une <strong>API REST</strong> qui utilise les standards HTTP (<code>GET</code>, <code>POST</code>, <code>PATCH</code>, <code>DELETE</code>). Toutes les réponses sont au format <strong>JSON</strong> encodé en UTF-8.</p>
     <p>Avec cette API, vous pouvez :</p>
     <ul>
       <li>Récupérer et modifier les informations de votre boutique.</li>
-      <li>Créer, modifier et supprimer des produits.</li>
-      <li>Consulter et mettre à jour les commandes de vos clients.</li>
+      <li>Créer, modifier et supprimer des produits en masse.</li>
+      <li>Consulter les commandes et mettre à jour leur statut.</li>
       <li>Lister vos clients inscrits.</li>
       <li>Obtenir des statistiques détaillées sur vos ventes.</li>
+      <li>Recevoir des notifications en temps réel via webhooks.</li>
+      <li>Intégrer Boost Reseller avec vos outils (Zapier, Make, ERP, CRM...).</li>
     </ul>
 
     <div class="docs-callout info">
@@ -238,6 +250,7 @@
       <div><strong>Prérequis :</strong> Pour utiliser l'API, vous devez disposer d'une <a href="{{ url_for('dashboard_dev.api_keys') }}">clé API valide</a>. Chaque clé possède des permissions (scopes) précises que vous définissez à la création.</div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="auth"><i class="fas fa-shield-alt" style="color:#00BFFF;margin-right:8px"></i>Authentification</h2>
     <p>Toutes les requêtes doivent inclure votre clé API dans le header <code>Authorization</code> au format <strong>Bearer</strong> :</p>
 
@@ -258,14 +271,16 @@
   -H "Authorization: Bearer bsk_live_xxxx"</pre>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="base-url"><i class="fas fa-globe" style="color:#00BFFF;margin-right:8px"></i>URL de base</h2>
     <p>Toutes les requêtes API doivent être faites sur cette URL :</p>
     <div class="docs-code">
       <pre>https://reseller.boostcentral.world/api/v1</pre>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="format"><i class="fas fa-code" style="color:#00BFFF;margin-right:8px"></i>Format des réponses</h2>
-    <p>Les réponses de succès sont renvoyées avec un code HTTP <code>200</code> (ou <code>201</code> pour les créations) et un contenu JSON. Les erreurs utilisent des codes HTTP standards (<code>400</code>, <code>401</code>, <code>403</code>, <code>404</code>, <code>429</code>, <code>500</code>).</p>
+    <p>Les réponses de succès sont renvoyées avec un code HTTP <code>200</code> (ou <code>201</code> pour les créations) et un contenu JSON. Les erreurs utilisent des codes HTTP standards.</p>
 
     <h4>Réponse de succès</h4>
     <div class="docs-code">
@@ -284,11 +299,12 @@
   "success": false,
   "error": {
     "code": "invalid_scope",
-    "message": "Votre clé ne possede pas le scope 'produits:write'"
+    "message": "Votre cle ne possede pas le scope 'produits:write'"
   }
 }</pre>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="rate-limits"><i class="fas fa-tachometer-alt" style="color:#00BFFF;margin-right:8px"></i>Rate limits</h2>
     <p>Pour garantir la stabilité du service, chaque clé API est limitée à :</p>
     <table class="docs-table">
@@ -301,23 +317,23 @@
         <tr><td>Rafale maximale</td><td>30 / minute</td></tr>
       </tbody>
     </table>
-    <p>Les headers <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code> et <code>X-RateLimit-Reset</code> sont renvoyés dans chaque réponse pour vous aider à gérer vos appels.</p>
+    <p>Les headers <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code> et <code>X-RateLimit-Reset</code> sont renvoyés dans chaque réponse.</p>
 
     <div class="docs-callout warn">
       <i class="fas fa-exclamation-triangle"></i>
       <div>En cas de dépassement, vous recevrez un code <code>429 Too Many Requests</code>. Attendez le temps indiqué dans le header <code>Retry-After</code> avant de réessayer.</div>
     </div>
 
-    <!-- ═══ SÉCURITÉ ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="scopes"><i class="fas fa-key" style="color:#00BFFF;margin-right:8px"></i>Scopes & permissions</h2>
-    <p>Chaque clé API possède un ensemble de <strong>scopes</strong> qui définissent ce qu'elle peut faire. Vous pouvez choisir les scopes à la création d'une clé.</p>
+    <p>Chaque clé API possède un ensemble de <strong>scopes</strong> qui définissent ce qu'elle peut faire :</p>
 
     <table class="docs-table">
       <thead>
         <tr><th>Scope</th><th>Description</th></tr>
       </thead>
       <tbody>
-        <tr><td><span class="scope-pill">boutique:read</span></td><td>Lire les informations de votre boutique (nom, slogan, contacts...)</td></tr>
+        <tr><td><span class="scope-pill">boutique:read</span></td><td>Lire les informations de votre boutique</td></tr>
         <tr><td><span class="scope-pill">boutique:write</span></td><td>Modifier les informations de votre boutique</td></tr>
         <tr><td><span class="scope-pill">produits:read</span></td><td>Lister et consulter vos produits</td></tr>
         <tr><td><span class="scope-pill">produits:write</span></td><td>Créer, modifier et supprimer des produits</td></tr>
@@ -333,6 +349,7 @@
       <div><strong>Principe du moindre privilège :</strong> Donnez uniquement les scopes strictement nécessaires à votre usage. Si votre app ne fait que lire les commandes, ne lui donnez pas <code>commandes:write</code>.</div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="bons-pratiques"><i class="fas fa-check-circle" style="color:#00BFFF;margin-right:8px"></i>Bonnes pratiques</h2>
     <ul>
       <li><strong>Une clé par environnement :</strong> une clé pour le développement, une pour la production.</li>
@@ -343,13 +360,14 @@
       <li><strong>Gestion des erreurs :</strong> implémentez des retry avec backoff exponentiel pour les erreurs 5xx et 429.</li>
     </ul>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="erreurs"><i class="fas fa-bug" style="color:#00BFFF;margin-right:8px"></i>Gestion des erreurs</h2>
     <table class="docs-table">
       <thead>
         <tr><th>Code HTTP</th><th>Signification</th><th>Que faire ?</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>400</code></td><td>Requête invalide (paramètres manquants ou malformés)</td><td>Vérifiez votre payload JSON</td></tr>
+        <tr><td><code>400</code></td><td>Requête invalide</td><td>Vérifiez votre payload JSON</td></tr>
         <tr><td><code>401</code></td><td>Clé API manquante ou invalide</td><td>Vérifiez le header Authorization</td></tr>
         <tr><td><code>403</code></td><td>Scope manquant pour cette action</td><td>Ajoutez le scope requis à votre clé</td></tr>
         <tr><td><code>404</code></td><td>Ressource introuvable</td><td>Vérifiez l'ID ou le chemin</td></tr>
@@ -359,7 +377,7 @@
       </tbody>
     </table>
 
-    <!-- ═══ BOUTIQUE ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="get-boutique"><i class="fas fa-store" style="color:#00BFFF;margin-right:8px"></i>Récupérer sa boutique</h2>
     <div class="endpoint">
       <span class="method get">GET</span>
@@ -391,6 +409,7 @@
 }</pre>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="update-boutique"><i class="fas fa-edit" style="color:#00BFFF;margin-right:8px"></i>Modifier sa boutique</h2>
     <div class="endpoint">
       <span class="method patch">PATCH</span>
@@ -422,7 +441,7 @@
   -d '{"slogan": "Nouveau slogan"}'</pre>
     </div>
 
-    <!-- ═══ PRODUITS ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="list-produits"><i class="fas fa-list" style="color:#00BFFF;margin-right:8px"></i>Lister ses produits</h2>
     <div class="endpoint">
       <span class="method get">GET</span>
@@ -443,6 +462,32 @@
       </tbody>
     </table>
 
+    <h4>Réponse</h4>
+    <div class="docs-code">
+      <pre>{
+  "success": true,
+  "data": {
+    "total": 42,
+    "limit": 50,
+    "offset": 0,
+    "produits": [
+      {
+        "id": "abc-123",
+        "nom": "T-shirt Nike",
+        "description": "Coton bio",
+        "prix": 15000,
+        "stock": 50,
+        "image_url": "https://...",
+        "categorie_id": 3,
+        "actif": true,
+        "created_at": "2026-10-15T10:00:00Z"
+      }
+    ]
+  }
+}</pre>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="get-produit"><i class="fas fa-search" style="color:#00BFFF;margin-right:8px"></i>Récupérer un produit</h2>
     <div class="endpoint">
       <span class="method get">GET</span>
@@ -450,6 +495,7 @@
     </div>
     <p><strong>Scope requis :</strong> <span class="scope-pill">produits:read</span></p>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="create-produit"><i class="fas fa-plus" style="color:#00BFFF;margin-right:8px"></i>Créer un produit</h2>
     <div class="endpoint">
       <span class="method post">POST</span>
@@ -483,6 +529,7 @@
   }'</pre>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="update-produit"><i class="fas fa-edit" style="color:#00BFFF;margin-right:8px"></i>Modifier un produit</h2>
     <div class="endpoint">
       <span class="method patch">PATCH</span>
@@ -490,6 +537,7 @@
     </div>
     <p><strong>Scope requis :</strong> <span class="scope-pill">produits:write</span></p>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="delete-produit"><i class="fas fa-trash" style="color:#00BFFF;margin-right:8px"></i>Supprimer un produit</h2>
     <div class="endpoint">
       <span class="method delete">DELETE</span>
@@ -501,7 +549,7 @@
       <div>La suppression est <strong>définitive</strong>. Les commandes liées ne sont pas supprimées.</div>
     </div>
 
-    <!-- ═══ COMMANDES ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="list-commandes"><i class="fas fa-shopping-bag" style="color:#00BFFF;margin-right:8px"></i>Lister les commandes</h2>
     <div class="endpoint">
       <span class="method get">GET</span>
@@ -520,6 +568,7 @@
       </tbody>
     </table>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="get-commande"><i class="fas fa-receipt" style="color:#00BFFF;margin-right:8px"></i>Récupérer une commande</h2>
     <div class="endpoint">
       <span class="method get">GET</span>
@@ -527,6 +576,7 @@
     </div>
     <p>Utilisez la référence de commande (ex: <code>CMD-ABC123</code>) pour récupérer les détails.</p>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="update-commande"><i class="fas fa-sync" style="color:#00BFFF;margin-right:8px"></i>Modifier le statut d'une commande</h2>
     <div class="endpoint">
       <span class="method patch">PATCH</span>
@@ -542,38 +592,22 @@
   -d '{"statut": "livree"}'</pre>
     </div>
 
-    <!-- ═══ CLIENTS ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="list-clients"><i class="fas fa-users" style="color:#00BFFF;margin-right:8px"></i>Lister les clients</h2>
     <div class="endpoint">
       <span class="method get">GET</span>
       <span>/api/v1/clients</span>
     </div>
-    <p>Retourne la liste de tous les clients inscrits via votre boutique (rattachés à votre compte revendeur).</p>
+    <p>Retourne la liste de tous les clients inscrits via votre boutique.</p>
     <p><strong>Scope requis :</strong> <span class="scope-pill">clients:read</span></p>
 
-    <h4>Réponse</h4>
-    <div class="docs-code">
-      <pre>{
-  "success": true,
-  "data": [
-    {
-      "id": "uuid-xxx",
-      "email": "client@example.com",
-      "full_name": "Jean Dupont",
-      "country": "Cameroun",
-      "rattache_le": "2026-10-15T10:23:00Z"
-    }
-  ]
-}</pre>
-    </div>
-
-    <!-- ═══ STATS ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="stats"><i class="fas fa-chart-line" style="color:#00BFFF;margin-right:8px"></i>Statistiques</h2>
     <div class="endpoint">
       <span class="method get">GET</span>
       <span>/api/v1/stats</span>
     </div>
-    <p>Retourne les statistiques globales de votre boutique : nombre de commandes, revenus, meilleurs produits, etc.</p>
+    <p>Retourne les statistiques globales de votre boutique.</p>
     <p><strong>Scope requis :</strong> <span class="scope-pill">stats:read</span></p>
 
     <table class="docs-table">
@@ -585,26 +619,97 @@
       </tbody>
     </table>
 
-    <h4>Réponse</h4>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <h2 id="webhooks-intro"><i class="fas fa-bell" style="color:#00BFFF;margin-right:8px"></i>Webhooks - Introduction</h2>
+    <p>Les webhooks permettent à Boost Reseller de <strong>notifier votre serveur</strong> en temps réel à chaque événement (nouvelle commande, paiement reçu...).</p>
+
+    <h3>Comment ça marche ?</h3>
+    <ol>
+      <li>Vous créez un webhook dans <a href="{{ url_for('dashboard_dev.webhooks') }}">Webhooks</a>.</li>
+      <li>Vous recevez un <strong>secret</strong> de signature (à conserver).</li>
+      <li>À chaque événement, on envoie une requête <code>POST</code> à votre URL.</li>
+      <li>Vous vérifiez la signature avec le header <code>X-Boost-Signature</code>.</li>
+    </ol>
+
+    <h3>Réponse attendue</h3>
+    <p>Votre serveur doit répondre avec un code HTTP <strong>2xx</strong> (200, 201, 204...). Tout autre code sera considéré comme un échec.</p>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <h2 id="webhooks-events"><i class="fas fa-bolt" style="color:#00BFFF;margin-right:8px"></i>Webhooks - Événements</h2>
+
+    <table class="docs-table">
+      <thead>
+        <tr><th>Événement</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>commande.creee</code></td><td>Un client passe une nouvelle commande</td></tr>
+        <tr><td><code>commande.confirmee</code></td><td>Vous confirmez une commande</td></tr>
+        <tr><td><code>commande.en_livraison</code></td><td>Commande en cours de livraison</td></tr>
+        <tr><td><code>commande.livree</code></td><td>Commande livrée</td></tr>
+        <tr><td><code>commande.annulee</code></td><td>Commande annulée</td></tr>
+        <tr><td><code>paiement.recu</code></td><td>Un paiement est validé</td></tr>
+        <tr><td><code>client.inscrit</code></td><td>Un nouveau client s'inscrit</td></tr>
+        <tr><td><code>avis.ajoute</code></td><td>Un client laisse un avis</td></tr>
+        <tr><td><code>produit.stock_bas</code></td><td>Un produit est presque épuisé</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Exemple de payload reçu</h3>
     <div class="docs-code">
-      <pre>{
-  "success": true,
+      <pre>POST /votre-endpoint HTTP/1.1
+Content-Type: application/json
+X-Boost-Event: commande.creee
+X-Boost-Signature: t=1729000000,v1=abc123...
+X-Boost-Delivery: 5f8a9c...
+
+{
+  "event": "commande.creee",
+  "timestamp": 1729000000,
   "data": {
-    "periode": "30j",
-    "nb_commandes": 45,
-    "revenus": 1250000,
-    "nb_clients": 38,
-    "visiteurs": 2340,
-    "taux_conversion": 1.92,
-    "top_produits": [
-      { "nom": "T-shirt Nike", "ventes": 18 }
-    ]
+    "reference": "CMD-A3F8B2C1D4E5",
+    "client_nom": "Jean Dupont",
+    "client_telephone": "658033690",
+    "total": 25000,
+    "statut": "en_attente"
   }
 }</pre>
     </div>
 
-    <!-- ═══ EXEMPLES ═══ -->
-    <h2 id="ex-python"><i class="fab fa-python" style="color:#00BFFF;margin-right:8px"></i>Exemple Python</h2>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <h2 id="webhooks-signature"><i class="fas fa-lock" style="color:#00BFFF;margin-right:8px"></i>Webhooks - Signature HMAC</h2>
+    <p>Chaque requête est signée avec le <strong>secret</strong> de votre webhook. Vérifiez systématiquement la signature pour vous assurer que la requête vient bien de Boost Reseller.</p>
+
+    <h3>Comment vérifier</h3>
+    <ol>
+      <li>Récupérez les headers <code>X-Boost-Signature</code> et <code>X-Boost-Event</code>.</li>
+      <li>Extrayez le timestamp et la signature v1 du header (<code>t=xxx,v1=xxx</code>).</li>
+      <li>Construisez le message : <code>timestamp + "." + body_brut</code>.</li>
+      <li>Calculez le HMAC-SHA256 avec votre secret.</li>
+      <li>Comparez avec la signature reçue.</li>
+    </ol>
+
+    <h3>Exemple Python</h3>
+    <div class="docs-code">
+      <pre>import hashlib
+import hmac
+
+def verifier_signature(secret, timestamp, body_brut, signature_recue):
+    message = f"{timestamp}.{body_brut}"
+    signature_calculee = hmac.new(
+        secret.encode("utf-8"),
+        message.encode("utf-8"),
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(signature_calculee, signature_recue)</pre>
+    </div>
+
+    <div class="docs-callout warn">
+      <i class="fas fa-exclamation-triangle"></i>
+      <div><strong>Important :</strong> Utilisez toujours <code>hmac.compare_digest</code> (ou équivalent) pour comparer les signatures. Cela évite les attaques par timing.</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <h2 id="ex-python"><i class="fab fa-python" style="color:#00BFFF;margin-right:8px"></i>Exemple Python complet</h2>
     <div class="docs-code">
       <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
       <pre>import requests
@@ -620,7 +725,7 @@ headers = {
 # Lister les produits
 r = requests.get(f"{BASE}/produits", headers=headers)
 produits = r.json()["data"]
-print(f"{len(produits)} produits")
+print(f"{produits['total']} produits")
 
 # Creer un produit
 nouveau = {
@@ -629,10 +734,17 @@ nouveau = {
     "stock": 100
 }
 r = requests.post(f"{BASE}/produits", headers=headers, json=nouveau)
-print(r.json())</pre>
+print(r.json())
+
+# Lister les commandes en attente
+r = requests.get(f"{BASE}/commandes?statut=en_attente", headers=headers)
+commandes = r.json()["data"]["commandes"]
+for c in commandes:
+    print(f"{c['reference']} - {c['client_nom']}")</pre>
     </div>
 
-    <h2 id="ex-javascript"><i class="fab fa-js" style="color:#00BFFF;margin-right:8px"></i>Exemple JavaScript (Node.js)</h2>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <h2 id="ex-js"><i class="fab fa-js" style="color:#00BFFF;margin-right:8px"></i>Exemple JavaScript (Node.js)</h2>
     <div class="docs-code">
       <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
       <pre>const API_KEY = "bsk_live_xxxx";
@@ -643,12 +755,25 @@ async function listerProduits() {
     headers: { "Authorization": `Bearer ${API_KEY}` }
   });
   const data = await r.json();
-  console.log(data.data.length, "produits");
+  console.log(data.data.total, "produits");
+}
+
+async function creerProduit() {
+  const r = await fetch(`${BASE}/produits`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ nom: "Casquette", prix: 5000, stock: 100 })
+  });
+  console.log(await r.json());
 }
 
 listerProduits();</pre>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="ex-php"><i class="fab fa-php" style="color:#00BFFF;margin-right:8px"></i>Exemple PHP</h2>
     <div class="docs-code">
       <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
@@ -667,6 +792,7 @@ print_r($data);
 ?&gt;</pre>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="ex-curl"><i class="fas fa-terminal" style="color:#00BFFF;margin-right:8px"></i>Exemple cURL</h2>
     <div class="docs-code">
       <button class="copy-btn" onclick="copierCode(this)"><i class="fas fa-copy"></i> Copier</button>
@@ -679,29 +805,32 @@ curl "https://reseller.boostcentral.world/api/v1/stats?periode=30j" \
   -H "Authorization: Bearer bsk_live_xxxx"</pre>
     </div>
 
-    <!-- ═══ FAQ ═══ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <h2 id="faq"><i class="fas fa-question-circle" style="color:#00BFFF;margin-right:8px"></i>Questions fréquentes</h2>
 
     <h3>Ma clé API ne fonctionne pas, que faire ?</h3>
-    <p>Vérifiez que : (1) la clé n'a pas été révoquée depuis votre dashboard, (2) vous avez bien mis <code>Bearer</code> avant la clé, (3) la clé possède le bon scope pour l'action demandée.</p>
+    <p>Vérifiez que : (1) la clé n'a pas été révoquée, (2) vous avez bien mis <code>Bearer</code> avant la clé, (3) la clé possède le bon scope pour l'action demandée.</p>
 
     <h3>Je reçois une erreur 403 forbidden_scope, que faire ?</h3>
-    <p>Votre clé n'a pas le scope nécessaire. Rendez-vous dans <a href="{{ url_for('dashboard_dev.api_keys') }}">Clés API</a>, révoquez l'ancienne clé et créez-en une nouvelle avec les scopes adéquats.</p>
+    <p>Votre clé n'a pas le scope nécessaire. Allez dans <a href="{{ url_for('dashboard_dev.api_keys') }}">Clés API</a>, révoquez l'ancienne et créez-en une nouvelle avec les scopes adéquats.</p>
 
     <h3>Combien de clés API puis-je créer ?</h3>
-    <p>Vous pouvez créer jusqu'à <strong>10 clés actives</strong> simultanément. Les clés révoquées ne comptent pas.</p>
+    <p>Vous pouvez créer jusqu'à <strong>10 clés actives</strong> simultanément.</p>
 
     <h3>Y a-t-il un SDK officiel ?</h3>
-    <p>Une bibliothèque Python et JavaScript sont en cours de développement. En attendant, utilisez <code>requests</code> (Python) ou <code>fetch</code> (JavaScript) directement.</p>
+    <p>Le SDK <strong>Python</strong> est disponible au téléchargement dans la section <a href="{{ url_for('dashboard_dev.sdk') }}">SDK</a>. Les versions JavaScript et PHP sont en développement.</p>
 
     <h3>Comment tester mes appels sans risque ?</h3>
-    <p>Utilisez l'onglet <a href="{{ url_for('dashboard_dev.playground') }}">Playground</a> pour tester vos appels depuis le dashboard, sans écrire de code.</p>
+    <p>Utilisez l'onglet <a href="{{ url_for('dashboard_dev.playground') }}">Playground</a> pour tester vos appels depuis le dashboard.</p>
 
     <h3>Comment recevoir des notifications en temps réel ?</h3>
-    <p>Configurez un <strong>webhook</strong> dans la section dédiée. Nous vous enverrons une requête HTTP POST sur votre URL à chaque événement (nouvelle commande, paiement reçu, etc.).</p>
+    <p>Configurez un <strong>webhook</strong> dans la section dédiée. Nous vous enverrons une requête HTTP POST sur votre URL à chaque événement.</p>
 
-    <h3>L'API est-elle disponible 24/7 ?</h3>
-    <p>Oui, l'API est disponible en permanence, avec un objectif d'uptime de 99,9 %. Les périodes de maintenance sont annoncées à l'avance.</p>
+    <h3>Puis-je utiliser plusieurs webhooks ?</h3>
+    <p>Oui, vous pouvez créer plusieurs webhooks avec des événements différents. Chacun possède son propre secret de signature.</p>
+
+    <h3>Les paiements en ligne sont-ils supportés ?</h3>
+    <p>Oui, l'intégration Mysoleas permet d'encaisser automatiquement les paiements via MTN Mobile Money, Orange Money et cartes bancaires.</p>
 
     <h3>Que faire en cas de problème non résolu ?</h3>
     <p>Contactez le support technique via WhatsApp avec : l'endpoint appelé, la clé (préfixe uniquement), le code HTTP, et le message d'erreur.</p>
