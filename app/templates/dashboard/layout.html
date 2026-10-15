@@ -36,6 +36,9 @@
   50%{box-shadow:0 2px 14px rgba(239,68,68,.7)}
 }
 .nav-separator{height:1px;background:rgba(255,255,255,.08);margin:8px 12px}
+.nav-section-title{padding:6px 14px 4px;font-size:.65rem;font-weight:900;letter-spacing:.8px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.nav-section-title.dev{color:#7DD3FC}
+.nav-section-title.admin{color:#F87171}
 .sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,.08)}
 .sidebar-user{padding:10px 12px;font-size:.76rem;color:rgba(255,255,255,.6);margin-bottom:6px;word-break:break-all;display:flex;align-items:center;gap:8px}
 .btn-logout-side{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#F87171;font-size:.82rem;font-weight:700;text-decoration:none;border-radius:10px}
@@ -175,6 +178,31 @@
       <a href="{{ url_for('dashboard_shop.parametres') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.parametres' %}active{% endif %}">
         <i class="fas fa-cog nav-ico"></i> <span class="nav-label">Parametres</span>
       </a>
+
+      <div class="nav-separator"></div>
+
+      <div class="nav-section-title dev">
+        <i class="fas fa-code"></i> DÉVELOPPEUR
+      </div>
+
+      <a href="{{ url_for('dashboard_dev.index') }}" class="nav-item {% if request.endpoint and request.endpoint.startswith('dashboard_dev') %}active{% endif %}">
+        <i class="fas fa-code nav-ico"></i> <span class="nav-label">Espace développeur</span>
+      </a>
+
+      {% if profile and profile.est_admin %}
+      <div class="nav-separator"></div>
+
+      <div class="nav-section-title admin">
+        <i class="fas fa-shield-alt"></i> ADMIN
+      </div>
+
+      <a href="{{ url_for('dashboard_admin.index') }}" class="nav-item {% if request.endpoint == 'dashboard_admin.index' %}active{% endif %}">
+        <i class="fas fa-cog nav-ico"></i> <span class="nav-label">Fonctionnalités</span>
+      </a>
+      <a href="{{ url_for('dashboard_admin.revendeurs') }}" class="nav-item {% if request.endpoint and request.endpoint.startswith('dashboard_admin.revendeur') %}active{% endif %}">
+        <i class="fas fa-users-cog nav-ico"></i> <span class="nav-label">Revendeurs</span>
+      </a>
+      {% endif %}
 
       <div class="nav-separator"></div>
 
