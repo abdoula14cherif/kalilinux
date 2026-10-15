@@ -1,0 +1,196 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Playground API — Boost Reseller{% endblock %}
+{% block page_title %}Playground API{% endblock %}
+{% block page_subtitle %}Testez vos appels API directement depuis le dashboard{% endblock %}
+
+{% block extra_css %}
+.info-banner{background:linear-gradient(135deg,#FEF3C7,#FFFBEB);border-left:4px solid #F59E0B;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#78350F;line-height:1.6}
+.info-banner i{color:#F59E0B;margin-right:6px}
+.info-banner strong{color:#B45309}
+
+.pg-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.pg-grid{grid-template-columns:1fr}}
+
+.pg-panel{background:#fff;border-radius:16px;border:1px solid #E2E8F0;padding:20px;display:flex;flex-direction:column}
+.pg-panel-title{font-size:.82rem;font-weight:900;color:#0F172A;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.pg-panel-title i{color:#00BFFF}
+
+.pg-row{display:flex;gap:8px;margin-bottom:14px}
+.pg-method{padding:11px 14px;border:2px solid #E2E8F0;border-radius:11px;font-size:.82rem;font-weight:900;background:#fff;font-family:'Courier New',monospace;color:#0F172A;cursor:pointer;flex-shrink:0}
+.pg-method:focus{border-color:#00BFFF;outline:none}
+.pg-endpoint{flex:1;padding:11px 14px;border:2px solid #E2E8F0;border-radius:11px;font-size:.85rem;font-family:'Courier New',monospace;color:#0F172A;outline:none;background:#fff;font-weight:600}
+.pg-endpoint:focus{border-color:#00BFFF;background:#F0FAFF}
+
+.pg-label{font-size:.78rem;font-weight:800;color:#0F172A;margin-bottom:6px;display:block}
+.pg-textarea{width:100%;min-height:200px;padding:14px;border:2px solid #E2E8F0;border-radius:12px;font-family:'Courier New',monospace;font-size:.82rem;color:#0F172A;outline:none;background:#F8FAFC;resize:vertical;line-height:1.6}
+.pg-textarea:focus{border-color:#00BFFF;background:#fff}
+
+.pg-btn{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;border:none;padding:14px 22px;border-radius:12px;font-weight:900;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;box-shadow:0 6px 18px rgba(0,191,255,.3);transition:.2s;width:100%;margin-top:14px}
+.pg-btn:hover{transform:translateY(-1px)}
+.pg-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+.pg-response{background:#0F172A;border-radius:12px;padding:16px 18px;min-height:200px;overflow:auto;position:relative}
+.pg-response pre{margin:0;font-family:'Courier New',monospace;font-size:.8rem;line-height:1.7;color:#E2E8F0;white-space:pre-wrap;word-break:break-word}
+.pg-response .status-line{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:12px;font-size:.78rem;font-weight:800;flex-wrap:wrap}
+.pg-response .status-code{padding:4px 10px;border-radius:6px;font-weight:900;font-family:'Courier New',monospace}
+.pg-response .status-code.ok{background:#10B981;color:#fff}
+.pg-response .status-code.err{background:#DC2626;color:#fff}
+.pg-response .duration{color:#94A3B8;display:flex;align-items:center;gap:5px}
+
+.pg-presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pg-preset{background:#F1F5F9;border:1px solid #E2E8F0;color:#475569;padding:7px 14px;border-radius:10px;font-size:.74rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s}
+.pg-preset:hover{background:#00BFFF;color:#fff;border-color:#00BFFF}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="info-banner">
+  <i class="fas fa-flask"></i>
+  Utilisez ce <strong>playground</strong> pour tester vos appels API sans écrire une ligne de code. Sélectionnez un preset ou tapez votre requête manuellement.
+</div>
+
+<div class="pg-grid">
+
+  <!-- Requête -->
+  <div class="pg-panel">
+    <div class="pg-panel-title"><i class="fas fa-paper-plane"></i> Requête</div>
+
+    <div class="pg-presets">
+      <button class="pg-preset" onclick="chargerPreset('boutique')">📍 Ma boutique</button>
+      <button class="pg-preset" onclick="chargerPreset('produits')">📦 Mes produits</button>
+      <button class="pg-preset" onclick="chargerPreset('commandes')">🛒 Commandes</button>
+      <button class="pg-preset" onclick="chargerPreset('clients')">👥 Clients</button>
+      <button class="pg-preset" onclick="chargerPreset('stats')">📊 Statistiques</button>
+    </div>
+
+    <div class="pg-row">
+      <select class="pg-method" id="pgMethod">
+        <option value="GET">GET</option>
+        <option value="POST">POST</option>
+        <option value="PATCH">PATCH</option>
+        <option value="DELETE">DELETE</option>
+      </select>
+      <input type="text" class="pg-endpoint" id="pgEndpoint" placeholder="/boutique" value="/boutique">
+    </div>
+
+    <div style="margin-bottom:14px">
+      <label class="pg-label">Clé API (bsk_live_...)</label>
+      <input type="text" class="pg-endpoint" id="pgApiKey" placeholder="bsk_live_xxxxxx" style="width:100%">
+      <small style="font-size:.72rem;color:#94A3B8;display:block;margin-top:6px">
+        Utilisez une clé de test. Elle n'est jamais enregistrée.
+      </small>
+    </div>
+
+    <div style="flex:1">
+      <label class="pg-label">Body JSON (pour POST/PATCH)</label>
+      <textarea class="pg-textarea" id="pgBody" placeholder='{\n  "nom": "Test"\n}'></textarea>
+    </div>
+
+    <button class="pg-btn" id="pgBtn" onclick="executerRequete()">
+      <i class="fas fa-paper-plane"></i> Envoyer la requête
+    </button>
+  </div>
+
+  <!-- Réponse -->
+  <div class="pg-panel">
+    <div class="pg-panel-title"><i class="fas fa-reply"></i> Réponse</div>
+    <div class="pg-response" id="pgResponse" style="flex:1">
+      <pre style="color:#64748B;text-align:center;padding-top:60px">👈 Cliquez sur "Envoyer la requête" pour voir la réponse ici</pre>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var presets = {
+  boutique: { method: 'GET', endpoint: '/boutique', body: '' },
+  produits: { method: 'GET', endpoint: '/produits?limit=10', body: '' },
+  commandes: { method: 'GET', endpoint: '/commandes?statut=en_attente', body: '' },
+  clients: { method: 'GET', endpoint: '/clients', body: '' },
+  stats: { method: 'GET', endpoint: '/stats?periode=30j', body: '' }
+};
+
+function chargerPreset(nom){
+  var p = presets[nom];
+  if(!p) return;
+  document.getElementById('pgMethod').value = p.method;
+  document.getElementById('pgEndpoint').value = p.endpoint;
+  document.getElementById('pgBody').value = p.body;
+}
+
+async function executerRequete(){
+  var methode = document.getElementById('pgMethod').value;
+  var endpoint = document.getElementById('pgEndpoint').value.trim();
+  var apiKey = document.getElementById('pgApiKey').value.trim();
+  var body = document.getElementById('pgBody').value.trim();
+  var btn = document.getElementById('pgBtn');
+  var resp = document.getElementById('pgResponse');
+
+  if(!apiKey){
+    resp.innerHTML = '<pre style="color:#DC2626">⚠️ Entrez une clé API (format bsk_live_...)</pre>';
+    return;
+  }
+  if(!apiKey.startsWith('bsk_live_')){
+    resp.innerHTML = '<pre style="color:#DC2626">⚠️ Format de clé invalide. Doit commencer par "bsk_live_"</pre>';
+    return;
+  }
+  if(!endpoint.startsWith('/')){
+    endpoint = '/' + endpoint;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
+
+  var t0 = performance.now();
+  try {
+    var options = {
+      method: methode,
+      headers: {
+        'Authorization': 'Bearer ' + apiKey,
+        'Content-Type': 'application/json'
+      }
+    };
+    if((methode === 'POST' || methode === 'PATCH') && body){
+      try { JSON.parse(body); options.body = body; }
+      catch(e){
+        resp.innerHTML = '<pre style="color:#DC2626">⚠️ Body JSON invalide : ' + e.message + '</pre>';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer la requête';
+        return;
+      }
+    }
+
+    var r = await fetch('/api/v1' + endpoint, options);
+    var duration = Math.round(performance.now() - t0);
+    var texte = await r.text();
+    var formatted = texte;
+    try { formatted = JSON.stringify(JSON.parse(texte), null, 2); } catch(e){}
+
+    var statusClass = r.ok ? 'ok' : 'err';
+    resp.innerHTML = '<div class="status-line">' +
+      '<span class="status-code ' + statusClass + '">' + r.status + ' ' + r.statusText + '</span>' +
+      '<span class="duration"><i class="fas fa-clock"></i> ' + duration + ' ms</span>' +
+      '<span class="duration"><i class="fas fa-hdd"></i> ' + methode + ' /api/v1' + endpoint + '</span>' +
+      '</div><pre>' + escapeHtml(formatted) + '</pre>';
+
+  } catch(e) {
+    var duration = Math.round(performance.now() - t0);
+    resp.innerHTML = '<div class="status-line">' +
+      '<span class="status-code err">Erreur réseau</span>' +
+      '<span class="duration"><i class="fas fa-clock"></i> ' + duration + ' ms</span>' +
+      '</div><pre style="color:#DC2626">' + escapeHtml(e.message) + '</pre>';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer la requête';
+}
+
+function escapeHtml(texte){
+  return String(texte)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+</script>
+
+{% endblock %}
