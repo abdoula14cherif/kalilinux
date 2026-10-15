@@ -1,0 +1,76 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Développeur — Boost Reseller{% endblock %}
+{% block page_title %}Espace Développeur{% endblock %}
+{% block page_subtitle %}Automatisez et intégrez Boost Reseller dans vos outils{% endblock %}
+
+{% block extra_css %}
+.dev-hero{background:linear-gradient(135deg,#0F172A,#1E293B);border-radius:20px;padding:32px 28px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden}
+.dev-hero::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(0,191,255,.15),transparent 65%);pointer-events:none}
+.dev-hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(0,191,255,.15);border:1px solid rgba(0,191,255,.3);color:#7DD3FC;padding:6px 14px;border-radius:20px;font-size:.72rem;font-weight:800;letter-spacing:.5px;margin-bottom:16px;position:relative;z-index:1}
+.dev-hero h1{font-size:1.5rem;font-weight:900;margin-bottom:10px;position:relative;z-index:1;line-height:1.2}
+.dev-hero p{font-size:.92rem;color:rgba(255,255,255,.75);line-height:1.65;max-width:600px;position:relative;z-index:1}
+
+.dev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.dev-card{background:#fff;border-radius:16px;padding:22px;border:1px solid #E2E8F0;transition:all .25s;position:relative;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:inherit}
+.dev-card:hover{transform:translateY(-4px);box-shadow:0 14px 32px rgba(0,0,0,.08);border-color:#00BFFF}
+.dev-card-ico{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#fff;margin-bottom:16px;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.dev-card h3{font-size:1.05rem;font-weight:900;color:#0F172A;margin-bottom:8px;line-height:1.3}
+.dev-card p{font-size:.83rem;color:#64748B;line-height:1.6;margin-bottom:16px;flex:1}
+.dev-card-cta{display:inline-flex;align-items:center;gap:7px;color:#00BFFF;font-weight:800;font-size:.82rem;margin-top:auto}
+.dev-card-badge{position:absolute;top:14px;right:14px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;font-size:.65rem;font-weight:900;padding:4px 10px;border-radius:10px;letter-spacing:.3px;box-shadow:0 4px 12px rgba(245,158,11,.35)}
+.dev-card-badge.new{background:linear-gradient(135deg,#10B981,#059669);box-shadow:0 4px 12px rgba(16,185,129,.35)}
+
+.empty-dev{background:#fff;border-radius:16px;padding:60px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-dev i{font-size:3rem;color:#CBD5E1;display:block;margin-bottom:16px}
+.empty-dev h3{font-size:1.05rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-dev p{font-size:.85rem;color:#64748B;line-height:1.6;max-width:400px;margin:0 auto}
+
+.help-dev{background:linear-gradient(135deg,#00BFFF,#0096C7);border-radius:16px;padding:24px;color:#fff;margin-top:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.help-dev h3{font-size:1rem;font-weight:900;margin-bottom:6px}
+.help-dev p{font-size:.83rem;opacity:.92;line-height:1.5}
+.help-dev a{background:#fff;color:#0096C7;padding:11px 22px;border-radius:11px;font-weight:800;font-size:.83rem;text-decoration:none;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="dev-hero">
+  <div class="dev-hero-badge">🛠️ SECTION DÉVELOPPEUR</div>
+  <h1>Automatisez Boost Reseller</h1>
+  <p>Utilisez notre API REST pour intégrer votre boutique avec vos outils préférés : ERP, CRM, apps mobiles, sites externes...</p>
+</div>
+
+{% if features %}
+<div class="dev-grid">
+  {% for f in features %}
+  <a href="{% if f.code == 'api_keys' %}{{ url_for('dashboard_dev.api_keys') }}{% elif f.code == 'documentation' %}{{ url_for('dashboard_dev.documentation') }}{% elif f.code == 'playground' %}{{ url_for('dashboard_dev.playground') }}{% elif f.code == 'webhooks' %}{{ url_for('dashboard_dev.webhooks') }}{% elif f.code == 'logs_api' %}{{ url_for('dashboard_dev.logs') }}{% elif f.code == 'sdk' %}{{ url_for('dashboard_dev.sdk') }}{% else %}#{% endif %}" class="dev-card">
+    {% if f.est_premium %}<span class="dev-card-badge">PREMIUM</span>{% endif %}
+    <div class="dev-card-ico" style="background:linear-gradient(135deg,{{ f.couleur }},{{ f.couleur }}cc)">
+      <i class="{{ f.icone }}"></i>
+    </div>
+    <h3>{{ f.nom }}</h3>
+    <p>{{ f.description }}</p>
+    <span class="dev-card-cta">
+      Ouvrir <i class="fas fa-arrow-right"></i>
+    </span>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-dev">
+  <i class="fas fa-code"></i>
+  <h3>Aucune fonctionnalité disponible</h3>
+  <p>Les fonctionnalités développeur ne sont pas encore activées sur votre compte. Contactez le support pour les débloquer.</p>
+</div>
+{% endif %}
+
+<div class="help-dev">
+  <div>
+    <h3>💬 Besoin d'aide pour l'intégration ?</h3>
+    <p>Notre équipe technique peut vous accompagner dans vos premiers pas avec l'API.</p>
+  </div>
+  <a href="https://wa.me/237658033690?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20avec%20l%27API%20Boost%20Reseller" target="_blank">
+    <i class="fab fa-whatsapp"></i> Contacter le support
+  </a>
+</div>
+
+{% endblock %}
