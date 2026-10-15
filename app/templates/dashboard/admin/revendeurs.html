@@ -1,85 +1,180 @@
 {% extends "dashboard/layout.html" %}
 {% block title %}Revendeurs — Admin{% endblock %}
-{% block page_title %}Tous les revendeurs{% endblock %}
-{% block page_subtitle %}{{ revendeurs|length }} revendeur(s) inscrit(s){% endblock %}
+{% block page_title %}Tous les utilisateurs{% endblock %}
+{% block page_subtitle %}{{ revendeurs|length }} utilisateur(s) sur la plateforme{% endblock %}
 
 {% block topbar_actions %}
 <a href="{{ url_for('dashboard_admin.index') }}" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
-  <i class="fas fa-cog"></i> Fonctionnalités
+  <i class="fas fa-arrow-left"></i> Dashboard
 </a>
 {% endblock %}
 
 {% block extra_css %}
+.search-bar{background:#fff;border-radius:14px;padding:14px 16px;border:1px solid #E2E8F0;margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.search-inp{flex:1;min-width:200px;padding:11px 14px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#F8FAFC;font-family:inherit}
+.search-inp:focus{border-color:#00BFFF;background:#fff}
+.btn-search{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;border:none;padding:11px 20px;border-radius:11px;font-weight:800;font-size:.85rem;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+
 .rev-grid{display:grid;gap:12px}
-.rev-card{background:#fff;border-radius:14px;padding:18px;border:1px solid #E2E8F0;transition:.2s;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.rev-card{background:#fff;border-radius:14px;padding:18px;border:1px solid #E2E8F0;transition:.2s;position:relative}
 .rev-card:hover{border-color:#00BFFF;box-shadow:0 4px 14px rgba(0,191,255,.08)}
+.rev-card.banni{border-color:#DC2626;background:linear-gradient(135deg,#FFF,#FEF2F2)}
+.rev-card.banni::before{content:'BANNI';position:absolute;top:12px;right:12px;background:#DC2626;color:#fff;font-size:.65rem;font-weight:900;padding:4px 10px;border-radius:8px;letter-spacing:.3px}
+
+.rev-head{display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap}
 .rev-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.15rem;flex-shrink:0;text-transform:uppercase}
 .rev-info{flex:1;min-width:0}
 .rev-name{font-size:.92rem;font-weight:900;color:#0F172A;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rev-email{font-size:.78rem;color:#64748B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
-.rev-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:.72rem;color:#94A3B8;margin-top:6px}
-.rev-meta-item{display:flex;align-items:center;gap:4px}
-.rev-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.rev-email{font-size:.78rem;color:#64748B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rev-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .rev-badge{font-size:.65rem;font-weight:900;padding:3px 9px;border-radius:8px;letter-spacing:.3px}
 .b-ok{background:#EDFFF5;color:#059669}
 .b-warn{background:#FEF3C7;color:#92400E}
 .b-danger{background:#FEE2E2;color:#991B1B}
 .b-info{background:#E0F7FF;color:#0096C7}
-.b-premium{background:#FEF3C7;color:#92400E}
+.b-admin{background:linear-gradient(135deg,#DC2626,#991B1B);color:#fff}
 
-.rev-action{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;padding:10px 18px;border-radius:10px;font-weight:800;font-size:.78rem;text-decoration:none;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;transition:.2s}
-.rev-action:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,191,255,.3)}
+.rev-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;padding:14px 0;border-top:1px dashed #E2E8F0;border-bottom:1px dashed #E2E8F0;margin-bottom:14px}
+.rev-meta-item{font-size:.75rem;color:#64748B;display:flex;align-items:center;gap:6px;font-weight:600}
+.rev-meta-item i{color:#94A3B8;width:14px}
+.rev-meta-item strong{color:#0F172A;font-weight:800}
+
+.rev-actions{display:flex;gap:6px;flex-wrap:wrap}
+.btn-action{padding:8px 14px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;text-decoration:none}
+.btn-features{background:#E0F7FF;color:#0096C7;flex:1}
+.btn-features:hover{background:#0096C7;color:#fff}
+.btn-balance{background:#EDFFF5;color:#059669}
+.btn-balance:hover{background:#059669;color:#fff}
+.btn-abon{background:#F5F3FF;color:#7C3AED}
+.btn-abon:hover{background:#7C3AED;color:#fff}
+.btn-admin{background:#FEF3C7;color:#92400E}
+.btn-admin:hover{background:#D97706;color:#fff}
+.btn-ban{background:#FEE2E2;color:#991B1B}
+.btn-ban:hover{background:#DC2626;color:#fff}
+.btn-unban{background:#EDFFF5;color:#059669}
+.btn-unban:hover{background:#059669;color:#fff}
+.btn-del{background:#FEE2E2;color:#991B1B}
+.btn-del:hover{background:#991B1B;color:#fff}
 
 .empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
 .empty-state i{font-size:2.8rem;color:#CBD5E1;display:block;margin-bottom:14px}
 .empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
 .empty-state p{font-size:.85rem;color:#64748B}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px 22px;max-width:440px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94A3B8}
+.modal h3{font-size:1.05rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal h3 i{color:#DC2626}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.inp,.txta{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus,.txta:focus{border-color:#DC2626}
+.txta{min-height:70px;resize:vertical}
+.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#DC2626,#991B1B);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit}
 {% endblock %}
 
 {% block dashboard_content %}
 
+<form method="GET" action="{{ url_for('dashboard_admin.revendeurs') }}" class="search-bar">
+  <input type="text" class="search-inp" name="search" value="{{ search }}" placeholder="Rechercher par email ou nom...">
+  <button type="submit" class="btn-search"><i class="fas fa-search"></i> Rechercher</button>
+  {% if search %}
+  <a href="{{ url_for('dashboard_admin.revendeurs') }}" class="btn-action btn-del">Effacer</a>
+  {% endif %}
+</form>
+
 {% if revendeurs %}
 <div class="rev-grid">
   {% for r in revendeurs %}
-  <div class="rev-card">
-    <div class="rev-avatar">{{ (r.full_name or r.email or '?')[0] }}</div>
-
-    <div class="rev-info">
-      <div class="rev-name">{{ r.full_name or 'Sans nom' }}</div>
-      <div class="rev-email"><i class="fas fa-envelope"></i> {{ r.email }}</div>
-      <div class="rev-badges">
-        {% if r.est_revendeur %}
-        <span class="rev-badge b-ok"><i class="fas fa-check-circle"></i> Boutique en ligne</span>
-        {% else %}
-        <span class="rev-badge b-warn"><i class="fas fa-clock"></i> Brouillon</span>
-        {% endif %}
-
-        {% if r.boutique_type %}
-        <span class="rev-badge b-info"><i class="fas fa-store"></i> {{ r.boutique_type|capitalize }}</span>
-        {% endif %}
-
-        {% if r.abonnement_niveau and r.abonnement_niveau != 'gratuit' %}
-        <span class="rev-badge b-premium"><i class="fas fa-crown"></i> {{ r.abonnement_niveau|upper }}</span>
-        {% endif %}
-
-        {% if r.est_admin %}
-        <span class="rev-badge b-danger"><i class="fas fa-shield-alt"></i> ADMIN</span>
-        {% endif %}
-      </div>
-      <div class="rev-meta">
-        {% if r.revendeur_slug %}
-        <span class="rev-meta-item"><i class="fas fa-link"></i> /r/{{ r.revendeur_slug }}</span>
-        {% endif %}
-        <span class="rev-meta-item"><i class="fas fa-coins"></i> {{ "{:,.0f}".format(r.balance or 0) }} FCFA</span>
-        {% if r.country %}
-        <span class="rev-meta-item"><i class="fas fa-globe"></i> {{ r.country }}</span>
-        {% endif %}
+  <div class="rev-card {% if r.banni %}banni{% endif %}">
+    <div class="rev-head">
+      <div class="rev-avatar">{{ (r.full_name or r.email or '?')[0] }}</div>
+      <div class="rev-info">
+        <div class="rev-name">{{ r.full_name or 'Sans nom' }}</div>
+        <div class="rev-email"><i class="fas fa-envelope"></i> {{ r.email }}</div>
       </div>
     </div>
 
-    <a href="{{ url_for('dashboard_admin.revendeur_features', revendeur_id=r.id) }}" class="rev-action">
-      <i class="fas fa-sliders-h"></i> Gérer ses features
-    </a>
+    <div class="rev-badges">
+      {% if r.est_admin %}
+      <span class="rev-badge b-admin"><i class="fas fa-shield-alt"></i> ADMIN</span>
+      {% endif %}
+      {% if r.est_revendeur %}
+      <span class="rev-badge b-ok"><i class="fas fa-store"></i> Boutique en ligne</span>
+      {% else %}
+      <span class="rev-badge b-warn"><i class="fas fa-clock"></i> Brouillon</span>
+      {% endif %}
+      {% if r.boutique_type %}
+      <span class="rev-badge b-info"><i class="fas fa-tag"></i> {{ r.boutique_type }}</span>
+      {% endif %}
+      {% if r.abonnement_niveau and r.abonnement_niveau != 'gratuit' %}
+      <span class="rev-badge b-warn"><i class="fas fa-crown"></i> {{ r.abonnement_niveau|upper }}</span>
+      {% endif %}
+      {% if r.banni %}
+      <span class="rev-badge b-danger"><i class="fas fa-ban"></i> BANNI</span>
+      {% endif %}
+    </div>
+
+    <div class="rev-meta">
+      {% if r.revendeur_slug %}
+      <div class="rev-meta-item"><i class="fas fa-link"></i> <strong>/r/{{ r.revendeur_slug }}</strong></div>
+      {% endif %}
+      <div class="rev-meta-item"><i class="fas fa-coins"></i> <strong>{{ "{:,.0f}".format(r.balance or 0) }}</strong> FCFA</div>
+      {% if r.country %}
+      <div class="rev-meta-item"><i class="fas fa-globe"></i> <strong>{{ r.country }}</strong></div>
+      {% endif %}
+      {% if r.created_at %}
+      <div class="rev-meta-item"><i class="fas fa-calendar"></i> Inscrit le <strong>{{ r.created_at[:10] }}</strong></div>
+      {% endif %}
+    </div>
+
+    <div class="rev-actions">
+      <a href="{{ url_for('dashboard_admin.revendeur_features', revendeur_id=r.id) }}" class="btn-action btn-features">
+        <i class="fas fa-sliders-h"></i> Features
+      </a>
+
+      <button type="button" class="btn-action btn-balance" onclick='ouvrirBalance({{ r.id }}, "{{ r.email }}", {{ r.balance or 0 }})'>
+        <i class="fas fa-coins"></i> Solde
+      </button>
+
+      <button type="button" class="btn-action btn-abon" onclick='ouvrirAbon({{ r.id }}, "{{ r.email }}", "{{ r.abonnement_niveau or "gratuit" }}")'>
+        <i class="fas fa-crown"></i> Abonnement
+      </button>
+
+      {% if r.est_admin %}
+      <form method="POST" action="{{ url_for('dashboard_admin.revendeur_promouvoir', user_id=r.id) }}" style="flex:1" onsubmit="return confirm('Retirer les droits admin à cet utilisateur ?')">
+        <input type="hidden" name="est_admin" value="1">
+        <button type="submit" class="btn-action btn-del" style="width:100%">
+          <i class="fas fa-user-times"></i> Retirer admin
+        </button>
+      </form>
+      {% else %}
+      <form method="POST" action="{{ url_for('dashboard_admin.revendeur_promouvoir', user_id=r.id) }}" style="flex:1" onsubmit="return confirm('Promouvoir cet utilisateur admin ?')">
+        <input type="hidden" name="est_admin" value="0">
+        <button type="submit" class="btn-action btn-admin" style="width:100%">
+          <i class="fas fa-user-shield"></i> Promouvoir admin
+        </button>
+      </form>
+      {% endif %}
+
+      {% if r.banni %}
+      <form method="POST" action="{{ url_for('dashboard_admin.revendeur_debannir', user_id=r.id) }}" style="flex:1">
+        <button type="submit" class="btn-action btn-unban" style="width:100%">
+          <i class="fas fa-unlock"></i> Débannir
+        </button>
+      </form>
+      {% else %}
+      <button type="button" class="btn-action btn-ban" onclick='ouvrirBan({{ r.id }}, "{{ r.email }}")'>
+        <i class="fas fa-ban"></i> Bannir
+      </button>
+      {% endif %}
+
+      <button type="button" class="btn-action btn-del" onclick='ouvrirSuppr({{ r.id }}, "{{ r.email }}")'>
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
   </div>
   {% endfor %}
 </div>
@@ -87,9 +182,118 @@
 {% else %}
 <div class="empty-state">
   <i class="fas fa-users"></i>
-  <h3>Aucun revendeur</h3>
-  <p>Aucun utilisateur ne s'est encore inscrit sur la plateforme.</p>
+  <h3>Aucun utilisateur</h3>
+  <p>{% if search %}Aucun résultat pour "{{ search }}"{% else %}La plateforme est vide pour l'instant{% endif %}</p>
 </div>
 {% endif %}
+
+<!-- Modal Bannir -->
+<div class="modal-bg" id="modalBan">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalBan')">✕</button>
+    <h3><i class="fas fa-ban"></i> Bannir un utilisateur</h3>
+    <p style="font-size:.85rem;color:#64748B;margin-bottom:14px" id="banTarget"></p>
+    <form method="POST" id="formBan">
+      <div class="fg">
+        <label>Raison du bannissement (optionnel)</label>
+        <textarea class="txta" name="raison" placeholder="Ex : Comportement frauduleux, tentative de spam..."></textarea>
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-ban"></i> Confirmer le bannissement</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Balance -->
+<div class="modal-bg" id="modalBalance">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalBalance')">✕</button>
+    <h3><i class="fas fa-coins"></i> Modifier le solde</h3>
+    <p style="font-size:.85rem;color:#64748B;margin-bottom:14px" id="balanceTarget"></p>
+    <form method="POST" id="formBalance">
+      <div class="fg">
+        <label>Nouveau solde (FCFA)</label>
+        <input class="inp" type="number" name="balance" id="balanceInput" step="0.01" required>
+        <small style="font-size:.72rem;color:#94A3B8;margin-top:6px;display:block">⚠️ Ceci remplace le solde actuel</small>
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-check"></i> Enregistrer</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Abonnement -->
+<div class="modal-bg" id="modalAbon">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalAbon')">✕</button>
+    <h3><i class="fas fa-crown"></i> Changer l'abonnement</h3>
+    <p style="font-size:.85rem;color:#64748B;margin-bottom:14px" id="abonTarget"></p>
+    <form method="POST" id="formAbon">
+      <div class="fg">
+        <label>Niveau d'abonnement</label>
+        <select class="inp" name="niveau">
+          <option value="gratuit">Gratuit</option>
+          <option value="pro">Pro</option>
+          <option value="business">Business</option>
+          <option value="premium">Premium</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-check"></i> Changer</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Suppression -->
+<div class="modal-bg" id="modalSuppr">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalSuppr')">✕</button>
+    <h3 style="color:#DC2626"><i class="fas fa-exclamation-triangle"></i> Suppression définitive</h3>
+    <p style="font-size:.85rem;color:#991B1B;margin-bottom:14px;font-weight:700" id="supprTarget"></p>
+    <div style="background:#FEF2F2;border:2px solid #DC2626;border-radius:12px;padding:14px;font-size:.82rem;color:#7F1D1D;line-height:1.6;margin-bottom:16px">
+      <strong>⚠️ ATTENTION :</strong> Cette action est <u>irréversible</u>. Toutes les données (boutique, produits, commandes, clients) seront supprimées définitivement.
+    </div>
+    <form method="POST" id="formSuppr">
+      <div class="fg">
+        <label>Tapez "SUPPRIMER" pour confirmer</label>
+        <input class="inp" type="text" name="confirm" required placeholder="SUPPRIMER" autocomplete="off">
+      </div>
+      <button type="submit" class="btn-save" style="background:linear-gradient(135deg,#DC2626,#7F1D1D)"><i class="fas fa-trash"></i> Supprimer définitivement</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function fermerModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function ouvrirBan(userId, email){
+  document.getElementById('banTarget').textContent = 'Utilisateur : ' + email;
+  document.getElementById('formBan').action = '/dashboard/admin/revendeurs/' + userId + '/bannir';
+  document.getElementById('modalBan').classList.add('open');
+}
+
+function ouvrirBalance(userId, email, balance){
+  document.getElementById('balanceTarget').textContent = 'Utilisateur : ' + email;
+  document.getElementById('balanceInput').value = balance;
+  document.getElementById('formBalance').action = '/dashboard/admin/revendeurs/' + userId + '/balance';
+  document.getElementById('modalBalance').classList.add('open');
+}
+
+function ouvrirAbon(userId, email, niveau){
+  document.getElementById('abonTarget').textContent = 'Utilisateur : ' + email;
+  document.querySelector('#formAbon select[name="niveau"]').value = niveau;
+  document.getElementById('formAbon').action = '/dashboard/admin/revendeurs/' + userId + '/abonnement';
+  document.getElementById('modalAbon').classList.add('open');
+}
+
+function ouvrirSuppr(userId, email){
+  document.getElementById('supprTarget').textContent = 'Utilisateur : ' + email;
+  document.getElementById('formSuppr').action = '/dashboard/admin/revendeurs/' + userId + '/supprimer';
+  document.getElementById('modalSuppr').classList.add('open');
+}
+
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('open');
+  });
+});
+</script>
 
 {% endblock %}
