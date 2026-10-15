@@ -34,6 +34,7 @@ def create_app(config_name="production"):
     if app.config.get("RATELIMIT_STORAGE_URI"):
         limiter.storage_uri = app.config["RATELIMIT_STORAGE_URI"]
 
+    # ─── Enregistrement des blueprints ────────────────────────
     from app.routes.home import home_bp
     from app.routes.auth import auth_bp
     from app.routes.dashboard import dashboard_bp
@@ -41,6 +42,7 @@ def create_app(config_name="production"):
     from app.routes.dashboard_dev import dashboard_dev_bp
     from app.routes.dashboard_admin import dashboard_admin_bp
     from app.routes.boutique import boutique_bp
+    from app.routes.api_v1 import api_v1_bp
 
     app.register_blueprint(home_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
@@ -49,7 +51,9 @@ def create_app(config_name="production"):
     app.register_blueprint(dashboard_dev_bp, url_prefix="/dashboard/developpeur")
     app.register_blueprint(dashboard_admin_bp, url_prefix="/dashboard/admin")
     app.register_blueprint(boutique_bp)
+    app.register_blueprint(api_v1_bp, url_prefix="/api/v1")
 
+    # ─── Fichiers statiques (PWA) ─────────────────────────────
     @app.route("/sw.js")
     def sw():
         return send_from_directory("static", "sw.js", mimetype="application/javascript")
@@ -58,6 +62,7 @@ def create_app(config_name="production"):
     def manifest():
         return send_from_directory("static", "manifest.json", mimetype="application/manifest+json")
 
+    # ─── Headers de sécurité ──────────────────────────────────
     @app.after_request
     def add_security_headers(response):
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -84,6 +89,7 @@ def create_app(config_name="production"):
             response.headers["Pragma"] = "no-cache"
         return response
 
+    # ─── Gestion des erreurs ──────────────────────────────────
     @app.errorhandler(404)
     def not_found(e):
         if request.path.startswith("/api/"):
@@ -113,6 +119,9 @@ def create_app(config_name="production"):
             return jsonify({"error": "CSRF token invalide ou manquant"}), 400
         return render_template("errors/400.html",
                               message="Session expiree, rechargez la page."), 400
+
+    # ─── CSRF : exempter les routes /api/ (auth par clé API) ──
+    csrf.exempt(api_v1_bp)
 
     logging.basicConfig(
         level=logging.INFO,
