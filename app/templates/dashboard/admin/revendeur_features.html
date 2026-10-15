@@ -60,13 +60,16 @@
   </div>
   <div class="rev-header-meta">
     {% if revendeur.est_revendeur %}
-    <span class="rev-header-meta-item"><i class="fas fa-store"></i> Boutique : {{ revendeur.boutique_nom or 'Sans nom' }}</span>
-    <span class="rev-header-meta-item"><i class="fas fa-tag"></i> {{ revendeur.boutique_type|capitalize }}</span>
+    <span class="rev-header-meta-item"><i class="fas fa-store"></i> {{ revendeur.boutique_nom or 'Sans nom' }}</span>
+    <span class="rev-header-meta-item"><i class="fas fa-tag"></i> {{ revendeur.boutique_type }}</span>
     {% else %}
     <span class="rev-header-meta-item"><i class="fas fa-clock"></i> En brouillon</span>
     {% endif %}
     <span class="rev-header-meta-item"><i class="fas fa-coins"></i> {{ "{:,.0f}".format(revendeur.balance or 0) }} FCFA</span>
-    <span class="rev-header-meta-item"><i class="fas fa-star"></i> Plan : {{ (revendeur.abonnement_niveau or 'gratuit')|capitalize }}</span>
+    <span class="rev-header-meta-item"><i class="fas fa-star"></i> {{ (revendeur.abonnement_niveau or 'gratuit')|capitalize }}</span>
+    {% if revendeur.est_admin %}
+    <span class="rev-header-meta-item" style="background:rgba(220,38,38,.3)"><i class="fas fa-shield-alt"></i> ADMIN</span>
+    {% endif %}
   </div>
 </div>
 
