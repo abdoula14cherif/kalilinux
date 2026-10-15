@@ -1,0 +1,213 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Clés API — Boost Reseller{% endblock %}
+{% block page_title %}Clés API{% endblock %}
+{% block page_subtitle %}Gérez vos clés d'accès à l'API Boost Reseller{% endblock %}
+
+{% block topbar_actions %}
+<button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-plus"></i> Nouvelle clé API
+</button>
+{% endblock %}
+
+{% block extra_css %}
+.info-banner{background:linear-gradient(135deg,#E0F7FF,#F0FAFF);border-left:4px solid #00BFFF;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#0F172A;line-height:1.6}
+.info-banner i{color:#00BFFF;margin-right:6px}
+.info-banner strong{color:#0096C7}
+.info-banner code{background:#fff;padding:2px 6px;border-radius:6px;font-size:.8rem;color:#0096C7;font-weight:700}
+
+.nouvelle-cle-box{background:linear-gradient(135deg,#ECFDF5,#F0FDF9);border:2px solid #10B981;border-radius:16px;padding:22px;margin-bottom:20px;position:relative;overflow:hidden}
+.nouvelle-cle-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#10B981,#059669)}
+.nouvelle-cle-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.nouvelle-cle-ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#10B981,#059669);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.nouvelle-cle-title{font-size:.95rem;font-weight:900;color:#065F46;margin-bottom:3px}
+.nouvelle-cle-sub{font-size:.8rem;color:#047857;line-height:1.5}
+.nouvelle-cle-input{background:#fff;border:2px dashed #10B981;border-radius:12px;padding:16px;font-family:monospace;font-size:.85rem;font-weight:700;color:#065F46;word-break:break-all;margin-bottom:12px}
+.nouvelle-cle-btn{background:linear-gradient(135deg,#10B981,#059669);color:#fff;border:none;padding:11px 22px;border-radius:11px;font-weight:800;font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-family:inherit}
+
+.cles-list{display:grid;gap:12px}
+.cle-card{background:#fff;border-radius:14px;padding:18px;border:1px solid #E2E8F0;transition:all .2s;position:relative}
+.cle-card:hover{border-color:#CBD5E1;box-shadow:0 4px 14px rgba(0,0,0,.04)}
+.cle-card.revoquee{opacity:.6;background:#F8FAFC}
+.cle-card.revoquee::before{content:'RÉVOQUÉE';position:absolute;top:14px;right:14px;background:#FEE2E2;color:#991B1B;font-size:.65rem;font-weight:900;padding:4px 10px;border-radius:8px;letter-spacing:.3px}
+.cle-card-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.cle-card-ico{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#E0F7FF,#F0FAFF);color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0}
+.cle-card-info{flex:1;min-width:0}
+.cle-card-nom{font-size:.92rem;font-weight:900;color:#0F172A;margin-bottom:4px;line-height:1.3}
+.cle-card-prefix{font-family:monospace;font-size:.75rem;color:#64748B;font-weight:600}
+.cle-card-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:.72rem;color:#94A3B8;margin-bottom:14px;padding-bottom:14px;border-bottom:1px dashed #E2E8F0}
+.cle-card-meta-item{display:flex;align-items:center;gap:5px}
+.cle-card-meta-item i{color:#CBD5E1}
+.cle-card-scopes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.scope-chip{background:#F1F5F9;color:#475569;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:8px;font-family:monospace}
+.cle-card-actions{display:flex;gap:6px}
+.btn-action{padding:8px 14px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:inherit}
+.btn-revoquer{background:#FEF3C7;color:#92400E;flex:1}
+.btn-revoquer:hover{background:#92400E;color:#fff}
+.btn-supprimer{background:#FEE2E2;color:#991B1B;flex:1}
+.btn-supprimer:hover{background:#991B1B;color:#fff}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:70px;height:70px;border-radius:50%;background:#E0F7FF;color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px 22px;max-width:520px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94A3B8}
+.modal h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal h3 i{color:#00BFFF}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.inp{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus{border-color:#00BFFF}
+.scopes-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+@media(max-width:480px){.scopes-grid{grid-template-columns:1fr}}
+.scope-option{display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #E2E8F0;border-radius:10px;cursor:pointer;transition:.2s;font-size:.78rem;font-weight:600;color:#475569}
+.scope-option:hover{border-color:#00BFFF;background:#F0FAFF}
+.scope-option input{margin:0}
+.scope-option.checked{border-color:#00BFFF;background:#F0FAFF;color:#0096C7}
+.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,191,255,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;font-family:inherit}
+.btn-save:hover{transform:translateY(-1px)}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="info-banner">
+  <i class="fas fa-shield-alt"></i>
+  Vos <strong>clés API</strong> permettent d'accéder à votre compte Boost Reseller depuis vos propres outils. Gardez-les secrètes. Format : <code>bsk_live_xxx</code>
+</div>
+
+{% if nouvelle_cle %}
+<div class="nouvelle-cle-box">
+  <div class="nouvelle-cle-head">
+    <div class="nouvelle-cle-ico"><i class="fas fa-check"></i></div>
+    <div>
+      <div class="nouvelle-cle-title">Clé créée : {{ nouvelle_cle_nom }}</div>
+      <div class="nouvelle-cle-sub">⚠️ Copiez-la maintenant. Elle ne sera <strong>plus jamais affichée</strong>.</div>
+    </div>
+  </div>
+  <div class="nouvelle-cle-input" id="nouvelleCle">{{ nouvelle_cle }}</div>
+  <button type="button" class="nouvelle-cle-btn" onclick="copierCle()">
+    <i class="fas fa-copy"></i> Copier la clé
+  </button>
+</div>
+{% endif %}
+
+{% if cles %}
+<div class="cles-list">
+  {% for c in cles %}
+  <div class="cle-card {% if not c.est_active %}revoquee{% endif %}">
+    <div class="cle-card-head">
+      <div class="cle-card-ico">
+        <i class="fas fa-key"></i>
+      </div>
+      <div class="cle-card-info">
+        <div class="cle-card-nom">{{ c.nom }}</div>
+        <div class="cle-card-prefix">{{ c.prefix }}••••••••••••••••</div>
+      </div>
+    </div>
+
+    <div class="cle-card-meta">
+      <span class="cle-card-meta-item"><i class="fas fa-calendar"></i> Créée le {{ (c.created_at or '')[:10] }}</span>
+      {% if c.derniere_utilisation %}
+      <span class="cle-card-meta-item"><i class="fas fa-clock"></i> Utilisée le {{ (c.derniere_utilisation or '')[:10] }}</span>
+      {% else %}
+      <span class="cle-card-meta-item"><i class="fas fa-clock"></i> Jamais utilisée</span>
+      {% endif %}
+    </div>
+
+    <div class="cle-card-scopes">
+      {% for s in c.scopes or [] %}
+      <span class="scope-chip">{{ s }}</span>
+      {% endfor %}
+    </div>
+
+    <div class="cle-card-actions">
+      {% if c.est_active %}
+      <form method="POST" action="{{ url_for('dashboard_dev.api_keys_revoquer', cle_id=c.id) }}" style="flex:1" onsubmit="return confirm('Révoquer cette clé ?\n\nElle ne pourra plus être utilisée par vos applications. Cette action est irréversible.')">
+        <button type="submit" class="btn-action btn-revoquer" style="width:100%">
+          <i class="fas fa-ban"></i> Révoquer
+        </button>
+      </form>
+      {% endif %}
+      <form method="POST" action="{{ url_for('dashboard_dev.api_keys_supprimer', cle_id=c.id) }}" style="flex:1" onsubmit="return confirm('Supprimer définitivement cette clé ?')">
+        <button type="submit" class="btn-action btn-supprimer" style="width:100%">
+          <i class="fas fa-trash"></i> Supprimer
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-key"></i></div>
+  <h3>Aucune clé API pour l'instant</h3>
+  <p>Créez votre première clé API pour commencer à intégrer Boost Reseller dans vos outils.</p>
+  <button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:12px 24px;font-size:.88rem">
+    <i class="fas fa-plus"></i> Créer ma première clé
+  </button>
+</div>
+{% endif %}
+
+<div class="modal-bg" id="modalAjout">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalAjout')">✕</button>
+    <h3><i class="fas fa-key"></i> Nouvelle clé API</h3>
+    <form method="POST" action="{{ url_for('dashboard_dev.api_keys_creer') }}">
+      <div class="fg">
+        <label>Nom de la clé *</label>
+        <input class="inp" type="text" name="nom" placeholder="Ex: Serveur production, Test local..." required maxlength="60">
+      </div>
+
+      <div class="fg">
+        <label>Permissions (scopes)</label>
+        <div class="scopes-grid">
+          <label class="scope-option"><input type="checkbox" name="scopes" value="boutique:read" checked onchange="toggleScope(this)"> boutique:read</label>
+          <label class="scope-option"><input type="checkbox" name="scopes" value="boutique:write" onchange="toggleScope(this)"> boutique:write</label>
+          <label class="scope-option"><input type="checkbox" name="scopes" value="produits:read" onchange="toggleScope(this)"> produits:read</label>
+          <label class="scope-option"><input type="checkbox" name="scopes" value="produits:write" onchange="toggleScope(this)"> produits:write</label>
+          <label class="scope-option"><input type="checkbox" name="scopes" value="commandes:read" onchange="toggleScope(this)"> commandes:read</label>
+          <label class="scope-option"><input type="checkbox" name="scopes" value="commandes:write" onchange="toggleScope(this)"> commandes:write</label>
+          <label class="scope-option"><input type="checkbox" name="scopes" value="clients:read" onchange="toggleScope(this)"> clients:read</label>
+          <label class="scope-option"><input type="checkbox" name="scopes" value="stats:read" onchange="toggleScope(this)"> stats:read</label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-save"><i class="fas fa-check"></i> Générer la clé</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function ouvrirAjout(){ document.getElementById('modalAjout').classList.add('open'); }
+function fermerModal(id){ document.getElementById(id).classList.remove('open'); }
+function toggleScope(input){
+  var label = input.closest('.scope-option');
+  if(input.checked) label.classList.add('checked');
+  else label.classList.remove('checked');
+}
+function copierCle(){
+  var texte = document.getElementById('nouvelleCle').textContent;
+  navigator.clipboard.writeText(texte).then(function(){
+    alert('✅ Clé copiée dans le presse-papiers !');
+  }).catch(function(){
+    var ta = document.createElement('textarea');
+    ta.value = texte;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('✅ Clé copiée !');
+  });
+}
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('open');
+  });
+});
+</script>
+
+{% endblock %}
