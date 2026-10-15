@@ -1,6 +1,6 @@
 """
-Authentification SSO avec Boost Central + connexion classique.
-SÉCURITÉ SÉVÈRE : rate limit, logging, anti-brute-force.
+Authentification SSO par code temporaire + connexion classique.
+SÉCURITÉ SÉVÈRE : rate limit, anti-brute-force, anti-bot, logs.
 """
 import logging
 import time
@@ -11,7 +11,7 @@ from flask import (
 )
 from app import limiter
 from app.models.security import (
-    set_session, clear_session, verifier_token_sso
+    set_session, clear_session, est_bot_fort, verifier_honeypot
 )
 from app.models.database import get_profile
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 auth_bp = Blueprint("auth", __name__)
 
 # Anti-brute-force en mémoire (par email)
-_TENTATIVES = {}  # {email: [timestamps]}
+_TENTATIVES = {}
 MAX_TENTATIVES = 5
 FENETRE_MINUTES = 15
 
@@ -34,11 +34,9 @@ def _supabase_headers():
 
 
 def _est_rate_limited(email):
-    """Verifie si l'email a trop de tentatives recentes."""
     maintenant = time.time()
     fenetre = FENETRE_MINUTES * 60
     if email in _TENTATIVES:
-        # Nettoie les vieilles tentatives
         _TENTATIVES[email] = [t for t in _TENTATIVES[email] if maintenant - t < fenetre]
         if len(_TENTATIVES[email]) >= MAX_TENTATIVES:
             return True
@@ -46,21 +44,18 @@ def _est_rate_limited(email):
 
 
 def _enregistrer_tentative(email):
-    """Enregistre une tentative de connexion."""
     if email not in _TENTATIVES:
         _TENTATIVES[email] = []
     _TENTATIVES[email].append(time.time())
 
 
 def _reinitialiser_tentatives(email):
-    """Reinitialise les tentatives apres un succes."""
     _TENTATIVES.pop(email, None)
 
 
 def _log_securite(message, niveau="warning"):
-    """Log de securite avec IP."""
-    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()
-    ua = request.headers.get("User-Agent", "")[:100]
+    ip = (request.headers.get("X-Forwarded-For", request.remote_addr or "")).split(",")[0].strip()
+    ua = (request.headers.get("User-Agent", "") or "")[:100]
     getattr(logger, niveau)(f"[SECURITE] {message} | IP={ip} | UA={ua}")
 
 
@@ -76,26 +71,40 @@ def connexion():
 @auth_bp.route("/sso-redirect")
 @limiter.limit("20 per hour")
 def sso_redirect():
-    """Redirige vers boostcentral pour lancer le SSO."""
+    """
+    Redirige vers Boost Central pour initier le SSO.
+    Boost Central generera un code temporaire et nous redirigera vers /auth/sso?code=XXX
+    """
     client_url = current_app.config.get("CLIENT_URL", "https://boostcentral.world")
     return_url = url_for("auth.sso_callback", _external=True)
-    _log_securite(f"SSO redirect initie", "info")
+    _log_securite("SSO redirect initie", "info")
     return redirect(f"{client_url}/auth/sso-login?redirect={return_url}")
 
 
 @auth_bp.route("/sso")
 @limiter.limit("30 per hour")
 def sso_callback():
-    """Recoit le JWT signe par boostcentral."""
-    token = request.args.get("token", "").strip()
-    if not token:
-        _log_securite("SSO sans token", "warning")
-        flash("Lien SSO invalide.", "error")
+    """
+    Recupere un code SSO temporaire genere par Boost Central.
+    SÉCURITÉ : code usage unique, expire en 2 minutes, anti-replay.
+    """
+    from app.models.sso import utiliser_code_sso
+
+    # Blocage des bots
+    if est_bot_fort():
+        _log_securite("Bot detecte sur SSO", "warning")
+        flash("Acces refuse.", "error")
         return redirect(url_for("auth.connexion"))
 
-    payload = verifier_token_sso(token)
+    code = request.args.get("code", "").strip()
+    if not code:
+        _log_securite("SSO sans code", "warning")
+        flash("Lien de connexion invalide.", "error")
+        return redirect(url_for("auth.connexion"))
+
+    payload = utiliser_code_sso(code)
     if not payload:
-        _log_securite("SSO token invalide ou expire", "warning")
+        _log_securite("SSO code invalide/expire/rejoue", "warning")
         flash("Lien SSO expire ou invalide. Reconnectez-vous.", "error")
         return redirect(url_for("auth.connexion"))
 
@@ -107,11 +116,10 @@ def sso_callback():
         flash("Donnees SSO incompletes.", "error")
         return redirect(url_for("auth.connexion"))
 
-    # Verifier que le compte n'est pas banni
     profile = get_profile(user_id)
     if not profile:
         _log_securite(f"SSO user introuvable : {email}", "warning")
-        flash("Utilisateur introuvable sur Boost Central.", "error")
+        flash("Utilisateur introuvable.", "error")
         return redirect(url_for("auth.connexion"))
 
     if profile.get("banni"):
@@ -119,7 +127,7 @@ def sso_callback():
         flash("Votre compte a ete suspendu. Contactez le support.", "error")
         return redirect(url_for("auth.connexion"))
 
-    full_name = profile.get("full_name") or email.split("@")[0]
+    full_name = payload.get("full_name") or profile.get("full_name") or email.split("@")[0]
     set_session(user_id, email, full_name)
     _log_securite(f"SSO succes : {email}", "info")
 
@@ -131,9 +139,21 @@ def sso_callback():
 @limiter.limit("10 per minute; 30 per hour; 100 per day")
 def login_classique():
     """
-    Connexion email + mot de passe via Supabase Auth.
-    SÉCURITÉ : rate limit par IP + anti-brute-force par email.
+    Connexion email + mot de passe.
+    SÉCURITÉ : rate limit IP + anti-brute-force email + honeypot + anti-bot.
     """
+    # Anti-bot
+    if est_bot_fort():
+        _log_securite("Bot detecte sur login-classique", "warning")
+        flash("Erreur de connexion.", "error")
+        return redirect(url_for("auth.connexion"))
+
+    # Honeypot
+    if not verifier_honeypot():
+        _log_securite("Honeypot declenche sur login", "warning")
+        flash("Erreur de connexion.", "error")
+        return redirect(url_for("auth.connexion"))
+
     email = request.form.get("email", "").strip().lower()[:150]
     password = request.form.get("password", "")
 
@@ -141,13 +161,11 @@ def login_classique():
         flash("Email et mot de passe requis.", "error")
         return redirect(url_for("auth.connexion"))
 
-    # Validation format email
     if "@" not in email or len(email) < 5:
         _log_securite(f"Email invalide : {email}", "warning")
         flash("Email invalide.", "error")
         return redirect(url_for("auth.connexion"))
 
-    # Anti-brute-force par email
     if _est_rate_limited(email):
         _log_securite(f"Brute-force detecte : {email}", "error")
         flash(f"Trop de tentatives. Reessayez dans {FENETRE_MINUTES} minutes.", "error")
@@ -173,7 +191,6 @@ def login_classique():
                 flash("Erreur de connexion.", "error")
                 return redirect(url_for("auth.connexion"))
 
-            # Verifier que le compte n'est pas banni
             profile = get_profile(user_id)
             if profile and profile.get("banni"):
                 _log_securite(f"Login compte banni : {email}", "error")
@@ -192,7 +209,7 @@ def login_classique():
             flash(f"Erreur : {msg}", "error")
     except requests.Timeout:
         _log_securite(f"Login timeout : {email}", "error")
-        flash("Le serveur met trop de temps a repondre. Reessayez.", "error")
+        flash("Le serveur met trop de temps a repondre.", "error")
     except Exception as e:
         _log_securite(f"Login exception : {email} - {type(e).__name__}", "error")
         flash("Erreur serveur. Reessayez.", "error")
