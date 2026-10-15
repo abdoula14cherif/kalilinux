@@ -1,0 +1,78 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Logs d'audit — Admin{% endblock %}
+{% block page_title %}Logs d'audit{% endblock %}
+{% block page_subtitle %}Historique de toutes les actions administrateur{% endblock %}
+
+{% block extra_css %}
+.info-banner{background:linear-gradient(135deg,#E0F7FF,#F0FAFF);border-left:4px solid #00BFFF;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#0F172A;line-height:1.6}
+.info-banner i{color:#00BFFF;margin-right:6px}
+
+.logs-table{background:#fff;border-radius:16px;border:1px solid #E2E8F0;overflow:hidden}
+.log-row{display:grid;grid-template-columns:180px 1fr 220px 140px;gap:16px;padding:14px 18px;border-bottom:1px solid #F1F5F9;font-size:.82rem;align-items:center;transition:.2s}
+.log-row:hover{background:#F8FAFC}
+.log-row:last-child{border-bottom:none}
+.log-row.header{background:#F8FAFC;font-weight:900;color:#0F172A;text-transform:uppercase;font-size:.72rem;letter-spacing:.4px;border-bottom:2px solid #E2E8F0}
+
+.log-date{font-family:monospace;font-size:.78rem;color:#64748B;font-weight:700}
+.log-action{font-weight:800;color:#0F172A;display:flex;align-items:center;gap:8px}
+.log-action i{color:#00BFFF;font-size:.9rem}
+.log-details{font-size:.78rem;color:#64748B;font-family:monospace;background:#F1F5F9;padding:4px 10px;border-radius:6px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-ip{font-family:monospace;font-size:.75rem;color:#94A3B8}
+
+.empty-state{background:#fff;border-radius:16px;padding:60px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:70px;height:70px;border-radius:50%;background:#E0F7FF;color:#00BFFF;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B}
+
+@media(max-width:900px){
+  .log-row{grid-template-columns:1fr;gap:6px;padding:14px}
+  .log-row.header{display:none}
+  .log-date{font-size:.72rem}
+  .log-action{font-size:.85rem}
+}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="info-banner">
+  <i class="fas fa-clipboard-list"></i>
+  Toutes les actions administrateur sont enregistrées ici pour audit et sécurité.
+</div>
+
+{% if logs %}
+<div class="logs-table">
+  <div class="log-row header">
+    <div>Date</div>
+    <div>Action</div>
+    <div>Détails</div>
+    <div>IP</div>
+  </div>
+
+  {% for l in logs %}
+  <div class="log-row">
+    <div class="log-date">{{ (l.created_at or '')[:19].replace('T', ' ') }}</div>
+    <div class="log-action">
+      <i class="fas fa-circle" style="font-size:.4rem"></i>
+      {{ l.action }}
+    </div>
+    <div>
+      {% if l.details %}
+      <span class="log-details">{{ l.details|tojson|truncate(60) }}</span>
+      {% else %}
+      <span style="color:#CBD5E1">—</span>
+      {% endif %}
+    </div>
+    <div class="log-ip">{{ l.ip or 'inconnu' }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-clipboard-list"></i></div>
+  <h3>Aucun log pour l'instant</h3>
+  <p>Les actions administrateur apparaîtront ici dès que vous en effectuerez.</p>
+</div>
+{% endif %}
+
+{% endblock %}
