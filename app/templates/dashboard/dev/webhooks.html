@@ -1,100 +1,245 @@
 {% extends "dashboard/layout.html" %}
 {% block title %}Webhooks — Boost Reseller{% endblock %}
 {% block page_title %}Webhooks{% endblock %}
-{% block page_subtitle %}Recevez des notifications en temps réel sur vos événements{% endblock %}
+{% block page_subtitle %}Recevez des notifications HTTP en temps réel sur vos événements{% endblock %}
+
+{% block topbar_actions %}
+<button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-plus"></i> Nouveau webhook
+</button>
+{% endblock %}
 
 {% block extra_css %}
 .info-banner{background:linear-gradient(135deg,#ECFDF5,#F0FDF9);border-left:4px solid #10B981;border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:.85rem;color:#0F172A;line-height:1.6}
 .info-banner i{color:#10B981;margin-right:6px}
 .info-banner strong{color:#059669}
+.info-banner code{background:#fff;padding:2px 6px;border-radius:6px;font-size:.78rem;color:#059669;font-weight:700}
 
-.events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:22px}
-.event-card{background:#fff;border-radius:14px;padding:16px;border:1px solid #E2E8F0;transition:.2s;position:relative;overflow:hidden}
-.event-card:hover{border-color:#10B981;transform:translateY(-2px);box-shadow:0 8px 20px rgba(16,185,129,.1)}
-.event-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,#10B981,#059669)}
-.event-code{font-family:monospace;font-size:.82rem;font-weight:900;color:#059669;margin-bottom:6px;display:block}
-.event-desc{font-size:.78rem;color:#64748B;line-height:1.5}
+.nouveau-secret{background:linear-gradient(135deg,#FEF3C7,#FFFBEB);border:2px solid #F59E0B;border-radius:16px;padding:20px;margin-bottom:20px;position:relative;overflow:hidden}
+.nouveau-secret::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#F59E0B,#D97706)}
+.nouveau-secret-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.nouveau-secret-ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.nouveau-secret-title{font-size:.95rem;font-weight:900;color:#78350F;margin-bottom:3px}
+.nouveau-secret-sub{font-size:.8rem;color:#92400E;line-height:1.5}
+.nouveau-secret-input{background:#fff;border:2px dashed #F59E0B;border-radius:12px;padding:14px;font-family:monospace;font-size:.82rem;font-weight:700;color:#78350F;word-break:break-all;margin-bottom:12px}
+.nouveau-secret-btn{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;border:none;padding:11px 22px;border-radius:11px;font-weight:800;font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-family:inherit}
 
-.config-box{background:#fff;border-radius:16px;padding:22px;border:1px solid #E2E8F0;margin-bottom:20px}
-.config-box h3{font-size:.95rem;font-weight:900;color:#0F172A;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.config-box h3 i{color:#10B981}
+.webhooks-grid{display:grid;gap:14px;margin-bottom:20px}
+.webhook-card{background:#fff;border-radius:16px;padding:20px;border:1px solid #E2E8F0;transition:.2s;position:relative}
+.webhook-card:hover{border-color:#10B981;box-shadow:0 6px 20px rgba(16,185,129,.08)}
+.webhook-card.inactif{opacity:.6;background:#F8FAFC}
+.webhook-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.webhook-ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#10B981,#059669);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.webhook-info{flex:1;min-width:0}
+.webhook-url{font-family:monospace;font-size:.82rem;font-weight:800;color:#0F172A;word-break:break-all;margin-bottom:4px}
+.webhook-date{font-size:.72rem;color:#94A3B8}
+.webhook-stats{display:flex;gap:16px;flex-wrap:wrap;font-size:.74rem;color:#64748B;margin-bottom:14px;padding-bottom:14px;border-bottom:1px dashed #E2E8F0}
+.webhook-stat{display:flex;align-items:center;gap:5px}
+.webhook-stat strong{color:#0F172A;font-weight:800}
+.webhook-stat.ok strong{color:#059669}
+.webhook-stat.err strong{color:#DC2626}
+.webhook-events{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+.event-chip{background:#EDFFF5;color:#059669;font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:6px;font-family:monospace}
+.webhook-actions{display:flex;gap:6px;flex-wrap:wrap}
+.btn-act{padding:8px 14px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:5px;font-family:inherit;text-decoration:none}
+.btn-test{background:#FEF3C7;color:#92400E;flex:1}
+.btn-test:hover{background:#D97706;color:#fff}
+.btn-logs{background:#E0F7FF;color:#0096C7;flex:1}
+.btn-logs:hover{background:#0096C7;color:#fff}
+.btn-toggle{background:#FEF3C7;color:#92400E}
+.btn-toggle:hover{background:#D97706;color:#fff}
+.btn-del{background:#FEE2E2;color:#991B1B}
+.btn-del:hover{background:#991B1B;color:#fff}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-ico{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#ECFDF5,#F0FDF9);color:#10B981;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 16px}
+.empty-state h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B;line-height:1.6;margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto}
+
+.doc-code{background:#0F172A;border-radius:10px;padding:14px 16px;margin:14px 0;overflow-x:auto}
+.doc-code pre{margin:0;font-family:'Courier New',monospace;font-size:.78rem;line-height:1.7;color:#E2E8F0;white-space:pre}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px 22px;max-width:540px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94A3B8}
+.modal h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal h3 i{color:#10B981}
 .fg{margin-bottom:14px}
 .fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
-.inp{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp{width:100%;padding:12px 14px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
 .inp:focus{border-color:#10B981}
-.btn-save{background:linear-gradient(135deg,#10B981,#059669);color:#fff;padding:14px 24px;border-radius:12px;border:none;font-weight:900;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-family:inherit;box-shadow:0 6px 18px rgba(16,185,129,.3)}
-.btn-save:hover{transform:translateY(-1px)}
-
-.soon-box{background:linear-gradient(135deg,#FEF3C7,#FFFBEB);border:2px dashed #F59E0B;border-radius:16px;padding:40px 24px;text-align:center}
-.soon-box i{font-size:2.5rem;color:#F59E0B;display:block;margin-bottom:14px}
-.soon-box h3{font-size:1.05rem;font-weight:900;color:#78350F;margin-bottom:8px}
-.soon-box p{font-size:.85rem;color:#92400E;line-height:1.6;max-width:400px;margin:0 auto}
+.events-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+@media(max-width:480px){.events-grid{grid-template-columns:1fr}}
+.event-option{display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid #E2E8F0;border-radius:10px;cursor:pointer;font-size:.76rem;font-family:monospace;font-weight:600;color:#475569;transition:.2s}
+.event-option:hover{border-color:#10B981;background:#F0FDF9}
+.event-option.checked{border-color:#10B981;background:#F0FDF9;color:#059669}
+.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#10B981,#059669);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;font-family:inherit}
 {% endblock %}
 
 {% block dashboard_content %}
 
 <div class="info-banner">
   <i class="fas fa-bell"></i>
-  Les <strong>webhooks</strong> vous permettent de recevoir une requête HTTP sur votre serveur à chaque événement (nouvelle commande, paiement reçu, etc.).
+  Les <strong>webhooks</strong> envoient une requête HTTP POST sur votre serveur à chaque événement. Vérifiez la signature <code>X-Boost-Signature</code> pour valider l'authenticité.
 </div>
 
-<div class="config-box">
-  <h3><i class="fas fa-link"></i> URL du webhook</h3>
-  <div class="fg">
-    <label>URL de votre endpoint (HTTPS)</label>
-    <input class="inp" type="url" placeholder="https://mon-site.com/webhooks/boost" disabled>
-    <small style="font-size:.72rem;color:#94A3B8;margin-top:6px;display:block">
-      Nous enverrons un POST à cette URL à chaque événement.
-    </small>
+{% if nouveau_secret %}
+<div class="nouveau-secret">
+  <div class="nouveau-secret-head">
+    <div class="nouveau-secret-ico"><i class="fas fa-key"></i></div>
+    <div>
+      <div class="nouveau-secret-title">Votre secret de signature</div>
+      <div class="nouveau-secret-sub">⚠️ Copiez-le maintenant. Il ne sera <strong>plus jamais affiché</strong>.</div>
+    </div>
   </div>
-  <div class="fg">
-    <label>Secret de signature (x-private-key)</label>
-    <input class="inp" type="text" placeholder="Généré automatiquement..." disabled>
+  <div class="nouveau-secret-input" id="nouveauSecret">{{ nouveau_secret }}</div>
+  <button type="button" class="nouveau-secret-btn" onclick="copierSecret()">
+    <i class="fas fa-copy"></i> Copier le secret
+  </button>
+</div>
+{% endif %}
+
+{% if webhooks %}
+<div class="webhooks-grid">
+  {% for wh in webhooks %}
+  <div class="webhook-card {% if not wh.actif %}inactif{% endif %}">
+    <div class="webhook-head">
+      <div class="webhook-ico"><i class="fas fa-link"></i></div>
+      <div class="webhook-info">
+        <div class="webhook-url">{{ wh.url }}</div>
+        <div class="webhook-date">
+          <i class="fas fa-calendar"></i> Créé le {{ (wh.created_at or '')[:10] }}
+        </div>
+      </div>
+    </div>
+
+    <div class="webhook-stats">
+      <span class="webhook-stat"><i class="fas fa-paper-plane"></i> <strong>{{ wh.total_envois or 0 }}</strong> envois</span>
+      <span class="webhook-stat ok"><i class="fas fa-check-circle"></i> <strong>{{ wh.total_succes or 0 }}</strong> succès</span>
+      <span class="webhook-stat err"><i class="fas fa-times-circle"></i> <strong>{{ wh.total_echecs or 0 }}</strong> échecs</span>
+    </div>
+
+    <div class="webhook-events">
+      {% for e in wh.events or [] %}
+      <span class="event-chip">{{ e }}</span>
+      {% endfor %}
+    </div>
+
+    <div class="webhook-actions">
+      <form method="POST" action="{{ url_for('dashboard_dev.webhooks_tester', webhook_id=wh.id) }}" style="flex:1">
+        <button type="submit" class="btn-act btn-test" style="width:100%">
+          <i class="fas fa-paper-plane"></i> Tester
+        </button>
+      </form>
+      <a href="{{ url_for('dashboard_dev.webhooks_logs', webhook_id=wh.id) }}" class="btn-act btn-logs">
+        <i class="fas fa-list"></i> Logs
+      </a>
+      <form method="POST" action="{{ url_for('dashboard_dev.webhooks_toggle', webhook_id=wh.id) }}">
+        <input type="hidden" name="actif" value="{{ '1' if wh.actif else '0' }}">
+        <button type="submit" class="btn-act btn-toggle">
+          <i class="fas fa-{% if wh.actif %}pause{% else %}play{% endif %}"></i>
+        </button>
+      </form>
+      <form method="POST" action="{{ url_for('dashboard_dev.webhooks_supprimer', webhook_id=wh.id) }}" onsubmit="return confirm('Supprimer ce webhook ?')">
+        <button type="submit" class="btn-act btn-del">
+          <i class="fas fa-trash"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <div class="card-title"><i class="fas fa-code"></i> Exemple de payload reçu</div>
+  <div class="doc-code">
+<pre>POST /votre-endpoint HTTP/1.1
+Content-Type: application/json
+X-Boost-Event: commande.creee
+X-Boost-Signature: t=1729000000,v1=abc123...
+X-Boost-Delivery: 5f8a9c...
+
+{
+  "event": "commande.creee",
+  "timestamp": 1729000000,
+  "data": {
+    "reference": "CMD-A3F8B2C1D4E5",
+    "client_nom": "Jean Dupont",
+    "client_telephone": "658033690",
+    "total": 25000,
+    "statut": "en_attente"
+  }
+}</pre>
   </div>
 </div>
 
-<div class="config-box">
-  <h3><i class="fas fa-bolt"></i> Événements disponibles</h3>
-  <div class="events-grid">
-    <div class="event-card">
-      <span class="event-code">commande.creee</span>
-      <div class="event-desc">Déclenché quand un client passe une nouvelle commande</div>
-    </div>
-    <div class="event-card">
-      <span class="event-code">commande.confirmee</span>
-      <div class="event-desc">Déclenché quand vous confirmez une commande</div>
-    </div>
-    <div class="event-card">
-      <span class="event-code">commande.livree</span>
-      <div class="event-desc">Déclenché quand une commande est livrée</div>
-    </div>
-    <div class="event-card">
-      <span class="event-code">commande.annulee</span>
-      <div class="event-desc">Déclenché quand une commande est annulée</div>
-    </div>
-    <div class="event-card">
-      <span class="event-code">paiement.recu</span>
-      <div class="event-desc">Déclenché quand un paiement est validé</div>
-    </div>
-    <div class="event-card">
-      <span class="event-code">client.inscrit</span>
-      <div class="event-desc">Déclenché quand un nouveau client s'inscrit</div>
-    </div>
-    <div class="event-card">
-      <span class="event-code">avis.ajoute</span>
-      <div class="event-desc">Déclenché quand un client laisse un avis</div>
-    </div>
-    <div class="event-card">
-      <span class="event-code">produit.stock_bas</span>
-      <div class="event-desc">Déclenché quand un produit est presque épuisé</div>
-    </div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-ico"><i class="fas fa-bell"></i></div>
+  <h3>Aucun webhook pour l'instant</h3>
+  <p>Recevez une notification HTTP sur votre serveur à chaque commande, paiement ou événement.</p>
+  <button type="button" class="btn btn-primary" onclick="ouvrirAjout()" style="padding:12px 24px;font-size:.88rem">
+    <i class="fas fa-plus"></i> Créer mon premier webhook
+  </button>
+</div>
+{% endif %}
+
+<div class="modal-bg" id="modalAjout">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalAjout')">✕</button>
+    <h3><i class="fas fa-bell"></i> Nouveau webhook</h3>
+    <form method="POST" action="{{ url_for('dashboard_dev.webhooks_creer') }}">
+      <div class="fg">
+        <label>URL de votre endpoint *</label>
+        <input class="inp" type="url" name="url" placeholder="https://mon-site.com/webhooks/boost" required>
+        <small style="font-size:.72rem;color:#94A3B8;margin-top:6px;display:block">Doit commencer par http:// ou https://</small>
+      </div>
+
+      <div class="fg">
+        <label>Événements à écouter</label>
+        <div class="events-grid">
+          {% for e in events_dispo %}
+          <label class="event-option">
+            <input type="checkbox" name="events" value="{{ e }}" onchange="toggleEvent(this)">
+            {{ e }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <button type="submit" class="btn-save"><i class="fas fa-check"></i> Créer le webhook</button>
+    </form>
   </div>
 </div>
 
-<div class="soon-box">
-  <i class="fas fa-hourglass-half"></i>
-  <h3>Configuration en cours de finalisation</h3>
-  <p>La configuration des webhooks sera disponible très bientôt. En attendant, vous pouvez utiliser nos clés API pour interroger nos endpoints régulièrement.</p>
-</div>
+<script>
+function ouvrirAjout(){ document.getElementById('modalAjout').classList.add('open'); }
+function fermerModal(id){ document.getElementById(id).classList.remove('open'); }
+function toggleEvent(input){
+  var label = input.closest('.event-option');
+  if(input.checked) label.classList.add('checked');
+  else label.classList.remove('checked');
+}
+function copierSecret(){
+  var texte = document.getElementById('nouveauSecret').textContent;
+  navigator.clipboard.writeText(texte).then(function(){
+    alert('Secret copié !');
+  }).catch(function(){
+    var ta = document.createElement('textarea');
+    ta.value = texte;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('Secret copié !');
+  });
+}
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('open');
+  });
+});
+</script>
 
 {% endblock %}
