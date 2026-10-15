@@ -185,8 +185,29 @@
         <i class="fas fa-code"></i> DÉVELOPPEUR
       </div>
 
-      <a href="{{ url_for('dashboard_dev.index') }}" class="nav-item {% if request.endpoint and request.endpoint.startswith('dashboard_dev') %}active{% endif %}">
-        <i class="fas fa-code nav-ico"></i> <span class="nav-label">Espace développeur</span>
+      <a href="{{ url_for('dashboard_dev.index') }}" class="nav-item {% if request.endpoint == 'dashboard_dev.index' %}active{% endif %}">
+        <i class="fas fa-th-large nav-ico"></i> <span class="nav-label">Tableau de bord Dev</span>
+      </a>
+      <a href="{{ url_for('dashboard_dev.api_keys') }}" class="nav-item {% if request.endpoint and 'api_keys' in request.endpoint %}active{% endif %}">
+        <i class="fas fa-key nav-ico"></i> <span class="nav-label">Clés API</span>
+      </a>
+      <a href="{{ url_for('dashboard_dev.webhooks') }}" class="nav-item {% if request.endpoint and 'webhooks' in request.endpoint %}active{% endif %}">
+        <i class="fas fa-bell nav-ico"></i> <span class="nav-label">Webhooks</span>
+      </a>
+      <a href="{{ url_for('dashboard_dev.oauth_apps') }}" class="nav-item {% if request.endpoint and 'oauth_apps' in request.endpoint %}active{% endif %}">
+        <i class="fas fa-shield-alt nav-ico"></i> <span class="nav-label">Applications OAuth</span>
+      </a>
+      <a href="{{ url_for('dashboard_dev.documentation') }}" class="nav-item {% if request.endpoint == 'dashboard_dev.documentation' %}active{% endif %}">
+        <i class="fas fa-book nav-ico"></i> <span class="nav-label">Documentation</span>
+      </a>
+      <a href="{{ url_for('dashboard_dev.playground') }}" class="nav-item {% if request.endpoint == 'dashboard_dev.playground' %}active{% endif %}">
+        <i class="fas fa-flask nav-ico"></i> <span class="nav-label">Playground</span>
+      </a>
+      <a href="{{ url_for('dashboard_dev.logs') }}" class="nav-item {% if request.endpoint == 'dashboard_dev.logs' %}active{% endif %}">
+        <i class="fas fa-list-alt nav-ico"></i> <span class="nav-label">Logs</span>
+      </a>
+      <a href="{{ url_for('dashboard_dev.sdk') }}" class="nav-item {% if request.endpoint == 'dashboard_dev.sdk' %}active{% endif %}">
+        <i class="fas fa-cube nav-ico"></i> <span class="nav-label">SDK</span>
       </a>
 
       {% if profile and profile.est_admin %}
@@ -205,7 +226,7 @@
       <a href="{{ url_for('dashboard_admin.revendeurs') }}" class="nav-item {% if request.endpoint and request.endpoint.startswith('dashboard_admin.revendeur') %}active{% endif %}">
         <i class="fas fa-users-cog nav-ico"></i> <span class="nav-label">Utilisateurs</span>
       </a>
-      <a href="{{ url_for('dashboard_admin.notifications') }}" class="nav-item {% if request.endpoint and request.endpoint.startswith('dashboard_admin.notification') %}active{% endif %}">
+      <a href="{{ url_for('dashboard_admin.notifications') }}" class="nav-item {% if request.endpoint and 'notifications' in request.endpoint %}active{% endif %}">
         <i class="fas fa-bullhorn nav-ico"></i> <span class="nav-label">Notifications</span>
       </a>
       <a href="{{ url_for('dashboard_admin.logs') }}" class="nav-item {% if request.endpoint == 'dashboard_admin.logs' %}active{% endif %}">
