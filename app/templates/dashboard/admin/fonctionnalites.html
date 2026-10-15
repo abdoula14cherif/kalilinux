@@ -1,7 +1,13 @@
 {% extends "dashboard/layout.html" %}
 {% block title %}Fonctionnalités — Admin{% endblock %}
 {% block page_title %}Gestion des fonctionnalités{% endblock %}
-{% block page_subtitle %}Activez ou désactivez les fonctionnalités de la plateforme{% endblock %}
+{% block page_subtitle %}Activez, désactivez, modifiez et créez des fonctionnalités{% endblock %}
+
+{% block topbar_actions %}
+<button type="button" class="btn btn-primary" onclick="ouvrirCreation()" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-plus"></i> Nouvelle fonctionnalité
+</button>
+{% endblock %}
 
 {% block extra_css %}
 .admin-hero{background:linear-gradient(135deg,#DC2626,#991B1B);border-radius:20px;padding:24px 26px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden}
@@ -11,25 +17,23 @@
 .admin-hero p{font-size:.85rem;opacity:.92;line-height:1.6;position:relative;z-index:1}
 
 .features-grid{display:grid;gap:14px}
-.feat-card{background:#fff;border-radius:16px;padding:20px;border:1px solid #E2E8F0;transition:.25s;position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
+.feat-card{background:#fff;border-radius:16px;padding:20px;border:1px solid #E2E8F0;transition:.25s;position:relative}
 .feat-card:hover{border-color:#00BFFF;box-shadow:0 8px 20px rgba(0,191,255,.1)}
 .feat-card.inactive{opacity:.55;background:#F8FAFC}
+.feat-head{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;margin-bottom:14px}
 .feat-ico{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;flex-shrink:0;box-shadow:0 6px 18px rgba(0,0,0,.12)}
 .feat-info{min-width:0}
 .feat-name{font-size:.95rem;font-weight:900;color:#0F172A;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .feat-code{font-family:monospace;font-size:.7rem;color:#64748B;background:#F1F5F9;padding:2px 8px;border-radius:6px;font-weight:700}
-.feat-desc{font-size:.8rem;color:#64748B;line-height:1.55;margin-bottom:8px}
-.feat-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:.72rem;color:#94A3B8;font-weight:600}
-.feat-meta-item{display:flex;align-items:center;gap:5px}
-.feat-meta-item i{color:#CBD5E1}
-.feat-badges{display:flex;gap:6px;flex-wrap:wrap}
+.feat-desc{font-size:.8rem;color:#64748B;line-height:1.55}
+.feat-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .feat-badge{font-size:.65rem;font-weight:900;padding:4px 10px;border-radius:8px;letter-spacing:.3px;text-transform:uppercase}
 .badge-premium{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;box-shadow:0 2px 8px rgba(245,158,11,.3)}
 .badge-gratuit{background:#EDFFF5;color:#059669}
 .badge-actif{background:#E0F7FF;color:#0096C7}
 .badge-inactif{background:#FEE2E2;color:#991B1B}
 
-.feat-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.feat-actions{display:flex;gap:8px;flex-wrap:wrap}
 .btn-toggle{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border:none;border-radius:10px;font-size:.75rem;font-weight:800;cursor:pointer;transition:.2s;font-family:inherit}
 .btn-toggle.off{background:#FEE2E2;color:#991B1B}
 .btn-toggle.off:hover{background:#DC2626;color:#fff}
@@ -39,11 +43,35 @@
 .btn-toggle.prem:hover{background:#D97706;color:#fff}
 .btn-toggle.grat{background:#E0F7FF;color:#0096C7}
 .btn-toggle.grat:hover{background:#0096C7;color:#fff}
+.btn-edit{background:#F1F5F9;color:#475569}
+.btn-edit:hover{background:#475569;color:#fff}
+.btn-del{background:#FEE2E2;color:#991B1B}
+.btn-del:hover{background:#991B1B;color:#fff}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;padding:24px 22px;max-width:520px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94A3B8}
+.modal h3{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.modal h3 i{color:#DC2626}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.inp,.txta{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus,.txta:focus{border-color:#DC2626}
+.txta{min-height:70px;resize:vertical}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.switch-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+.switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;transition:.3s;border-radius:24px}
+.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;transition:.3s;border-radius:50%}
+input:checked + .slider{background:#DC2626}
+input:checked + .slider:before{transform:translateX(18px)}
+.btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#DC2626,#991B1B);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(220,38,38,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;font-family:inherit}
 
 @media(max-width:720px){
-  .feat-card{grid-template-columns:auto 1fr;gap:12px}
-  .feat-actions{grid-column:1/-1;justify-content:stretch}
-  .feat-actions .btn-toggle{flex:1;justify-content:center}
+  .feat-head{grid-template-columns:auto 1fr;gap:12px}
+  .feat-actions{grid-column:1/-1}
 }
 {% endblock %}
 
@@ -51,36 +79,29 @@
 
 <div class="admin-hero">
   <div class="admin-hero-badge">🔐 ZONE ADMIN</div>
-  <h2>Contrôle total de la plateforme</h2>
-  <p>Activez ou désactivez les fonctionnalités de la section Développeur. Marquez-les comme Premium ou gratuites.</p>
+  <h2>Contrôle total des fonctionnalités</h2>
+  <p>Activez/désactivez, marquez Premium/gratuit, modifiez ou créez des fonctionnalités.</p>
 </div>
 
 <div class="features-grid">
   {% for f in features %}
   <div class="feat-card {% if not f.actif %}inactive{% endif %}">
-    <div class="feat-ico" style="background:linear-gradient(135deg,{{ f.couleur }},{{ f.couleur }}cc)">
-      <i class="{{ f.icone }}"></i>
-    </div>
-
-    <div class="feat-info">
-      <div class="feat-name">
-        {{ f.nom }}
-        <span class="feat-code">{{ f.code }}</span>
-        {% if f.est_premium %}
-        <span class="feat-badge badge-premium">PREMIUM</span>
-        {% else %}
-        <span class="feat-badge badge-gratuit">GRATUIT</span>
-        {% endif %}
-        {% if f.actif %}
-        <span class="feat-badge badge-actif">ACTIF</span>
-        {% else %}
-        <span class="feat-badge badge-inactif">INACTIF</span>
-        {% endif %}
+    <div class="feat-head">
+      <div class="feat-ico" style="background:linear-gradient(135deg,{{ f.couleur }},{{ f.couleur }}cc)">
+        <i class="{{ f.icone }}"></i>
       </div>
-      <div class="feat-desc">{{ f.description }}</div>
-      <div class="feat-meta">
-        <span class="feat-meta-item"><i class="fas fa-sort-numeric-up"></i> Ordre : {{ f.ordre }}</span>
-        <span class="feat-meta-item"><i class="fas fa-calendar"></i> Ajouté le {{ (f.created_at or '')[:10] }}</span>
+
+      <div class="feat-info">
+        <div class="feat-name">
+          {{ f.nom }}
+          <span class="feat-code">{{ f.code }}</span>
+        </div>
+        <div class="feat-desc">{{ f.description or 'Sans description' }}</div>
+        <div class="feat-badges">
+          {% if f.est_premium %}<span class="feat-badge badge-premium">PREMIUM</span>{% else %}<span class="feat-badge badge-gratuit">GRATUIT</span>{% endif %}
+          {% if f.actif %}<span class="feat-badge badge-actif">ACTIF</span>{% else %}<span class="feat-badge badge-inactif">INACTIF</span>{% endif %}
+          <span class="feat-badge" style="background:#F1F5F9;color:#64748B">Ordre : {{ f.ordre }}</span>
+        </div>
       </div>
     </div>
 
@@ -88,31 +109,125 @@
       <form method="POST" action="{{ url_for('dashboard_admin.fonctionnalite_toggle', code=f.code) }}">
         <input type="hidden" name="actif" value="{{ '1' if f.actif else '0' }}">
         {% if f.actif %}
-        <button type="submit" class="btn-toggle off">
-          <i class="fas fa-eye-slash"></i> Désactiver
-        </button>
+        <button type="submit" class="btn-toggle off"><i class="fas fa-eye-slash"></i> Désactiver</button>
         {% else %}
-        <button type="submit" class="btn-toggle on">
-          <i class="fas fa-eye"></i> Activer
-        </button>
+        <button type="submit" class="btn-toggle on"><i class="fas fa-eye"></i> Activer</button>
         {% endif %}
       </form>
 
       <form method="POST" action="{{ url_for('dashboard_admin.fonctionnalite_premium', code=f.code) }}">
         <input type="hidden" name="est_premium" value="{{ '1' if f.est_premium else '0' }}">
         {% if f.est_premium %}
-        <button type="submit" class="btn-toggle grat">
-          <i class="fas fa-unlock"></i> Rendre gratuit
-        </button>
+        <button type="submit" class="btn-toggle grat"><i class="fas fa-unlock"></i> Rendre gratuit</button>
         {% else %}
-        <button type="submit" class="btn-toggle prem">
-          <i class="fas fa-crown"></i> Rendre Premium
-        </button>
+        <button type="submit" class="btn-toggle prem"><i class="fas fa-crown"></i> Rendre Premium</button>
         {% endif %}
+      </form>
+
+      <button type="button" class="btn-toggle btn-edit" onclick='ouvrirEdition({{ f|tojson }})'>
+        <i class="fas fa-edit"></i> Modifier
+      </button>
+
+      <form method="POST" action="{{ url_for('dashboard_admin.fonctionnalite_supprimer', code=f.code) }}" onsubmit="return confirm('Supprimer définitivement cette fonctionnalité ?')">
+        <button type="submit" class="btn-toggle btn-del"><i class="fas fa-trash"></i></button>
       </form>
     </div>
   </div>
   {% endfor %}
 </div>
+
+<div class="modal-bg" id="modalCreation">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalCreation')">✕</button>
+    <h3><i class="fas fa-plus-circle"></i> Nouvelle fonctionnalité</h3>
+    <form method="POST" action="{{ url_for('dashboard_admin.fonctionnalite_creer') }}">
+      <div class="fg">
+        <label>Code unique * (ex: mon_outil)</label>
+        <input class="inp" type="text" name="code" placeholder="mon_outil" required pattern="[a-z0-9_]+">
+      </div>
+      <div class="fg">
+        <label>Nom *</label>
+        <input class="inp" type="text" name="nom" placeholder="Mon Outil" required>
+      </div>
+      <div class="fg">
+        <label>Description</label>
+        <textarea class="txta" name="description" placeholder="Décrivez la fonctionnalité..."></textarea>
+      </div>
+      <div class="row-2">
+        <div class="fg">
+          <label>Icône FontAwesome</label>
+          <input class="inp" type="text" name="icone" value="fas fa-code">
+        </div>
+        <div class="fg">
+          <label>Couleur</label>
+          <input class="inp" type="color" name="couleur" value="#00BFFF" style="height:44px;padding:4px">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Ordre d'affichage</label>
+        <input class="inp" type="number" name="ordre" value="99" min="0" max="999">
+      </div>
+      <div class="switch-row">
+        <span style="font-size:.85rem;font-weight:700;color:#0F172A">Marquer comme Premium</span>
+        <label class="switch">
+          <input type="checkbox" name="est_premium">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-check"></i> Créer</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalEdition">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal('modalEdition')">✕</button>
+    <h3><i class="fas fa-edit"></i> Modifier la fonctionnalité</h3>
+    <form method="POST" id="formEdition">
+      <div class="fg">
+        <label>Nom</label>
+        <input class="inp" type="text" name="nom" id="e_nom" required>
+      </div>
+      <div class="fg">
+        <label>Description</label>
+        <textarea class="txta" name="description" id="e_description"></textarea>
+      </div>
+      <div class="row-2">
+        <div class="fg">
+          <label>Icône FontAwesome</label>
+          <input class="inp" type="text" name="icone" id="e_icone">
+        </div>
+        <div class="fg">
+          <label>Couleur</label>
+          <input class="inp" type="color" name="couleur" id="e_couleur" style="height:44px;padding:4px">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Ordre</label>
+        <input class="inp" type="number" name="ordre" id="e_ordre" min="0">
+      </div>
+      <button type="submit" class="btn-save"><i class="fas fa-save"></i> Enregistrer</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function ouvrirCreation(){ document.getElementById('modalCreation').classList.add('open'); }
+function ouvrirEdition(f){
+  document.getElementById('e_nom').value = f.nom || '';
+  document.getElementById('e_description').value = f.description || '';
+  document.getElementById('e_icone').value = f.icone || 'fas fa-code';
+  document.getElementById('e_couleur').value = f.couleur || '#00BFFF';
+  document.getElementById('e_ordre').value = f.ordre || 99;
+  document.getElementById('formEdition').action = '/dashboard/admin/fonctionnalites/' + f.code + '/modifier';
+  document.getElementById('modalEdition').classList.add('open');
+}
+function fermerModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('open');
+  });
+});
+</script>
 
 {% endblock %}
