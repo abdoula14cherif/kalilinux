@@ -1,0 +1,73 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Logs OAuth — Boost Reseller{% endblock %}
+{% block page_title %}Logs OAuth{% endblock %}
+{% block page_subtitle %}{{ app.nom }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{{ url_for('dashboard_dev.oauth_apps') }}" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-arrow-left"></i> Retour
+</a>
+{% endblock %}
+
+{% block extra_css %}
+.app-header{background:linear-gradient(135deg,#0F172A,#1E293B);border-radius:16px;padding:22px 26px;color:#fff;margin-bottom:20px;position:relative;overflow:hidden}
+.app-header::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(239,68,68,.15),transparent 65%);pointer-events:none}
+.app-header-name{font-size:1.1rem;font-weight:900;margin-bottom:4px;position:relative;z-index:1}
+.app-header-id{font-family:monospace;font-size:.78rem;opacity:.75;position:relative;z-index:1;word-break:break-all}
+
+.logs-table{background:#fff;border-radius:16px;border:1px solid #E2E8F0;overflow:hidden}
+.log-row{display:grid;grid-template-columns:180px 1fr 140px 1fr;gap:14px;padding:14px 18px;border-bottom:1px solid #F1F5F9;font-size:.82rem;align-items:center}
+.log-row:hover{background:#F8FAFC}
+.log-row:last-child{border-bottom:none}
+.log-row.header{background:#F8FAFC;font-weight:900;color:#0F172A;text-transform:uppercase;font-size:.7rem;letter-spacing:.4px;border-bottom:2px solid #E2E8F0}
+.log-date{font-family:monospace;font-size:.75rem;color:#64748B;font-weight:700}
+.log-event{font-family:monospace;font-size:.78rem;font-weight:800;color:#0F172A}
+.log-ip{font-family:monospace;font-size:.75rem;color:#64748B}
+.log-ua{font-size:.72rem;color:#94A3B8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.empty-state{background:#fff;border-radius:16px;padding:60px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-state i{font-size:2.5rem;color:#CBD5E1;display:block;margin-bottom:14px}
+.empty-state h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:8px}
+.empty-state p{font-size:.85rem;color:#64748B}
+
+@media(max-width:900px){
+  .log-row{grid-template-columns:1fr;gap:6px}
+  .log-row.header{display:none}
+}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="app-header">
+  <div class="app-header-name">{{ app.nom }}</div>
+  <div class="app-header-id">Client ID : {{ app.client_id }}</div>
+</div>
+
+{% if logs %}
+<div class="logs-table">
+  <div class="log-row header">
+    <div>Date</div>
+    <div>Événement</div>
+    <div>IP</div>
+    <div>User-Agent</div>
+  </div>
+
+  {% for l in logs %}
+  <div class="log-row">
+    <div class="log-date">{{ (l.created_at or '')[:19].replace('T', ' ') }}</div>
+    <div class="log-event">{{ l.event }}</div>
+    <div class="log-ip">{{ l.ip or '-' }}</div>
+    <div class="log-ua" title="{{ l.user_agent or '' }}">{{ (l.user_agent or '-')[:50] }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <i class="fas fa-inbox"></i>
+  <h3>Aucun log pour l'instant</h3>
+  <p>Les événements OAuth (autorisations, jetons émis...) apparaîtront ici.</p>
+</div>
+{% endif %}
+
+{% endblock %}
