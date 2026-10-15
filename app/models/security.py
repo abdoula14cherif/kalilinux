@@ -1,6 +1,6 @@
 """
-Helpers de sécurité : sessions, JWT, décorateurs.
-Sécurité niveau bancaire : anti-replay JTI, expiration stricte.
+Helpers de securite : sessions, JWT, decorateurs.
+SÉCURITÉ SÉVÈRE : sessions 24h max, JWT anti-replay, bannissement global.
 """
 import logging
 import secrets
@@ -15,16 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 # ═══════════════════════════════════════════════════════════════
-# 🔒 STOCKAGE ANTI-REPLAY DES JTI (in-memory pour Vercel)
+# ANTI-REPLAY DES JTI
 # ═══════════════════════════════════════════════════════════════
-# ⚠️ En production multi-instance (Vercel), ce dict est LOCAL à
-#    chaque lambda. Pour une vraie protection anti-replay, migre
-#    vers Redis ou une table Supabase (voir _marquer_jti_utilise).
-_USED_JTIS = {}  # {jti: timestamp_expiration}
+
+_USED_JTIS = {}
+SESSION_MAX_AGE = 24 * 3600  # 24 heures en secondes
 
 
 def _cleanup_expired_jtis():
-    """Nettoie les JTI expirés pour éviter la fuite mémoire."""
     now = time.time()
     expired = [jti for jti, exp in _USED_JTIS.items() if exp < now]
     for jti in expired:
@@ -32,40 +30,38 @@ def _cleanup_expired_jtis():
 
 
 def _jti_deja_utilise(jti):
-    """Vérifie si un JTI a déjà été consommé."""
     _cleanup_expired_jtis()
     return jti in _USED_JTIS
 
 
 def _marquer_jti_utilise(jti, expiration_ts):
-    """Enregistre un JTI comme consommé jusqu'à son expiration."""
     _USED_JTIS[jti] = expiration_ts
-    # Nettoyage opportuniste tous les ~100 enregistrements
     if len(_USED_JTIS) % 100 == 0:
         _cleanup_expired_jtis()
 
 
 # ═══════════════════════════════════════════════════════════════
-# 🔒 SESSIONS UTILISATEUR
+# SESSIONS UTILISATEUR
 # ═══════════════════════════════════════════════════════════════
 
 def set_session(user_id, email, full_name=""):
-    """Crée une session utilisateur sécurisée."""
-    session.clear()  # Anti-fixation de session
+    """Cree une session utilisateur securisee."""
+    session.clear()
     session.permanent = True
     session["user_id"] = user_id
     session["user_email"] = email
     session["user_name"] = full_name
-    session["_csrf_ok"] = True  # Marqueur interne
+    session["login_at"] = time.time()
+    session["last_activity"] = time.time()
 
 
 def clear_session():
-    """Détruit complètement la session."""
+    """Detruit completement la session."""
     session.clear()
 
 
 def get_current_user():
-    """Retourne les infos de l'utilisateur connecté (ou None)."""
+    """Retourne les infos de l'utilisateur connecte (ou None)."""
     if "user_id" not in session:
         return None
     return {
@@ -75,35 +71,85 @@ def get_current_user():
     }
 
 
+def _session_valide():
+    """Verifie que la session est encore valide (age + activite)."""
+    if "user_id" not in session:
+        return False
+
+    login_at = session.get("login_at", 0)
+    now = time.time()
+
+    # Session expiree (24h)
+    if now - login_at > SESSION_MAX_AGE:
+        return False
+
+    # Session inactive depuis plus de 8h
+    last_activity = session.get("last_activity", login_at)
+    if now - last_activity > 8 * 3600:
+        return False
+
+    return True
+
+
+def _verifier_banni(user_id):
+    """Verifie que l'utilisateur n'est pas banni."""
+    try:
+        from app.models.database import get_profile
+        profile = get_profile(user_id)
+        if profile and profile.get("banni"):
+            return True
+    except Exception as e:
+        logger.error(f"_verifier_banni: {type(e).__name__}")
+    return False
+
+
 # ═══════════════════════════════════════════════════════════════
-# 🔒 DÉCORATEUR login_required
+# DECORATEUR login_required
 # ═══════════════════════════════════════════════════════════════
 
 def login_required(f):
-    """Décorateur : oblige l'utilisateur à être connecté."""
+    """
+    Decorateur : oblige l'utilisateur a etre connecte.
+    SÉCURITÉ : verifie session valide + utilisateur non banni.
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if "user_id" not in session:
-            # ⚠️ On stocke l'URL de retour SEULEMENT si elle est locale
-            #    (évite l'open redirect via ?next=https://evil.com)
             next_url = request.url
             if next_url and next_url.startswith(request.host_url):
                 session["next_url"] = next_url
             flash("Connectez-vous pour continuer.", "info")
             return redirect(url_for("auth.connexion"))
+
+        # Verifie la duree de vie de la session
+        if not _session_valide():
+            clear_session()
+            flash("Votre session a expire. Reconnectez-vous.", "warning")
+            return redirect(url_for("auth.connexion"))
+
+        # Verifie que l'utilisateur n'est pas banni (1 fois par minute max)
+        last_check = session.get("_ban_check", 0)
+        now = time.time()
+        if now - last_check > 60:
+            if _verifier_banni(session["user_id"]):
+                clear_session()
+                flash("Votre compte a ete suspendu. Contactez le support.", "error")
+                return redirect(url_for("auth.connexion"))
+            session["_ban_check"] = now
+
+        # Met a jour l'activite
+        session["last_activity"] = now
+
         return f(*args, **kwargs)
     return decorated_function
 
 
 # ═══════════════════════════════════════════════════════════════
-# 🔒 JWT SSO — Signature, expiration, anti-replay
+# JWT SSO
 # ═══════════════════════════════════════════════════════════════
 
 def generer_token_sso(user_id, email, duree_minutes=5):
-    """
-    Génère un JWT signé pour le SSO.
-    Expire par défaut en 5 minutes (courte durée = sécurité).
-    """
+    """Genere un JWT signe pour le SSO."""
     now = datetime.now(timezone.utc)
     expiration = now + timedelta(minutes=duree_minutes)
 
@@ -111,36 +157,28 @@ def generer_token_sso(user_id, email, duree_minutes=5):
         "user_id": user_id,
         "email": email,
         "iat": int(now.timestamp()),
-        "nbf": int(now.timestamp()),  # Not Before
+        "nbf": int(now.timestamp()),
         "exp": int(expiration.timestamp()),
-        "jti": secrets.token_hex(16),   # Anti-replay unique
-        "iss": "boostcentral.world",     # Émetteur
-        "aud": "reseller.boostcentral.world",  # Destinataire
+        "jti": secrets.token_hex(16),
+        "iss": "boostcentral.world",
+        "aud": "reseller.boostcentral.world",
     }
 
     secret = current_app.config.get("JWT_SECRET") or current_app.config.get("SECRET_KEY")
     if not secret:
-        raise RuntimeError("JWT_SECRET manquant, impossible de signer.")
+        raise RuntimeError("JWT_SECRET manquant.")
 
     return jwt.encode(payload, secret, algorithm="HS256")
 
 
 def verifier_token_sso(token):
-    """
-    Vérifie un JWT SSO :
-    - signature
-    - expiration
-    - émetteur / audience
-    - anti-replay (JTI non réutilisé)
-    Retourne le payload ou None si invalide.
-    """
+    """Verifie un JWT SSO avec anti-replay."""
     try:
         secret = current_app.config.get("JWT_SECRET") or current_app.config.get("SECRET_KEY")
         if not secret:
-            logger.error("JWT_SECRET manquant pour vérifier le token.")
+            logger.error("JWT_SECRET manquant.")
             return None
 
-        # ⚠️ On valide TOUT : signature, exp, nbf, iss, aud
         payload = jwt.decode(
             token,
             secret,
@@ -157,113 +195,35 @@ def verifier_token_sso(token):
             },
         )
 
-        # ⚠️ Vérifie que le payload contient bien les champs attendus
         if not payload.get("user_id") or not payload.get("email"):
-            logger.warning("JWT SSO : champs user_id ou email manquants.")
+            logger.warning("JWT SSO : champs manquants.")
             return None
 
-        # 🔒 ANTI-REPLAY : JTI déjà utilisé ?
         jti = payload["jti"]
         if _jti_deja_utilise(jti):
-            logger.warning(f"JWT SSO rejoué (JTI déjà utilisé) : {jti}")
+            logger.warning(f"JWT SSO rejoue : {jti}")
             return None
 
-        # On marque ce JTI comme consommé
         _marquer_jti_utilise(jti, payload["exp"])
-
         return payload
 
     except jwt.ExpiredSignatureError:
-        logger.warning("Token SSO expiré.")
+        logger.warning("Token SSO expire.")
         return None
     except jwt.InvalidTokenError as e:
-        # ⚠️ Ne log QUE le type d'erreur, jamais le token (fuite possible)
         logger.warning(f"Token SSO invalide : {type(e).__name__}")
         return None
     except Exception as e:
-        logger.exception(f"verifier_token_sso erreur inattendue : {type(e).__name__}")
+        logger.exception(f"verifier_token_sso : {type(e).__name__}")
         return None
 
 
 # ═══════════════════════════════════════════════════════════════
-# 🔒 HELPERS SUPPLÉMENTAIRES
+# VALIDATION URL
 # ═══════════════════════════════════════════════════════════════
-
-def token_expire_dans(token):
-    """Retourne le nombre de secondes avant expiration (ou -1)."""
-    try:
-        secret = current_app.config.get("JWT_SECRET") or current_app.config.get("SECRET_KEY")
-        payload = jwt.decode(token, secret, algorithms=["HS256"], options={"verify_signature": True, "verify_exp": False})
-        return max(0, payload["exp"] - int(time.time()))
-    except Exception:
-        return -1
-
-
-def _validate_next_url(url):
-    """Valide qu'une URL de redirection est locale (anti open-redirect)."""
-    if not url:
-        return False
-    # Autorise uniquement les chemins relatifs locaux
-    if url.startswith("/") and not url.startswith("//"):
-        return True
-    # Autorise les URLs absolues de notre domaine uniquement
-    if url.startswith(request.host_url):
-        return True
-    return False
-
-
-# ═══════════════════════════════════════════════════════════════
-# ⚠️ ERREURS CORRIGÉES DANS CE FICHIER
-# ═══════════════════════════════════════════════════════════════
-#
-# 🔴 CRITIQUE #13 — JTI généré mais JAMAIS vérifié (anti-replay absent)
-#    AVANT : Un token SSO pouvait être rejoué pendant 5 minutes.
-#    APRÈS : _USED_JTIS + _jti_deja_utilise + _marquer_jti_utilise.
-#
-# 🔴 CRITIQUE — Session fixation non bloquée
-#    AVANT : Un attaquant pouvait fixer un session_id avant connexion.
-#    APRÈS : session.clear() dans set_session().
-#
-# 🔴 CRITIQUE — Open redirect via ?next=
-#    AVANT : next_url pouvait être https://evil.com → phishing.
-#    APRÈS : Vérification que l'URL commence par request.host_url.
-#
-# 🟠 IMPORTANT — Champs JWT non obligatoires (require absent)
-#    AVANT : Un token sans jti/iss/aud pouvait passer la validation.
-#    APRÈS : options={"require": [...]} liste TOUS les champs obligatoires.
-#
-# 🟠 IMPORTANT — nbf (Not Before) non vérifié
-#    AVANT : Un token futur pouvait être utilisé.
-#    APRÈS : nbf généré et vérifié.
-#
-# 🟠 IMPORTANT — JWT sans iat/exp en timestamp (datetime = rejet)
-#    AVANT : datetime.utcnow() (naïf) pouvait poser problème selon la lib.
-#    APRÈS : int(now.timestamp()) en UTC timezone-aware.
-#
-# 🟡 MOYEN — Logs pouvaient contenir le token (fuite de credentials)
-#    AVANT : logger.warning(f"Token invalide: {e}") pouvait log le token.
-#    APRÈS : logger.warning(f"Token invalide : {type(e).__name__}").
-#
-# 🟡 MOYEN — Fuite mémoire : _USED_JTIS grossissait à l'infini
-#    AVANT : Aucun nettoyage des JTI expirés.
-#    APRÈS : _cleanup_expired_jtis() à chaque vérification.
-#
-# 🟢 BONUS — Fonction token_expire_dans() pour debug
-#    Retourne le temps restant avant expiration.
-#
-# ⚠️ ATTENTION PROD : _USED_JTIS est LOCAL à chaque instance Vercel.
-#    Pour une vraie protection multi-instance, migre vers Redis :
-#    - redis.setex(f"jti:{jti}", ttl, "1")
-#    - redis.exists(f"jti:{jti}")
-#
-# ═══════════════════════════════════════════════════════════════
-
 
 def valider_url(url, domaines_autorises=None):
-    """
-    Valide une URL pour eviter les injections javascript:, data:, etc.
-    Retourne l'URL nettoyee ou None si invalide.
-    """
+    """Valide une URL pour eviter les injections javascript:, data:, etc."""
     if not url or not isinstance(url, str):
         return None
     url = url.strip()
@@ -291,7 +251,7 @@ def valider_url(url, domaines_autorises=None):
 
 
 def valider_url_reseau_social(url):
-    """Valide une URL de reseau social (domaines autorises)."""
+    """Valide une URL de reseau social."""
     domaines = (
         "facebook.com", "fb.com", "instagram.com", "tiktok.com",
         "twitter.com", "x.com", "youtube.com", "youtu.be",
@@ -304,5 +264,5 @@ def valider_url_reseau_social(url):
 
 
 def valider_url_generique(url):
-    """Valide une URL generique (lien de banniere)."""
+    """Valide une URL generique."""
     return valider_url(url)
