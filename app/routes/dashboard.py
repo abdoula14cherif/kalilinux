@@ -1,5 +1,5 @@
 """
-Dashboard revendeur — routes principales (boutique, produits, bannières, catégories, attributs, prix).
+Dashboard revendeur — routes principales (boutique, produits, bannieres, categories, attributs, prix).
 """
 import logging
 import re
@@ -18,10 +18,11 @@ from app.models.database import (
     get_bannieres_revendeur, create_banniere, update_banniere, delete_banniere,
     get_attributs_revendeur, create_attribut, update_attribut, delete_attribut,
     get_revendeur_clients_detail, get_revendeur_orders,
-    # Nouvelles fonctions limites
     peut_creer_produit, peut_creer_banniere,
     peut_creer_attribut, peut_creer_coupon,
     get_plan_actuel, get_commission_pct,
+    get_credit_boost, SEUIL_CREDIT_MIN_PUBLICATION,
+    get_transactions_credit_boost,
 )
 from app.models.storage import upload_image
 from app.models.serializers import produit_safe, banniere_safe, attribut_safe
@@ -153,6 +154,7 @@ def index():
     type_boutique = get_boutique_type(profile["boutique_type"]) or {}
     plan_actuel = get_plan_actuel(profile)
     commission_pct = get_commission_pct(profile)
+    credit_boost = get_credit_boost(profile["id"])
 
     stats = {"nb_produits": 0, "nb_commandes": 0, "revenus": 0, "nb_clients": 0}
     dernieres_commandes = []
@@ -200,6 +202,8 @@ def index():
                           type_boutique=type_boutique,
                           plan_actuel=plan_actuel,
                           commission_pct=commission_pct,
+                          credit_boost=credit_boost,
+                          seuil_credit=SEUIL_CREDIT_MIN_PUBLICATION,
                           stats=stats,
                           nb_commandes_attente=nb_commandes_attente,
                           nb_avis_attente=nb_avis_attente,
@@ -328,7 +332,7 @@ def boutique_supprimer_image():
 
 
 # ═══════════════════════════════════════════════════════════════
-# PUBLIER (PUBLICATION GRATUITE — plus de frais d'activation)
+# PUBLIER
 # ═══════════════════════════════════════════════════════════════
 
 @dashboard_bp.route("/publier")
@@ -346,11 +350,17 @@ def publier():
     plan_actuel = get_plan_actuel(profile)
     commission_pct = get_commission_pct(profile)
 
+    credit_boost = get_credit_boost(profile["id"])
+    credit_ok = credit_boost >= SEUIL_CREDIT_MIN_PUBLICATION
+
     return render_template("dashboard/publier.html",
                           profile=profile,
                           etapes_ok=etapes_ok,
                           plan_actuel=plan_actuel,
-                          commission_pct=commission_pct)
+                          commission_pct=commission_pct,
+                          credit_boost=credit_boost,
+                          credit_ok=credit_ok,
+                          seuil_credit=SEUIL_CREDIT_MIN_PUBLICATION)
 
 
 @dashboard_bp.route("/publier/activer", methods=["POST"])
@@ -365,6 +375,16 @@ def publier_activer():
         flash("Votre boutique est deja publiee.", "info")
         return redirect(url_for("dashboard.index"))
 
+    # Check credit boost
+    credit_boost = get_credit_boost(profile["id"])
+    if credit_boost < SEUIL_CREDIT_MIN_PUBLICATION:
+        flash(
+            f"Rechargez votre Credit Boost (minimum {SEUIL_CREDIT_MIN_PUBLICATION:,.0f} FCFA) "
+            f"pour publier votre boutique.",
+            "error"
+        )
+        return redirect(url_for("dashboard.credit_boost"))
+
     slug = request.form.get("slug", "").strip().lower()
     if not slug or len(slug) < 3 or len(slug) > 30:
         flash("Identifiant invalide : 3 a 30 caracteres.", "error")
@@ -377,7 +397,6 @@ def publier_activer():
         flash(f"L'identifiant '{slug}' est deja pris. Choisissez-en un autre.", "error")
         return redirect(url_for("dashboard.publier"))
 
-    # Activation GRATUITE — la commission sera prelevee sur les ventes
     ok = activer_revendeur(profile["id"], slug)
 
     if ok:
@@ -389,8 +408,73 @@ def publier_activer():
         flash(f"Felicitations ! Votre boutique est en ligne : /r/{slug}", "success")
         return redirect(url_for("dashboard.index"))
     else:
-        flash("Erreur lors de l'activation. Reessayez.", "error")
+        flash("Erreur lors de l'activation.", "error")
         return redirect(url_for("dashboard.publier"))
+
+
+# ═══════════════════════════════════════════════════════════════
+# CRÉDIT BOOST
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_bp.route("/credit-boost")
+@login_required
+def credit_boost():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    solde = get_credit_boost(profile["id"])
+    transactions = get_transactions_credit_boost(profile["id"], limit=50)
+
+    return render_template("dashboard/credit_boost.html",
+                          profile=profile,
+                          solde=solde,
+                          transactions=transactions,
+                          seuil=SEUIL_CREDIT_MIN_PUBLICATION)
+
+
+@dashboard_bp.route("/credit-boost/recharger", methods=["POST"])
+@login_required
+@limiter.limit("10 per hour")
+def credit_boost_recharger():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    try:
+        montant = float(request.form.get("montant", 0))
+        if montant < 500 or montant > 1000000:
+            raise ValueError
+    except Exception:
+        flash("Montant invalide (min 500, max 1 000 000 FCFA).", "error")
+        return redirect(url_for("dashboard.credit_boost"))
+
+    from app.models.mysoleas import creer_lien_paiement
+    from uuid import uuid4
+
+    reference = f"CRD-{uuid4().hex[:12].upper()}"
+
+    lien = creer_lien_paiement(
+        amount=montant,
+        currency="XAF",
+        title="Recharge Credit Boost",
+        description=f"Recharge de {montant:,.0f} FCFA",
+        provider=None,
+        fee_bearer="CUSTOMER",
+        max_usage=1,
+        metadata={
+            "type": "recharge_credit_boost",
+            "user_id": profile["id"],
+            "montant": montant,
+            "reference": reference,
+        },
+    )
+
+    if not lien or not lien.get("payment_url"):
+        flash("Erreur creation du lien de paiement. Reessayez.", "error")
+        return redirect(url_for("dashboard.credit_boost"))
+
+    return redirect(lien["payment_url"])
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -451,7 +535,7 @@ def prix_enregistrer():
 
 
 # ═══════════════════════════════════════════════════════════════
-# PRODUITS (avec check limite plan)
+# PRODUITS
 # ═══════════════════════════════════════════════════════════════
 
 @dashboard_bp.route("/produits")
@@ -478,10 +562,9 @@ def produits_ajouter():
     if redir:
         return redir
 
-    # Check limite du plan
-    ok, msg = peut_creer_produit(profile)
-    if not ok:
-        flash(msg, "error")
+    ok_limit, msg_limit = peut_creer_produit(profile)
+    if not ok_limit:
+        flash(msg_limit, "error")
         return redirect(url_for("dashboard.produits"))
 
     nom = request.form.get("nom", "").strip()[:100]
@@ -753,7 +836,7 @@ def categories_supprimer():
 
 
 # ═══════════════════════════════════════════════════════════════
-# BANNIERES (avec check limite)
+# BANNIERES
 # ═══════════════════════════════════════════════════════════════
 
 @dashboard_bp.route("/bannieres")
@@ -936,7 +1019,7 @@ def bannieres_options():
 
 
 # ═══════════════════════════════════════════════════════════════
-# ATTRIBUTS (avec check limite)
+# ATTRIBUTS
 # ═══════════════════════════════════════════════════════════════
 
 @dashboard_bp.route("/attributs")
