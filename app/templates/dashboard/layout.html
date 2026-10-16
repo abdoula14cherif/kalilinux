@@ -28,16 +28,6 @@
   0%,100%{box-shadow:0 2px 8px rgba(239,68,68,.4)}
   50%{box-shadow:0 2px 14px rgba(239,68,68,.7)}
 }
-.nav-badge-credit{
-  background:linear-gradient(135deg,#F59E0B,#D97706);
-  color:#fff;font-size:.85rem;font-weight:900;padding:2px 8px;
-  border-radius:10px;min-width:22px;text-align:center;line-height:1.3;
-  box-shadow:0 2px 8px rgba(245,158,11,.5);animation:badgePulseCredit 1.6s ease-in-out infinite;
-}
-@keyframes badgePulseCredit{
-  0%,100%{transform:scale(1);box-shadow:0 2px 8px rgba(245,158,11,.5)}
-  50%{transform:scale(1.08);box-shadow:0 2px 16px rgba(245,158,11,.9)}
-}
 
 /* Widget Credit Boost */
 .credit-widget{
@@ -230,6 +220,9 @@
 
       <a href="{{ url_for('dashboard.publier') }}" class="nav-item {% if request.endpoint == 'dashboard.publier' %}active{% endif %}">
         <i class="fas fa-rocket nav-ico"></i> <span class="nav-label">Publier</span>
+      </a>
+      <a href="{{ url_for('dashboard_paiement.index') }}" class="nav-item {% if request.endpoint and 'paiement' in request.endpoint %}active{% endif %}">
+        <i class="fas fa-credit-card nav-ico"></i> <span class="nav-label">Paiements</span>
       </a>
       <a href="{{ url_for('dashboard_shop.parametres') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.parametres' %}active{% endif %}">
         <i class="fas fa-cog nav-ico"></i> <span class="nav-label">Parametres</span>
