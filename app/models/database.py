@@ -1187,3 +1187,65 @@ def update_commande_boutique(commande_id, data):
     except Exception as e:
         logger.error(f"update_commande_boutique: {type(e).__name__}")
         return False
+
+# ═══════════════════════════════════════════════════════════════
+# PAYS DU REVENDEUR (VERROUILLÉ)
+# ═══════════════════════════════════════════════════════════════
+
+def set_pays_revendeur(user_id, pays_code):
+    """
+    Définit le pays du revendeur (UNE SEULE FOIS).
+    Une fois verrouillé, impossible de changer via cette fonction.
+    """
+    try:
+        profile = get_profile(user_id)
+        if not profile:
+            return False, "Utilisateur introuvable"
+
+        if profile.get("pays_verrouille"):
+            return False, "Pays deja verrouille. Contactez l'admin."
+
+        if not pays_code:
+            return False, "Code pays manquant"
+
+        pays_code = pays_code.upper().strip()
+        if not re.match(r"^[A-Z]{2}$", pays_code):
+            return False, "Code pays invalide"
+
+        ok = update_profile(user_id, {
+            "pays_code": pays_code,
+            "pays_verrouille": True,
+            "pays_verrouille_le": datetime.now(timezone.utc).isoformat(),
+        })
+        return (True, None) if ok else (False, "Erreur de sauvegarde")
+    except Exception as e:
+        logger.error(f"set_pays_revendeur: {type(e).__name__}")
+        return False, "Erreur serveur"
+
+
+def get_pays_revendeur(user_id):
+    """Retourne le pays du revendeur (code + infos)."""
+    try:
+        profile = get_profile(user_id)
+        if not profile:
+            return None
+        return profile.get("pays_code")
+    except Exception as e:
+        logger.error(f"get_pays_revendeur: {type(e).__name__}")
+        return None
+
+
+def get_moyens_pour_revendeur(revendeur_id):
+    """
+    Retourne les moyens de paiement disponibles pour le pays du revendeur.
+    """
+    try:
+        profile = get_profile(revendeur_id)
+        if not profile or not profile.get("pays_code"):
+            return []
+
+        from app.models.paiement_config import get_moyens_pour_pays
+        return get_moyens_pour_pays(profile["pays_code"])
+    except Exception as e:
+        logger.error(f"get_moyens_pour_revendeur: {type(e).__name__}")
+        return []
