@@ -1,0 +1,103 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Configurer {{ methode_info.nom }}{% endblock %}
+{% block page_title %}Configurer {{ methode_info.nom }}{% endblock %}
+{% block page_subtitle %}{{ pays_nom or 'Configuration securisee' }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{{ url_for('dashboard_paiement.index') }}" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-arrow-left"></i> Retour
+</a>
+{% endblock %}
+
+{% block extra_css %}
+.config-card{background:#fff;border-radius:16px;padding:26px;border:1px solid #E2E8F0;max-width:640px;margin:0 auto}
+.config-card h2{font-size:1.1rem;font-weight:900;color:#0F172A;margin-bottom:6px}
+.config-card .sub{font-size:.85rem;color:#64748B;margin-bottom:22px;line-height:1.5}
+
+.security-badge{background:linear-gradient(135deg,#EFF6FF,#F0F9FF);border:1px solid #BFDBFE;border-radius:12px;padding:14px 16px;margin-bottom:22px;font-size:.82rem;color:#1E40AF;line-height:1.6;display:flex;gap:10px;align-items:flex-start}
+.security-badge i{font-size:1.1rem;margin-top:2px;color:#3B82F6}
+
+.fg{margin-bottom:18px}
+.fg label{display:block;font-size:.82rem;font-weight:800;color:#0F172A;margin-bottom:6px}
+.fg label .req{color:#DC2626;margin-left:4px}
+.fg .help{font-size:.72rem;color:#94A3B8;margin-top:5px;line-height:1.4;display:block}
+.inp{width:100%;padding:13px 14px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus{border-color:#00BFFF}
+.inp.has-value{background:#F0FDF4;border-color:#86EFAC}
+
+.btn-save{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-size:.95rem;font-weight:900;cursor:pointer;transition:transform .2s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 18px rgba(0,191,255,.3)}
+.btn-save:hover{transform:translateY(-2px)}
+
+.actual-config{background:#F0FDF4;border:1px solid #86EFAC;border-radius:12px;padding:14px 16px;margin-bottom:22px;font-size:.82rem;color:#065F46}
+.actual-config strong{display:block;margin-bottom:8px}
+.actual-config .kv{display:flex;justify-content:space-between;padding:4px 0;font-family:monospace;font-size:.78rem}
+.actual-config .kv span:last-child{color:#0F172A;font-weight:800}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="config-card">
+  <h2>{{ methode_info.nom }}</h2>
+  <div class="sub">
+    {% if methode_info.type == 'en_ligne' %}
+    Renseignez vos clés API. Elles seront <strong>chiffrées de manière sécurisée</strong> avant stockage.
+    {% elif methode_info.type == 'manuel' %}
+    Renseignez votre numéro et nom. Ces informations seront visibles par vos clients.
+    {% elif methode_info.type == 'cash' %}
+    Aucune configuration nécessaire. Le paiement cash est toujours disponible.
+    {% elif methode_info.type == 'credit' %}
+    Configurez les conditions de paiement différé.
+    {% endif %}
+  </div>
+
+  {% if methode_info.type == 'en_ligne' %}
+  <div class="security-badge">
+    <i class="fas fa-shield-alt"></i>
+    <div>
+      <strong>Vos clés sont en sécurité.</strong><br>
+      Elles sont chiffrées avec un algorithme AES-128 avant d'être sauvegardées. 
+      Personne (ni nous, ni un attaquant) ne peut les lire, sauf le système au moment d'effectuer un paiement.
+    </div>
+  </div>
+  {% endif %}
+
+  {% if config and config.config %}
+  <div class="actual-config">
+    <strong>📋 Configuration actuelle :</strong>
+    {% for k, v in config.config.items() %}
+    <div class="kv">
+      <span>{{ k }}</span>
+      <span>{{ v or '—' }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="POST">
+    {% for champ in methode_info.champs_requis %}
+    <div class="fg">
+      <label for="{{ champ }}">
+        {{ champ|replace('_', ' ')|title }}
+        <span class="req">*</span>
+      </label>
+      {% if champ in methode_info.champs_secrets %}
+      <input class="inp" type="password" id="{{ champ }}" name="{{ champ }}"
+             placeholder="Collez votre cle secrete ici"
+             autocomplete="new-password" required>
+      <span class="help">
+        <i class="fas fa-lock"></i> Chiffrée avant sauvegarde — jamais visible en clair.
+      </span>
+      {% else %}
+      <input class="inp" type="text" id="{{ champ }}" name="{{ champ }}"
+             placeholder="Entrez la valeur" required>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <button type="submit" class="btn-save">
+      <i class="fas fa-save"></i> Sauvegarder la configuration
+    </button>
+  </form>
+</div>
+
+{% endblock %}
