@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="{{ boutique.couleur_principale }}">
+<title>Paiement — {{ boutique.nom }}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F8FAFC;min-height:100vh;padding:20px;color:#0F172A}
+.wrap{max-width:520px;margin:0 auto}
+.header{text-align:center;padding:24px 0;margin-bottom:20px}
+.header .logo{width:70px;height:70px;border-radius:50%;object-fit:cover;margin:0 auto 12px;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.1);background:#fff}
+.header h1{font-size:1.15rem;font-weight:900;color:#0F172A}
+.card{background:#fff;border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.06);margin-bottom:16px}
+.card h2{font-size:1rem;font-weight:900;margin-bottom:16px;color:#0F172A;display:flex;align-items:center;gap:8px}
+.card h2 i{color:var(--primary)}
+.recap{background:#F8FAFC;border-radius:12px;padding:14px 16px;margin-bottom:18px}
+.recap-line{display:flex;justify-content:space-between;font-size:.85rem;padding:6px 0;color:#475569}
+.recap-line.total{font-size:1rem;font-weight:900;color:#0F172A;border-top:2px solid #E2E8F0;margin-top:8px;padding-top:10px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border:none;border-radius:12px;font-size:1rem;font-weight:900;cursor:pointer;text-decoration:none;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-secondary{background:#F1F5F9;color:#475569;margin-top:10px}
+.info{background:#EFF6FF;border-left:4px solid #3B82F6;border-radius:12px;padding:14px;font-size:.82rem;color:#1E3A8A;line-height:1.6;margin-bottom:16px}
+.info strong{color:#1E40AF}
+</style>
+</head>
+<body style="--primary:{{ boutique.couleur_principale }};--primary-dark:{{ boutique.couleur_secondaire }}">
+
+<div class="wrap">
+  <div class="header">
+    {% if boutique.logo_url %}
+    <img src="{{ boutique.logo_url }}" alt="{{ boutique.nom }}" class="logo">
+    {% else %}
+    <div class="logo" style="background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem">🏪</div>
+    {% endif %}
+    <h1>{{ boutique.nom }}</h1>
+  </div>
+
+  <div class="card">
+    <h2><i class="fas fa-credit-card"></i> Paiement en ligne</h2>
+
+    <div class="info">
+      <strong>Methode :</strong> {{ methode.nom if methode else 'Paiement en ligne' }}<br>
+      Vous allez etre redirige vers une page de paiement securisee.
+    </div>
+
+    <div class="recap">
+      <div class="recap-line">
+        <span>Reference</span>
+        <strong>{{ commande.reference }}</strong>
+      </div>
+      <div class="recap-line">
+        <span>Nom</span>
+        <strong>{{ commande.client_nom }}</strong>
+      </div>
+      <div class="recap-line">
+        <span>Telephone</span>
+        <strong>{{ commande.client_telephone }}</strong>
+      </div>
+      <div class="recap-line total">
+        <span>Total a payer</span>
+        <span>{{ "{:,.0f}".format(commande.total) }} FCFA</span>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="alert('Lien de paiement a venir. Contactez le vendeur.')">
+      <i class="fas fa-lock"></i> Payer {{ "{:,.0f}".format(commande.total) }} FCFA
+    </button>
+
+    <a href="{{ url_for('boutique.visiter', slug=slug) }}" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i> Retour
+    </a>
+  </div>
+</div>
+
+</body>
+</html>
