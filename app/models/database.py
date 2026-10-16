@@ -902,3 +902,296 @@ def update_commande_boutique(commande_id, data):
     except Exception as e:
         logger.error(f"update_commande_boutique: {type(e).__name__}")
         return False
+
+# ═══════════════════════════════════════════════════════════════
+# CRÉDIT BOOST (solde prépayé pour commissions)
+# ═══════════════════════════════════════════════════════════════
+
+SEUIL_CREDIT_MIN_PUBLICATION = 2000
+
+
+def get_credit_boost(user_id):
+    """Retourne le solde Credit Boost d'un revendeur."""
+    try:
+        profile = get_profile(user_id)
+        if not profile:
+            return 0
+        return float(profile.get("credit_boost", 0) or 0)
+    except Exception as e:
+        logger.error(f"get_credit_boost: {type(e).__name__}")
+        return 0
+
+
+def credit_boost_suffisant(profile):
+    """Verifie si le revendeur a assez de credit pour publier/continuer."""
+    if not profile:
+        return False
+    return float(profile.get("credit_boost", 0) or 0) >= SEUIL_CREDIT_MIN_PUBLICATION
+
+
+def _log_credit_boost_transaction(revendeur_id, type_tx, montant, solde_apres,
+                                   description=None, source_type=None,
+                                   source_id=None, metadata=None):
+    """Enregistre une transaction dans l'historique."""
+    try:
+        payload = {
+            "revendeur_id": revendeur_id,
+            "type": type_tx,
+            "montant": montant,
+            "solde_apres": solde_apres,
+            "description": description,
+            "source_type": source_type,
+            "source_id": source_id,
+            "metadata": metadata or {},
+        }
+        requests.post(_url("credit_boost_transactions"), json=payload,
+                     headers=_headers(True), timeout=10)
+    except Exception as e:
+        logger.error(f"_log_credit_boost_transaction: {type(e).__name__}")
+
+
+def debiter_credit_boost(user_id, montant, description=None,
+                        source_type=None, source_id=None, metadata=None):
+    """
+    Debite le Credit Boost. Retourne le nouveau solde ou None si echec.
+    N'echoue PAS si le solde devient negatif (on veut tracker la dette).
+    """
+    try:
+        profile = get_profile(user_id)
+        if not profile:
+            return None
+        solde_actuel = float(profile.get("credit_boost", 0) or 0)
+        nouveau_solde = solde_actuel - float(montant)
+
+        ok = update_profile(user_id, {"credit_boost": nouveau_solde})
+        if ok:
+            _log_credit_boost_transaction(
+                user_id, "debit_commission", -abs(float(montant)),
+                nouveau_solde, description, source_type, source_id, metadata
+            )
+            return nouveau_solde
+        return None
+    except Exception as e:
+        logger.error(f"debiter_credit_boost: {type(e).__name__}")
+        return None
+
+
+def crediter_credit_boost(user_id, montant, description=None,
+                         source_type=None, source_id=None, metadata=None):
+    """Credite le Credit Boost (recharge). Retourne le nouveau solde."""
+    try:
+        profile = get_profile(user_id)
+        if not profile:
+            return None
+        solde_actuel = float(profile.get("credit_boost", 0) or 0)
+        nouveau_solde = solde_actuel + float(montant)
+
+        ok = update_profile(user_id, {"credit_boost": nouveau_solde})
+        if ok:
+            _log_credit_boost_transaction(
+                user_id, "recharge", float(montant),
+                nouveau_solde, description, source_type, source_id, metadata
+            )
+            # Reactiver la boutique si solde redevient ok
+            reactiver_boutique_si_solde_ok(user_id)
+            return nouveau_solde
+        return None
+    except Exception as e:
+        logger.error(f"crediter_credit_boost: {type(e).__name__}")
+        return None
+
+
+def reactiver_boutique_si_solde_ok(user_id):
+    """Reactive automatiquement la boutique si le credit est redevenu suffisant."""
+    try:
+        profile = get_profile(user_id)
+        if not profile:
+            return False
+        if not profile.get("est_revendeur"):
+            return False
+        if profile.get("boutique_active"):
+            return True  # deja active
+
+        if credit_boost_suffisant(profile):
+            update_profile(user_id, {"boutique_active": True})
+            logger.info(f"Boutique reactivee pour {user_id}")
+            return True
+        return False
+    except Exception as e:
+        logger.error(f"reactiver_boutique_si_solde_ok: {type(e).__name__}")
+        return False
+
+
+def get_transactions_credit_boost(user_id, limit=100):
+    """Historique des transactions Credit Boost."""
+    try:
+        r = requests.get(
+            _url(f"credit_boost_transactions?revendeur_id=eq.{user_id}"
+                 f"&order=created_at.desc&limit={limit}"),
+            headers=_headers(True), timeout=10
+        )
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_transactions_credit_boost: {type(e).__name__}")
+        return []
+
+
+# ═══════════════════════════════════════════════════════════════
+# APPLICATION DE LA COMMISSION
+# ═══════════════════════════════════════════════════════════════
+
+def appliquer_commission_commande(commande, profile=None):
+    """
+    Applique la commission plateforme sur une commande.
+    - Debite le credit_boost du revendeur
+    - Cree un gain revendeur (avec details)
+    - Pour les ventes EN LIGNE : credite aussi le solde principal (net)
+    - Desactive la boutique si credit epuise
+
+    Retourne dict {
+        'succes': bool,
+        'commission': float,
+        'montant_net': float,
+        'nouveau_credit_boost': float,
+        'boutique_desactivee': bool,
+    } ou None si erreur.
+    """
+    try:
+        if not commande:
+            return None
+
+        revendeur_id = commande.get("revendeur_id")
+        if not revendeur_id:
+            return None
+
+        # Deja appliquee ? (idempotence)
+        if commande.get("commission_appliquee"):
+            logger.info(f"Commission deja appliquee pour commande {commande.get('reference')}")
+            return {
+                "succes": True,
+                "deja_appliquee": True,
+                "commission": float(commande.get("commission_montant", 0) or 0),
+            }
+
+        if not profile:
+            profile = get_profile(revendeur_id)
+        if not profile:
+            return None
+
+        # Calcul commission
+        total = float(commande.get("total", 0) or 0)
+        if total <= 0:
+            return None
+
+        commission_pct = float(profile.get("revendeur_commission_pct", 0.10) or 0.10)
+        commission = round(total * commission_pct, 2)
+        montant_net = round(total - commission, 2)
+
+        # Determiner le type de paiement
+        boutique_type = profile.get("boutique_type") or "general"
+        type_obj = get_boutique_type(boutique_type) or {}
+        paiement_type = type_obj.get("paiement_type", "cash")
+
+        # 1. Debiter le credit_boost
+        nouveau_credit = debiter_credit_boost(
+            revendeur_id, commission,
+            description=f"Commission commande {commande.get('reference')}",
+            source_type="commande_boutique",
+            source_id=str(commande.get("id")),
+            metadata={
+                "total": total,
+                "commission_pct": commission_pct,
+                "montant_net": montant_net,
+                "paiement_type": paiement_type,
+            }
+        )
+
+        # 2. Creer le gain revendeur
+        try:
+            payload_gain = {
+                "revendeur_id": revendeur_id,
+                "montant": montant_net,
+                "montant_brut": total,
+                "commission": commission,
+                "commission_pct": commission_pct,
+                "source_type": "commande_boutique",
+                "source_id": str(commande.get("id")),
+            }
+            requests.post(_url("revendeur_gains"), json=payload_gain,
+                         headers=_headers(True), timeout=10)
+        except Exception as e:
+            logger.error(f"appliquer_commission create_gain: {type(e).__name__}")
+
+        # 3. Si vente EN LIGNE : crediter le solde principal (net)
+        if paiement_type == "en_ligne":
+            credit_balance(revendeur_id, montant_net)
+
+        # 4. Mettre a jour la commande
+        update_commande_boutique(commande["id"], {
+            "commission_appliquee": True,
+            "commission_montant": commission,
+        })
+
+        # 5. Verifier si credit epuise → desactiver boutique
+        boutique_desactivee = False
+        profil_maj = get_profile(revendeur_id)
+        if profil_maj:
+            credit_actuel = float(profil_maj.get("credit_boost", 0) or 0)
+            if credit_actuel < 0 or not credit_boost_suffisant(profil_maj):
+                update_profile(revendeur_id, {"boutique_active": False})
+                boutique_desactivee = True
+                logger.warning(f"Boutique {revendeur_id} desactivee (credit epuise)")
+
+        return {
+            "succes": True,
+            "commission": commission,
+            "montant_net": montant_net,
+            "nouveau_credit_boost": nouveau_credit,
+            "boutique_desactivee": boutique_desactivee,
+            "paiement_type": paiement_type,
+        }
+    except Exception as e:
+        logger.error(f"appliquer_commission_commande: {type(e).__name__}")
+        return None
+
+
+def rembourser_commission_commande(commande, profile=None):
+    """Rembourse la commission (commande annulee apres application)."""
+    try:
+        if not commande or not commande.get("commission_appliquee"):
+            return False
+        revendeur_id = commande.get("revendeur_id")
+        commission = float(commande.get("commission_montant", 0) or 0)
+        if commission <= 0:
+            return False
+
+        # Recrediter le credit_boost
+        crediter_credit_boost(
+            revendeur_id, commission,
+            description=f"Remboursement commande {commande.get('reference')}",
+            source_type="remboursement",
+            source_id=str(commande.get("id")),
+        )
+
+        # Si en ligne, retirer le solde
+        if not profile:
+            profile = get_profile(revendeur_id)
+        if profile:
+            boutique_type = profile.get("boutique_type") or "general"
+            type_obj = get_boutique_type(boutique_type) or {}
+            if type_obj.get("paiement_type") == "en_ligne":
+                total = float(commande.get("total", 0) or 0)
+                commission_pct = float(profile.get("revendeur_commission_pct", 0.10))
+                net = round(total - (total * commission_pct), 2)
+                debit_balance(revendeur_id, net)
+
+        # Marquer comme non appliquee
+        update_commande_boutique(commande["id"], {
+            "commission_appliquee": False,
+            "commission_montant": 0,
+        })
+        return True
+    except Exception as e:
+        logger.error(f"rembourser_commission_commande: {type(e).__name__}")
+        return False
