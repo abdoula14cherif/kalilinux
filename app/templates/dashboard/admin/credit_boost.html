@@ -44,14 +44,12 @@
 .alert-info{flex:1;min-width:0}
 .alert-name{font-size:.85rem;font-weight:800;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .alert-email{font-size:.72rem;color:#64748B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.alert-credit{font-size:1rem;font-weight:900;color:#DC2626;flex-shrink:0}
-.alert-credit.neg{color:#7F1D1D}
+.alert-credit{font-size:1rem;font-weight:900;color:#D97706;flex-shrink:0;text-align:right}
+.alert-credit.neg{color:#DC2626}
 .alert-actions{display:flex;gap:6px;flex-shrink:0}
 .btn-mini{padding:7px 12px;border:none;border-radius:8px;font-size:.72rem;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:.2s}
 .btn-mini.primary{background:#F59E0B;color:#fff}
 .btn-mini.primary:hover{background:#D97706}
-.btn-mini.ghost{background:#F1F5F9;color:#475569}
-.btn-mini.ghost:hover{background:#E2E8F0}
 
 .tx-list{list-style:none;padding:0;margin:0;max-height:600px;overflow-y:auto}
 .tx-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #F1F5F9}
@@ -74,14 +72,12 @@
 
 {% block dashboard_content %}
 
-<!-- HERO -->
 <div class="cb-hero">
   <div class="cb-hero-badge">💰 GESTION CREDIT BOOST</div>
   <h2>Pilotage des soldes prepayes</h2>
   <p>Suivez, rechargez et ajustez les Credit Boost de tous les revendeurs de la plateforme.</p>
 </div>
 
-<!-- KPI -->
 <div class="kpi-grid">
   <div class="kpi-card">
     <div class="kpi-ico" style="background:linear-gradient(135deg,#10B981,#059669)">
@@ -98,7 +94,7 @@
     </div>
     <div class="kpi-label">Boutiques en pause</div>
     <div class="kpi-value">{{ stats.boutiques_en_pause or 0 }}</div>
-    <div class="kpi-sub">Credit epuise ou manuel</div>
+    <div class="kpi-sub">Credit < 500 F ou manuel</div>
   </div>
 
   <div class="kpi-card {% if stats.credit_negatif and stats.credit_negatif > 0 %}danger{% endif %}">
@@ -123,7 +119,7 @@
 <!-- REVENDEURS A CREDIT FAIBLE -->
 <div class="card-box">
   <h3>
-    <i class="fas fa-exclamation-triangle"></i> Revendeurs a credit faible
+    <i class="fas fa-exclamation-triangle"></i> Revendeurs a credit faible (< 2000 F)
     <span class="count">{{ revendeurs_faibles|length }}</span>
   </h3>
 
@@ -131,15 +127,23 @@
   <ul class="alert-list">
     {% for r in revendeurs_faibles %}
     {% set cb = r.credit_boost|default(0)|float %}
+    {% set en_pause_critique = cb < 500 %}
     <li class="alert-item">
       <div class="alert-avatar">{{ (r.full_name or r.email or '?')[0]|upper }}</div>
       <div class="alert-info">
         <div class="alert-name">{{ r.full_name or 'Sans nom' }}</div>
         <div class="alert-email">{{ r.email }}</div>
       </div>
-      <div class="alert-credit {% if cb < 0 %}neg{% endif %}">
-        {% if cb < 0 %}<i class="fas fa-times-circle"></i>{% else %}<i class="fas fa-exclamation-circle"></i>{% endif %}
+      <div class="alert-credit {% if en_pause_critique %}neg{% endif %}">
+        {% if en_pause_critique %}
+          <i class="fas fa-times-circle"></i>
+        {% else %}
+          <i class="fas fa-exclamation-circle"></i>
+        {% endif %}
         {{ "{:,.0f}".format(cb) }} F
+        {% if en_pause_critique %}
+        <br><small style="font-size:.65rem;font-weight:800">EN PAUSE</small>
+        {% endif %}
       </div>
       <div class="alert-actions">
         <a href="{{ url_for('dashboard_admin.revendeur_credit', user_id=r.id) }}" class="btn-mini primary">
