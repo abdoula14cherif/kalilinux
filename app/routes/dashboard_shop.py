@@ -15,7 +15,10 @@ from app.models.database import (
     get_coupons_revendeur, get_coupon_by_code, create_coupon, update_coupon, delete_coupon,
     get_commandes_boutique_revendeur, update_commande_boutique,
     get_abonnements_plans, get_fonctionnalites_premium,
-    get_all_boutique_types, toggle_boutique_active
+    get_all_boutique_types, toggle_boutique_active,
+    # ─── Nouvelles fonctions ───
+    get_plan_by_code, get_plan_actuel, get_commission_pct,
+    peut_creer_coupon,
 )
 from app.models.serializers import avis_safe, coupon_safe, commande_safe
 
@@ -61,6 +64,10 @@ def _verifier_propriete(table, item_id, revendeur_id):
         logger.error(f"_verifier_propriete {table}: {type(e).__name__}")
         return False
 
+
+# ═══════════════════════════════════════════════════════════════
+# COMMANDES
+# ═══════════════════════════════════════════════════════════════
 
 @dashboard_shop_bp.route("/commandes")
 @login_required
@@ -125,6 +132,10 @@ def commande_boutique_statut():
     return redirect(url_for("dashboard_shop.commandes"))
 
 
+# ═══════════════════════════════════════════════════════════════
+# GAINS
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_shop_bp.route("/gains")
 @login_required
 def gains():
@@ -136,8 +147,20 @@ def gains():
         gains_total = get_revendeur_gains_total(profile["id"])
     except Exception as e:
         logger.error(f"gains load: {type(e).__name__}")
-    return render_template("dashboard/gains.html", profile=profile, gains_total=gains_total)
 
+    plan_actuel = get_plan_actuel(profile)
+    commission_pct = get_commission_pct(profile)
+
+    return render_template("dashboard/gains.html",
+                          profile=profile,
+                          gains_total=gains_total,
+                          plan_actuel=plan_actuel,
+                          commission_pct=commission_pct)
+
+
+# ═══════════════════════════════════════════════════════════════
+# CONTACTS
+# ═══════════════════════════════════════════════════════════════
 
 @dashboard_shop_bp.route("/contacts")
 @login_required
@@ -153,6 +176,10 @@ def contacts():
         flash("Impossible de charger vos contacts pour le moment.", "warning")
     return render_template("dashboard/contacts.html", profile=profile, contacts=mes_contacts)
 
+
+# ═══════════════════════════════════════════════════════════════
+# AVIS
+# ═══════════════════════════════════════════════════════════════
 
 @dashboard_shop_bp.route("/reviews")
 @login_required
@@ -250,6 +277,10 @@ def reviews_supprimer():
     return redirect(url_for("dashboard_shop.reviews"))
 
 
+# ═══════════════════════════════════════════════════════════════
+# COUPONS (avec check limite plan)
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_shop_bp.route("/coupons")
 @login_required
 def coupons():
@@ -257,8 +288,11 @@ def coupons():
     if redir:
         return redir
     liste = get_coupons_revendeur(profile["id"])
-    return render_template("dashboard/coupons.html", profile=profile,
-                          coupons=[coupon_safe(c) for c in liste])
+    plan_actuel = get_plan_actuel(profile)
+    return render_template("dashboard/coupons.html",
+                          profile=profile,
+                          coupons=[coupon_safe(c) for c in liste],
+                          plan_actuel=plan_actuel)
 
 
 @dashboard_shop_bp.route("/coupons/ajouter", methods=["POST"])
@@ -268,6 +302,12 @@ def coupons_ajouter():
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
+
+    # Check limite du plan
+    ok_limit, msg_limit = peut_creer_coupon(profile)
+    if not ok_limit:
+        flash(msg_limit, "error")
+        return redirect(url_for("dashboard_shop.coupons"))
 
     code = request.form.get("code", "").strip().upper()[:20]
     type_coupon = request.form.get("type", "pourcentage")
@@ -374,6 +414,10 @@ def coupons_supprimer():
     return redirect(url_for("dashboard_shop.coupons"))
 
 
+# ═══════════════════════════════════════════════════════════════
+# NOTIFICATIONS PREFERENCES
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_shop_bp.route("/notifications-prefs", methods=["GET", "POST"])
 @login_required
 @limiter.limit("20 per hour")
@@ -402,6 +446,10 @@ def notifications_prefs():
     return render_template("dashboard/notifications_prefs.html", profile=profile)
 
 
+# ═══════════════════════════════════════════════════════════════
+# PREMIUM
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_shop_bp.route("/premium")
 @login_required
 def premium():
@@ -412,21 +460,9 @@ def premium():
     return render_template("dashboard/premium.html", profile=profile, features=features)
 
 
-def _get_plan_actuel(profile):
-    from app.models.database import _url, _headers
-    import requests
-    code = profile.get("abonnement_niveau") or "gratuit"
-    try:
-        r = requests.get(
-            _url(f"abonnements_plans?code=eq.{code}&limit=1"),
-            headers=_headers(True),
-            timeout=10
-        )
-        data = r.json()
-        return data[0] if isinstance(data, list) and data else None
-    except Exception:
-        return None
-
+# ═══════════════════════════════════════════════════════════════
+# ABONNEMENT
+# ═══════════════════════════════════════════════════════════════
 
 @dashboard_shop_bp.route("/abonnement")
 @login_required
@@ -435,18 +471,7 @@ def abonnement():
     if redir:
         return redir
 
-    from app.models.database import _url, _headers
-    import requests
-
-    try:
-        r = requests.get(
-            _url("abonnements_plans?actif=eq.true&order=ordre"),
-            headers=_headers(True),
-            timeout=10
-        )
-        plans = r.json() if r.status_code < 300 else []
-    except Exception:
-        plans = []
+    plans = get_abonnements_plans()
 
     produits = get_produits_revendeur(profile["id"])
     categories = get_categories_par_type(profile["boutique_type"])
@@ -462,12 +487,14 @@ def abonnement():
         "coupons": len(coupons),
     }
 
-    plan_actuel = _get_plan_actuel(profile)
+    plan_actuel = get_plan_actuel(profile)
+    commission_pct = get_commission_pct(profile)
 
     return render_template("dashboard/abonnement.html",
                           profile=profile,
                           plans=plans,
                           plan_actuel=plan_actuel,
+                          commission_pct=commission_pct,
                           usage=usage)
 
 
@@ -484,36 +511,61 @@ def abonnement_choisir():
         flash("Plan invalide.", "error")
         return redirect(url_for("dashboard_shop.abonnement"))
 
-    from app.models.database import _url, _headers
-    import requests
-
-    try:
-        r = requests.get(
-            _url(f"abonnements_plans?code=eq.{plan_code}&limit=1"),
-            headers=_headers(True),
-            timeout=10
-        )
-        data = r.json()
-        plan = data[0] if isinstance(data, list) and data else None
-    except Exception:
-        plan = None
-
+    plan = get_plan_by_code(plan_code)
     if not plan:
         flash("Plan introuvable.", "error")
         return redirect(url_for("dashboard_shop.abonnement"))
 
-    if float(plan.get("prix_mensuel", 0)) > 0:
+    prix = float(plan.get("prix_mensuel", 0) or 0)
+    commission_pct = float(plan.get("commission_pct", 0.10))
+
+    # ─── PLAN GRATUIT → switch direct ────────────────────────
+    if prix <= 0:
+        ok = update_profile(profile["id"], {
+            "abonnement_niveau": plan_code,
+            "revendeur_commission_pct": commission_pct,
+        })
+        if ok:
+            flash(f"Vous etes maintenant sur le plan {plan['nom']} !", "success")
+        else:
+            flash("Erreur lors du changement.", "error")
+        return redirect(url_for("dashboard_shop.abonnement"))
+
+    # ─── PLAN PAYANT → creation du lien Mysoleas ─────────────
+    try:
+        from app.models.mysoleas import creer_lien_paiement
+    except ImportError:
         flash(f"Le plan {plan['nom']} sera bientot disponible ! Contactez le support.", "info")
         return redirect(url_for("dashboard_shop.abonnement"))
 
-    ok = update_profile(profile["id"], {"abonnement_niveau": plan_code})
-    if ok:
-        flash(f"Vous etes maintenant sur le plan {plan['nom']} !", "success")
-    else:
-        flash("Erreur lors du changement.", "error")
+    lien = creer_lien_paiement(
+        amount=prix,
+        currency="XAF",
+        title=f"Abonnement {plan['nom']}",
+        description=f"Abonnement mensuel Boost Reseller - Plan {plan['nom']}",
+        provider=None,
+        fee_bearer="CUSTOMER",
+        max_usage=1,
+        metadata={
+            "type": "abonnement",
+            "user_id": profile["id"],
+            "plan_code": plan_code,
+            "plan_nom": plan["nom"],
+            "montant": prix,
+            "commission_pct": commission_pct,
+        },
+    )
 
-    return redirect(url_for("dashboard_shop.abonnement"))
+    if not lien or not lien.get("payment_url"):
+        flash("Erreur creation du lien de paiement. Reessayez.", "error")
+        return redirect(url_for("dashboard_shop.abonnement"))
 
+    return redirect(lien["payment_url"])
+
+
+# ═══════════════════════════════════════════════════════════════
+# PARAMETRES
+# ═══════════════════════════════════════════════════════════════
 
 @dashboard_shop_bp.route("/parametres")
 @login_required
@@ -555,33 +607,9 @@ def boutique_toggle_active():
     return redirect(url_for("dashboard_shop.parametres"))
 
 
-@dashboard_shop_bp.route("/test-email")
-@login_required
-@limiter.limit("5 per hour")
-def test_email():
-    from app.models.mailer import _send, _template
-
-    destinataire = request.args.get("to", "")[:150]
-    if not destinataire:
-        return "Utilise ?to=ton@email.com", 400
-
-    contenu = f"""
-<p>Bonjour,</p>
-<p>Ceci est un <b>email de test</b> envoye depuis Boost Reseller.</p>
-<p>Si tu recois cet email, la config SMTP est correcte !</p>
-"""
-    ok = _send(
-        destinataire,
-        "Test email — Boost Reseller",
-        _template("Test email reussi !", contenu, "#10B981", "#059669", emoji="✅")
-    )
-
-    if ok:
-        return f"Email envoye a {destinataire}. Verifie ta boite (et les spams)."
-    else:
-        return "Echec. Verifie MAIL_USERNAME et GMAIL_APP_PASSWORD sur Vercel."
-
-
+# ═══════════════════════════════════════════════════════════════
+# API NOTIFICATIONS COUNT
+# ═══════════════════════════════════════════════════════════════
 
 @dashboard_shop_bp.route("/api/notifications-count")
 @login_required
@@ -590,7 +618,7 @@ def api_notifications_count():
     """
     Retourne le compteur de notifications non lues :
     - commandes en attente
-    - avis non approuvés
+    - avis non approuves
     """
     from flask import jsonify
     profile, redir = _get_profile_ou_redirect()
