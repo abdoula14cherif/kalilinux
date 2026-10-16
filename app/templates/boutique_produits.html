@@ -41,7 +41,6 @@ button{font-family:inherit;cursor:pointer}
 .header-icon.cart .badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:.6rem;font-weight:900;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;display:none}
 .header-icon.cart .badge.show{display:block}
 
-/* BANNIERE SLIDER */
 .banniere-wrap{padding:10px 12px}
 .banniere-slider{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--primary-d));border-radius:var(--banniere-radius);min-height:var(--banniere-hauteur);box-shadow:0 6px 20px rgba(0,0,0,.08)}
 .banniere-slide{display:none;padding:36px 20px;text-align:center;color:#fff;min-height:var(--banniere-hauteur);flex-direction:column;align-items:center;justify-content:center;position:relative}
@@ -56,7 +55,6 @@ button{font-family:inherit;cursor:pointer}
 .banniere-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer;transition:.3s;border:none;padding:0}
 .banniere-dot.active{background:#fff;width:22px;border-radius:4px}
 
-/* CATEGORIES */
 .cat-scroll{background:var(--panel-bg);padding:14px;overflow-x:auto;display:flex;gap:14px;border-bottom:1px solid var(--border);scrollbar-width:none}
 .cat-scroll::-webkit-scrollbar{display:none}
 .cat-item{flex-shrink:0;text-align:center;cursor:pointer;min-width:64px;background:none;border:none}
@@ -93,7 +91,6 @@ button{font-family:inherit;cursor:pointer}
 .btn-panier{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:10px;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;border:none;border-radius:10px;font-weight:800;font-size:.8rem;cursor:pointer;transition:.2s;margin-top:auto}
 .btn-panier:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,191,255,.35)}
 
-/* Avis */
 .avis-sec{padding:40px 14px;background:var(--panel-bg);border-top:1px solid var(--border)}
 .avis-sec h2{text-align:center;font-size:1.3rem;font-weight:900;color:var(--text);margin-bottom:8px}
 .avis-sec .sous{text-align:center;font-size:.85rem;color:var(--text-mid);margin-bottom:24px}
@@ -106,7 +103,6 @@ button{font-family:inherit;cursor:pointer}
 .avis-stars{color:#F59E0B;font-size:.85rem;margin-bottom:10px}
 .avis-texte{font-size:.85rem;color:var(--text-mid);line-height:1.6;font-style:italic}
 
-/* Nav bas */
 .nav-bas{position:fixed;bottom:0;left:0;right:0;background:var(--panel-bg);border-top:1px solid var(--border);display:flex;z-index:90;padding:8px 0;box-shadow:0 -4px 12px rgba(0,0,0,.05)}
 .nav-item-bas{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text-mid);font-size:.7rem;font-weight:700;text-decoration:none;padding:6px 0;position:relative;background:none;border:none;cursor:pointer;font-family:inherit}
 .nav-item-bas i{font-size:1.2rem}
@@ -114,7 +110,6 @@ button{font-family:inherit;cursor:pointer}
 .nav-item-bas .badge-count{position:absolute;top:2px;right:calc(50% - 20px);background:var(--red);color:#fff;font-size:.6rem;font-weight:900;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center;display:none}
 .nav-item-bas .badge-count.show{display:block}
 
-/* Modals */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
 .modal-bg.open{display:flex}
 .modal-content{background:var(--panel-bg);width:100%;max-width:500px;border-radius:20px 20px 0 0;padding:22px 18px 30px;animation:slideUp .3s ease;max-height:85vh;overflow-y:auto}
@@ -127,6 +122,16 @@ button{font-family:inherit;cursor:pointer}
 .fg label{display:block;font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:6px}
 .fg .inp,.fg .sel,.fg textarea{width:100%;padding:12px;border:2px solid var(--border);border-radius:11px;font-size:.9rem;color:var(--text);outline:none;background:var(--soft-bg);font-family:inherit}
 .fg .inp:focus,.fg .sel:focus,.fg textarea:focus{border-color:var(--primary);background:var(--card-bg)}
+
+/* MOYENS DE PAIEMENT */
+.moyens-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.moyen-option{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:.2s;background:var(--card-bg)}
+.moyen-option:hover{border-color:var(--primary)}
+.moyen-option input{width:18px;height:18px;accent-color:var(--primary);flex-shrink:0}
+.moyen-option-ico{width:38px;height:38px;border-radius:10px;background:var(--soft-bg);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--primary);flex-shrink:0}
+.moyen-option-info{flex:1;min-width:0}
+.moyen-option-nom{font-size:.88rem;font-weight:800;color:var(--text)}
+.moyen-option-desc{font-size:.72rem;color:var(--text-mid);margin-top:2px}
 
 .chariot-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:center}
 .chariot-item:last-child{border-bottom:none}
@@ -172,7 +177,6 @@ button{font-family:inherit;cursor:pointer}
 
 .wa-float{position:fixed;bottom:95px;right:16px;width:54px;height:54px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;box-shadow:0 8px 24px rgba(37,211,102,.5);z-index:85;text-decoration:none}
 
-/* TOAST - position corrigée pour ne PAS cacher les boutons */
 .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-120px);background:#0F172A;color:#fff;padding:12px 24px;border-radius:30px;font-size:.85rem;font-weight:700;z-index:500;transition:transform .35s ease,opacity .35s ease;display:flex;align-items:center;gap:10px;pointer-events:none;max-width:88%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .toast i{color:var(--primary);flex-shrink:0;font-size:1rem}
@@ -389,11 +393,48 @@ button{font-family:inherit;cursor:pointer}
 
       <div class="fg">
         <label>Mode de paiement *</label>
-        <select class="sel" name="mode_paiement" required>
-          <option value="cash">💵 Paiement a la livraison</option>
-          <option value="mtn">📱 MTN Mobile Money</option>
-          <option value="orange">📱 Orange Money</option>
-        </select>
+        <div class="moyens-list">
+          {# Moyens EN LIGNE (Stripe, LeekPay, Mysoleas...) #}
+          {% for m in moyens_paiement %}
+            {% if m.type == 'en_ligne' %}
+            <label class="moyen-option">
+              <input type="radio" name="mode_paiement" value="{{ m.method }}" required>
+              <div class="moyen-option-ico"><i class="fas fa-credit-card"></i></div>
+              <div class="moyen-option-info">
+                <div class="moyen-option-nom">{{ m.nom }}</div>
+                <div class="moyen-option-desc">Paiement en ligne securise</div>
+              </div>
+            </label>
+            {% endif %}
+          {% endfor %}
+
+          {# Moyens MANUELS (Wave, Orange, MTN...) #}
+          {% for m in moyens_paiement %}
+            {% if m.type == 'manuel' %}
+            <label class="moyen-option">
+              <input type="radio" name="mode_paiement" value="{{ m.method }}" required>
+              <div class="moyen-option-ico"><i class="fas fa-mobile-alt"></i></div>
+              <div class="moyen-option-info">
+                <div class="moyen-option-nom">{{ m.nom }}</div>
+                <div class="moyen-option-desc">
+                  Envoyer au {{ m.numero }}
+                  {% if m.nom_titulaire %} — {{ m.nom_titulaire }}{% endif %}
+                </div>
+              </div>
+            </label>
+            {% endif %}
+          {% endfor %}
+
+          {# Cash TOUJOURS disponible #}
+          <label class="moyen-option">
+            <input type="radio" name="mode_paiement" value="cash" required checked>
+            <div class="moyen-option-ico"><i class="fas fa-money-bill-wave"></i></div>
+            <div class="moyen-option-info">
+              <div class="moyen-option-nom">Paiement a la livraison</div>
+              <div class="moyen-option-desc">Payez cash en recevant votre commande</div>
+            </div>
+          </label>
+        </div>
       </div>
 
       <div class="fg">
@@ -448,7 +489,6 @@ var attributsDispo = {{ attributs|tojson|safe }};
 var attributsSelectionnes = {};
 var toastTimeout = null;
 
-// BANNIERE
 var nbSlides = document.querySelectorAll('.banniere-slide').length;
 function slideBanniere(index){
   slideActuel = index;
@@ -457,7 +497,6 @@ function slideBanniere(index){
 }
 if(nbSlides > 1){ setInterval(function(){ slideActuel = (slideActuel + 1) % nbSlides; slideBanniere(slideActuel); }, 4000); }
 
-// THEME
 (function initTheme(){
   try{ if(localStorage.getItem('boutique-theme') === 'dark'){ document.documentElement.setAttribute('data-theme','dark'); } }catch(e){}
   var icon = document.getElementById('themeIconBoutique');
@@ -472,12 +511,10 @@ function toggleThemeBoutique(){
   if(icon){ icon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon'; }
 }
 
-// FILTRES
 function filtrerCategorie(catId, el){ categorieActive = catId; document.querySelectorAll('.cat-item').forEach(function(c){ c.classList.remove('active'); }); el.classList.add('active'); appliquerFiltres(); document.getElementById('titreSection').textContent = catId === 'all' ? 'Tous les articles' : el.querySelector('.cat-item-lbl').textContent; }
 function appliquerFiltres(){ document.querySelectorAll('.produit-card').forEach(function(c){ var cat = c.getAttribute('data-categorie') || '0'; var okCat = (categorieActive === 'all') || (cat === categorieActive); c.style.display = okCat ? '' : 'none'; }); }
 function toggleFav(el){ el.classList.toggle('active'); }
 
-// CHARIOT
 function ajouterAuPanier(produit, attributs){
   var key = String(produit.id) + '_' + JSON.stringify(attributs || {});
   var existant = chariot.find(function(item){ return item.key === key; });
@@ -524,7 +561,6 @@ function ouvrirCheckout(){
   document.getElementById('modalCheckout').classList.add('open');
 }
 
-// MODAL PRODUIT
 function ouvrirProduit(produit){
   currentProduit = produit; currentQteProduit = 1; attributsSelectionnes = {};
   var img = document.getElementById('mpImg'); var wrap = document.getElementById('mpImgWrap');
