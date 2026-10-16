@@ -16,9 +16,12 @@ from app.models.database import (
     get_commandes_boutique_revendeur, update_commande_boutique,
     get_abonnements_plans, get_fonctionnalites_premium,
     get_all_boutique_types, toggle_boutique_active,
-    # ─── Nouvelles fonctions ───
     get_plan_by_code, get_plan_actuel, get_commission_pct,
     peut_creer_coupon,
+    get_boutique_type,
+    appliquer_commission_commande,
+    rembourser_commission_commande,
+    _url, _headers,
 )
 from app.models.serializers import avis_safe, coupon_safe, commande_safe
 
@@ -49,7 +52,6 @@ def _verifier_propriete(table, item_id, revendeur_id):
     try:
         if not item_id or not revendeur_id:
             return False
-        from app.models.database import _url, _headers
         import requests
         r = requests.get(
             _url(f"{table}?id=eq.{item_id}&revendeur_id=eq.{revendeur_id}&limit=1"),
@@ -63,6 +65,20 @@ def _verifier_propriete(table, item_id, revendeur_id):
     except Exception as e:
         logger.error(f"_verifier_propriete {table}: {type(e).__name__}")
         return False
+
+
+def _get_commande_by_id(commande_id):
+    try:
+        import requests
+        r = requests.get(
+            _url(f"boutique_commandes?id=eq.{commande_id}&limit=1"),
+            headers=_headers(True), timeout=10
+        )
+        data = r.json()
+        return data[0] if isinstance(data, list) and data else None
+    except Exception as e:
+        logger.error(f"_get_commande_by_id: {type(e).__name__}")
+        return None
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -115,19 +131,66 @@ def commande_boutique_statut():
         logger.warning(f"Tentative modif commande {commande_id} par revendeur {profile['id']}")
         return redirect(url_for("dashboard_shop.commandes"))
 
+    # Recuperer la commande AVANT modif (pour commission)
+    commande = _get_commande_by_id(commande_id)
+    if not commande:
+        flash("Commande introuvable.", "error")
+        return redirect(url_for("dashboard_shop.commandes"))
+
+    # Mise a jour du statut
     ok = update_commande_boutique(commande_id, {"statut": statut})
 
-    if ok:
-        labels = {
-            "en_attente": "en attente",
-            "confirmee": "confirmee",
-            "en_livraison": "en livraison",
-            "livree": "livree",
-            "annulee": "annulee"
-        }
-        flash(f"Commande mise a jour : {labels.get(statut, statut)}.", "success")
-    else:
+    if not ok:
         flash("Erreur lors de la mise a jour.", "error")
+        return redirect(url_for("dashboard_shop.commandes"))
+
+    # ═══════════════════════════════════════════════════════════
+    # APPLICATION / REMBOURSEMENT DE LA COMMISSION
+    # ═══════════════════════════════════════════════════════════
+
+    boutique_type = profile.get("boutique_type") or "general"
+    type_obj = get_boutique_type(boutique_type) or {}
+    paiement_type = type_obj.get("paiement_type", "cash")
+
+    # CAS 1 : commande CASH livree → appliquer commission
+    if (statut == "livree"
+        and paiement_type == "cash"
+        and not commande.get("commission_appliquee")):
+        commande["statut"] = "livree"
+        result = appliquer_commission_commande(commande, profile)
+
+        if result and result.get("succes"):
+            flash(
+                f"Commande livree ! Commission de {result['commission']:,.0f} FCFA deduite "
+                f"de votre Credit Boost. Net : {result['montant_net']:,.0f} FCFA.",
+                "success"
+            )
+            if result.get("boutique_desactivee"):
+                flash(
+                    "⚠️ Votre Credit Boost est epuise. Boutique automatiquement mise en pause. "
+                    "Rechargez pour reactiver.",
+                    "warning"
+                )
+        else:
+            flash("Commande livree, mais erreur lors du calcul de la commission.", "warning")
+
+    # CAS 2 : commande annulee apres avoir ete payee/livree → rembourser commission
+    elif (statut == "annulee"
+          and commande.get("commission_appliquee")):
+        result = rembourser_commission_commande(commande, profile)
+        if result:
+            flash("Commande annulee. Commission remboursee sur votre Credit Boost.", "info")
+
+    # Flash normal
+    labels = {
+        "en_attente": "en attente",
+        "confirmee": "confirmee",
+        "en_livraison": "en livraison",
+        "livree": "livree",
+        "annulee": "annulee"
+    }
+    if statut not in ("livree", "annulee"):
+        flash(f"Commande mise a jour : {labels.get(statut, statut)}.", "success")
 
     return redirect(url_for("dashboard_shop.commandes"))
 
@@ -278,7 +341,7 @@ def reviews_supprimer():
 
 
 # ═══════════════════════════════════════════════════════════════
-# COUPONS (avec check limite plan)
+# COUPONS
 # ═══════════════════════════════════════════════════════════════
 
 @dashboard_shop_bp.route("/coupons")
@@ -303,7 +366,6 @@ def coupons_ajouter():
     if redir:
         return redir
 
-    # Check limite du plan
     ok_limit, msg_limit = peut_creer_coupon(profile)
     if not ok_limit:
         flash(msg_limit, "error")
@@ -615,11 +677,6 @@ def boutique_toggle_active():
 @login_required
 @limiter.limit("120 per hour")
 def api_notifications_count():
-    """
-    Retourne le compteur de notifications non lues :
-    - commandes en attente
-    - avis non approuves
-    """
     from flask import jsonify
     profile, redir = _get_profile_ou_redirect()
     if redir:
