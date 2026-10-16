@@ -1,0 +1,153 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Paiements — Boost Reseller{% endblock %}
+{% block page_title %}Moyens de paiement{% endblock %}
+{% block page_subtitle %}{{ pays.nom }} — {{ pays.devise }}{% endblock %}
+
+{% block topbar_actions %}
+<div style="display:flex;align-items:center;gap:6px;background:#F1F5F9;padding:8px 14px;border-radius:10px;font-size:.8rem;font-weight:800;color:#475569">
+  <i class="fas fa-lock" style="color:#10B981"></i>
+  Pays verrouillé : {{ pays.nom }}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+.pays-banner{background:linear-gradient(135deg,#0F172A,#1E293B);border-radius:16px;padding:18px 22px;color:#fff;margin-bottom:22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pays-banner .code{font-size:1.4rem;font-weight:900;background:rgba(0,191,255,.2);padding:6px 14px;border-radius:10px;letter-spacing:1px}
+.pays-banner .info{flex:1;min-width:0}
+.pays-banner .info h3{font-size:1rem;font-weight:900;margin-bottom:2px}
+.pays-banner .info p{font-size:.78rem;opacity:.75}
+.pays-banner .lock-badge{background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.4);color:#6EE7B7;padding:6px 12px;border-radius:20px;font-size:.72rem;font-weight:900;display:inline-flex;align-items:center;gap:5px}
+
+.moyens-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.moyen-card{background:#fff;border:2px solid #E2E8F0;border-radius:16px;padding:20px;transition:all .2s;position:relative}
+.moyen-card:hover{border-color:#CBD5E1;box-shadow:0 6px 20px rgba(0,0,0,.05)}
+.moyen-card.actif{border-color:#10B981;background:linear-gradient(135deg,#fff,#F0FDF4)}
+.moyen-card.configure{border-color:#F59E0B;background:linear-gradient(135deg,#fff,#FFFBEB)}
+
+.moyen-head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.moyen-ico{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.moyen-info{flex:1;min-width:0}
+.moyen-nom{font-size:.95rem;font-weight:900;color:#0F172A;margin-bottom:2px}
+.moyen-type{font-size:.72rem;color:#64748B;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+
+.moyen-statut{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:12px;font-size:.68rem;font-weight:900;margin-bottom:12px}
+.statut-actif{background:#EDFFF5;color:#059669}
+.statut-inactif{background:#F1F5F9;color:#64748B}
+.statut-configure{background:#FEF3C7;color:#92400E}
+.statut-test-ok{background:#E0F7FF;color:#0096C7}
+
+.moyen-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.btn-mini{padding:9px 14px;border:none;border-radius:10px;font-size:.78rem;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all .2s;flex:1;justify-content:center}
+.btn-config{background:#00BFFF;color:#fff}
+.btn-config:hover{background:#0096C7}
+.btn-toggle-on{background:#EDFFF5;color:#059669}
+.btn-toggle-on:hover{background:#059669;color:#fff}
+.btn-toggle-off{background:#FEF3C7;color:#92400E}
+.btn-toggle-off:hover{background:#F59E0B;color:#fff}
+.btn-delete{background:#FEF2F2;color:#DC2626;flex:0 0 44px}
+.btn-delete:hover{background:#DC2626;color:#fff}
+
+.info-box{background:#EFF6FF;border-left:4px solid #3B82F6;border-radius:12px;padding:14px 18px;margin-bottom:20px;font-size:.84rem;color:#1E3A8A;line-height:1.6}
+.info-box i{margin-right:6px}
+
+.empty-state{text-align:center;padding:40px 20px;color:#94A3B8;background:#fff;border-radius:16px;border:2px dashed #E2E8F0}
+.empty-state i{font-size:2.5rem;margin-bottom:12px;opacity:.5;display:block}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="pays-banner">
+  <div class="code">{{ pays.code }}</div>
+  <div class="info">
+    <h3>{{ pays.nom }}</h3>
+    <p>{{ pays.devise }} — Indicateur : {{ pays.indicatif }}</p>
+  </div>
+  <div class="lock-badge">
+    <i class="fas fa-lock"></i> Pays verrouillé
+  </div>
+</div>
+
+<div class="info-box">
+  <i class="fas fa-info-circle"></i>
+  Activez et configurez les moyens de paiement que vous acceptez. 
+  Pour les modes <strong>en ligne</strong>, vous devrez saisir vos clés API (chiffrées de manière sécurisée).
+</div>
+
+{% if moyens %}
+<div class="moyens-grid">
+  {% for m in moyens %}
+  <div class="moyen-card {% if m.actif %}actif{% elif m.configure %}configure{% endif %}">
+    <div class="moyen-head">
+      <div class="moyen-ico" style="background:linear-gradient(135deg,#00BFFF,#0096C7)">
+        {% if m.type == 'en_ligne' %}
+          <i class="fas fa-credit-card"></i>
+        {% elif m.type == 'manuel' %}
+          <i class="fas fa-mobile-alt"></i>
+        {% elif m.type == 'cash' %}
+          <i class="fas fa-money-bill-wave"></i>
+        {% else %}
+          <i class="fas fa-clock"></i>
+        {% endif %}
+      </div>
+      <div class="moyen-info">
+        <div class="moyen-nom">{{ m.nom_affiche }}</div>
+        <div class="moyen-type">
+          {% if m.type == 'en_ligne' %}En ligne
+          {% elif m.type == 'manuel' %}Mobile Money
+          {% elif m.type == 'cash' %}Cash
+          {% elif m.type == 'credit' %}Credit
+          {% else %}{{ m.type }}{% endif %}
+        </div>
+      </div>
+    </div>
+
+    {% if m.actif %}
+      <span class="moyen-statut statut-actif"><i class="fas fa-check-circle"></i> ACTIF</span>
+      {% if m.test_ok %}
+      <span class="moyen-statut statut-test-ok"><i class="fas fa-vial"></i> Testé OK</span>
+      {% endif %}
+    {% elif m.configure %}
+      <span class="moyen-statut statut-configure"><i class="fas fa-cog"></i> Configuré (inactif)</span>
+    {% else %}
+      <span class="moyen-statut statut-inactif"><i class="fas fa-circle"></i> Non configuré</span>
+    {% endif %}
+
+    <div class="moyen-actions">
+      <a href="{{ url_for('dashboard_paiement.configurer', method=m.method) }}" class="btn-mini btn-config">
+        <i class="fas fa-cog"></i> {% if m.configure %}Modifier{% else %}Configurer{% endif %}
+      </a>
+
+      {% if m.configure %}
+      <form method="POST" action="{{ url_for('dashboard_paiement.toggle', method=m.method) }}" style="flex:1">
+        <input type="hidden" name="actif" value="{{ '1' if m.actif else '0' }}">
+        {% if m.actif %}
+        <button type="submit" class="btn-mini btn-toggle-off" style="width:100%">
+          <i class="fas fa-pause"></i> Désactiver
+        </button>
+        {% else %}
+        <button type="submit" class="btn-mini btn-toggle-on" style="width:100%">
+          <i class="fas fa-play"></i> Activer
+        </button>
+        {% endif %}
+      </form>
+
+      <form method="POST" action="{{ url_for('dashboard_paiement.supprimer', method=m.method) }}"
+            onsubmit="return confirm('Supprimer cette configuration ? Les clés seront effacées.')">
+        <button type="submit" class="btn-mini btn-delete" title="Supprimer">
+          <i class="fas fa-trash"></i>
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="fas fa-inbox"></i>
+  <h3>Aucun moyen de paiement disponible</h3>
+  <p>Contactez l'administrateur</p>
+</div>
+{% endif %}
+
+{% endblock %}
