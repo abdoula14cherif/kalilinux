@@ -1,0 +1,74 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Choisir mon pays — Paiements{% endblock %}
+{% block page_title %}Configuration des paiements{% endblock %}
+{% block page_subtitle %}Etape 1 : Selectionnez votre pays (definitif){% endblock %}
+
+{% block extra_css %}
+.alert-warn{background:#FFF3E6;border-left:4px solid #FF6600;border-radius:14px;padding:16px 18px;margin-bottom:22px;font-size:.88rem;color:#78350F;line-height:1.6}
+.alert-warn strong{color:#FF6600}
+.pays-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;max-height:500px;overflow-y:auto;padding:4px;margin-bottom:22px}
+.pays-item{background:#fff;border:2px solid #E2E8F0;border-radius:12px;padding:14px;cursor:pointer;transition:all .2s;text-align:left}
+.pays-item:hover{border-color:#00BFFF;transform:translateY(-2px)}
+.pays-item.sel{border-color:#00BFFF;background:#F0FAFF;box-shadow:0 0 0 3px rgba(0,191,255,.15)}
+.pays-item input{display:none}
+.pays-item .code{font-size:.7rem;color:#94A3B8;font-weight:800;letter-spacing:.5px;margin-bottom:2px}
+.pays-item .nom{font-size:.88rem;font-weight:800;color:#0F172A}
+.pays-item .devise{font-size:.72rem;color:#64748B;margin-top:4px}
+.confirm-box{background:#FEF2F2;border:2px solid #DC2626;border-radius:14px;padding:18px;margin-bottom:22px}
+.confirm-box label{display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:.85rem;color:#7F1D1D;font-weight:600;line-height:1.5}
+.confirm-box input{margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:pointer;accent-color:#DC2626}
+.btn-valid{width:100%;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,#DC2626,#991B1B);color:#fff;font-size:1rem;font-weight:900;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-valid:hover:not(:disabled){transform:translateY(-2px)}
+.btn-valid:disabled{opacity:.4;cursor:not-allowed;transform:none}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="alert-warn">
+  <strong>⚠️ Attention : action définitive</strong><br>
+  Une fois votre pays sélectionné et validé, il sera <strong>verrouillé</strong>. 
+  Pour changer, il faudra contacter l'administrateur. 
+  Cela permet de garantir la cohérence des devises et moyens de paiement.
+</div>
+
+<form method="POST" action="{{ url_for('dashboard_paiement.choisir_pays') }}" id="formPays">
+  <div class="pays-grid">
+    {% for p in pays_liste %}
+    <label class="pays-item" onclick="selectPays(this)">
+      <input type="radio" name="pays_code" value="{{ p.code }}" required>
+      <div class="code">{{ p.code }}</div>
+      <div class="nom">{{ p.nom }}</div>
+      <div class="devise">{{ p.devise }} {{ p.indicatif or '' }}</div>
+    </label>
+    {% endfor %}
+  </div>
+
+  <div class="confirm-box">
+    <label>
+      <input type="checkbox" id="chkConfirm" name="confirmation" value="OUI" required>
+      <span>Je confirme que je réside dans ce pays et que ce choix est définitif. 
+      J'ai compris que pour changer, je dois contacter l'administrateur.</span>
+    </label>
+  </div>
+
+  <button type="submit" class="btn-valid" id="btnValid" disabled>
+    <i class="fas fa-lock"></i> Valider mon pays définitivement
+  </button>
+</form>
+
+<script>
+function selectPays(el){
+  document.querySelectorAll('.pays-item').forEach(function(x){ x.classList.remove('sel'); });
+  el.classList.add('sel');
+  el.querySelector('input').checked = true;
+  checkValid();
+}
+document.getElementById('chkConfirm').addEventListener('change', checkValid);
+function checkValid(){
+  var paysOk = document.querySelector('input[name="pays_code"]:checked');
+  var chkOk = document.getElementById('chkConfirm').checked;
+  document.getElementById('btnValid').disabled = !(paysOk && chkOk);
+}
+</script>
+
+{% endblock %}
