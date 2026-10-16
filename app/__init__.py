@@ -45,6 +45,7 @@ def create_app(config_name="production"):
     from app.routes.dashboard_admin import dashboard_admin_bp
     from app.routes.boutique import boutique_bp
     from app.routes.api_v1 import api_v1_bp
+    from app.routes.webhooks import webhooks_bp
 
     app.register_blueprint(home_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
@@ -54,9 +55,11 @@ def create_app(config_name="production"):
     app.register_blueprint(dashboard_admin_bp, url_prefix="/dashboard/admin")
     app.register_blueprint(boutique_bp)
     app.register_blueprint(api_v1_bp, url_prefix="/api/v1")
+    app.register_blueprint(webhooks_bp, url_prefix="/webhooks")
 
-    # ─── CSRF exempt pour API (auth par cle) ──────────────────
+    # ─── CSRF exempt pour les API et webhooks (auth par cle/signature) ───
     csrf.exempt(api_v1_bp)
+    csrf.exempt(webhooks_bp)
 
     # ─── Fichiers statiques (PWA) ─────────────────────────────
     @app.route("/sw.js")
@@ -70,25 +73,18 @@ def create_app(config_name="production"):
     # ─── Headers de securite renforces ────────────────────────
     @app.after_request
     def add_security_headers(response):
-        # Anti-sniffing
         response.headers["X-Content-Type-Options"] = "nosniff"
-        # Anti-clickjacking
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
-        # Referrer
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        # Permissions
         response.headers["Permissions-Policy"] = (
             "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
         )
-        # Isolation cross-origin
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
         response.headers["Cross-Origin-Resource-Policy"] = "same-site"
-        # HSTS (prod seulement)
         if not app.debug:
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains; preload"
             )
-        # CSP strict
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
@@ -100,7 +96,6 @@ def create_app(config_name="production"):
             "base-uri 'self'; "
             "form-action 'self';"
         )
-        # Cache-control pour pages sensibles
         if request.path.startswith(("/dashboard", "/auth", "/api/")):
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
             response.headers["Pragma"] = "no-cache"
@@ -138,16 +133,11 @@ def create_app(config_name="production"):
         return render_template("errors/400.html",
                               message="Session expiree, rechargez la page."), 400
 
-    # ⚠️ SÉCURITÉ : handler global pour TOUTE exception non geree
-    # Empeche la fuite de traceback en production
     @app.errorhandler(Exception)
     def handle_exception(e):
-        # Laisse passer les erreurs HTTP standards
         if isinstance(e, HTTPException):
             return e
-
         logger.exception(f"Exception non geree : {type(e).__name__}")
-
         if request.path.startswith("/api/"):
             return jsonify({"error": "Erreur interne du serveur"}), 500
         return render_template("errors/500.html"), 500
