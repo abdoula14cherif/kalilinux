@@ -4,6 +4,9 @@
 {% block page_subtitle %}{{ revendeurs|length }} utilisateur(s) sur la plateforme{% endblock %}
 
 {% block topbar_actions %}
+<a href="{{ url_for('dashboard_admin.credit_boost') }}" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem;background:linear-gradient(135deg,#F59E0B,#D97706)">
+  <i class="fas fa-wallet"></i> Credit Boost
+</a>
 <a href="{{ url_for('dashboard_admin.index') }}" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
   <i class="fas fa-arrow-left"></i> Dashboard
 </a>
@@ -15,11 +18,20 @@
 .search-inp:focus{border-color:#00BFFF;background:#fff}
 .btn-search{background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;border:none;padding:11px 20px;border-radius:11px;font-weight:800;font-size:.85rem;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
 
+.filtres{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.filtre-chip{padding:8px 14px;border-radius:20px;font-size:.78rem;font-weight:800;background:#F1F5F9;color:#475569;text-decoration:none;transition:.2s;border:2px solid transparent}
+.filtre-chip:hover{background:#E2E8F0}
+.filtre-chip.active{background:#0F172A;color:#fff}
+.filtre-chip.warn.active{background:#F59E0B}
+.filtre-chip.danger.active{background:#DC2626}
+
 .rev-grid{display:grid;gap:12px}
 .rev-card{background:#fff;border-radius:14px;padding:18px;border:1px solid #E2E8F0;transition:.2s;position:relative}
 .rev-card:hover{border-color:#00BFFF;box-shadow:0 4px 14px rgba(0,191,255,.08)}
 .rev-card.banni{border-color:#DC2626;background:linear-gradient(135deg,#FFF,#FEF2F2)}
 .rev-card.banni::before{content:'BANNI';position:absolute;top:12px;right:12px;background:#DC2626;color:#fff;font-size:.65rem;font-weight:900;padding:4px 10px;border-radius:8px;letter-spacing:.3px}
+.rev-card.credit-ko{border-color:#F59E0B;background:linear-gradient(135deg,#FFF,#FFFBEB)}
+.rev-card.credit-neg{border-color:#DC2626;background:linear-gradient(135deg,#FFF,#FEF2F2)}
 
 .rev-head{display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap}
 .rev-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.15rem;flex-shrink:0;text-transform:uppercase}
@@ -34,13 +46,18 @@
 .b-info{background:#E0F7FF;color:#0096C7}
 .b-admin{background:linear-gradient(135deg,#DC2626,#991B1B);color:#fff}
 
-.rev-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;padding:14px 0;border-top:1px dashed #E2E8F0;border-bottom:1px dashed #E2E8F0;margin-bottom:14px}
+.rev-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding:14px 0;border-top:1px dashed #E2E8F0;border-bottom:1px dashed #E2E8F0;margin-bottom:14px}
 .rev-meta-item{font-size:.75rem;color:#64748B;display:flex;align-items:center;gap:6px;font-weight:600}
 .rev-meta-item i{color:#94A3B8;width:14px}
 .rev-meta-item strong{color:#0F172A;font-weight:800}
+.rev-meta-item.credit-ok strong{color:#059669}
+.rev-meta-item.credit-warn strong{color:#D97706}
+.rev-meta-item.credit-ko strong{color:#DC2626}
 
 .rev-actions{display:flex;gap:6px;flex-wrap:wrap}
 .btn-action{padding:8px 14px;border:none;border-radius:9px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;text-decoration:none}
+.btn-credit{background:#FEF3C7;color:#92400E}
+.btn-credit:hover{background:#F59E0B;color:#fff}
 .btn-features{background:#E0F7FF;color:#0096C7;flex:1}
 .btn-features:hover{background:#0096C7;color:#fff}
 .btn-balance{background:#EDFFF5;color:#059669}
@@ -67,30 +84,53 @@
 .modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94A3B8}
 .modal h3{font-size:1.05rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
 .modal h3 i{color:#DC2626}
+.modal h3.credit i{color:#F59E0B}
 .fg{margin-bottom:14px}
 .fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
 .inp,.txta{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
 .inp:focus,.txta:focus{border-color:#DC2626}
 .txta{min-height:70px;resize:vertical}
 .btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#DC2626,#991B1B);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit}
+.btn-save.credit{background:linear-gradient(135deg,#F59E0B,#D97706)}
 {% endblock %}
 
 {% block dashboard_content %}
 
 <form method="GET" action="{{ url_for('dashboard_admin.revendeurs') }}" class="search-bar">
-  <input type="text" class="search-inp" name="search" value="{{ search }}" placeholder="Rechercher par email ou nom...">
+  <input type="text" class="search-inp" name="search" value="{{ search }}" placeholder="Rechercher par email ou nom..." maxlength="100">
   <button type="submit" class="btn-search"><i class="fas fa-search"></i> Rechercher</button>
-  {% if search %}
+  {% if search or filtre %}
   <a href="{{ url_for('dashboard_admin.revendeurs') }}" class="btn-action btn-del">Effacer</a>
   {% endif %}
 </form>
 
+<div class="filtres">
+  <a href="{{ url_for('dashboard_admin.revendeurs', search=search) }}"
+     class="filtre-chip {% if not filtre %}active{% endif %}">
+    <i class="fas fa-users"></i> Tous
+  </a>
+  <a href="{{ url_for('dashboard_admin.revendeurs', search=search, filtre='credit_faible') }}"
+     class="filtre-chip warn {% if filtre == 'credit_faible' %}active{% endif %}">
+    <i class="fas fa-exclamation-triangle"></i> Credit faible
+  </a>
+  <a href="{{ url_for('dashboard_admin.revendeurs', search=search, filtre='en_pause') }}"
+     class="filtre-chip warn {% if filtre == 'en_pause' %}active{% endif %}">
+    <i class="fas fa-pause-circle"></i> Boutiques en pause
+  </a>
+  <a href="{{ url_for('dashboard_admin.revendeurs', search=search, filtre='credit_negatif') }}"
+     class="filtre-chip danger {% if filtre == 'credit_negatif' %}active{% endif %}">
+    <i class="fas fa-times-circle"></i> Credit negatif
+  </a>
+</div>
+
 {% if revendeurs %}
 <div class="rev-grid">
   {% for r in revendeurs %}
-  <div class="rev-card {% if r.banni %}banni{% endif %}">
+  {% set cb = r.credit_boost|default(0)|float %}
+  {% set cb_class = 'credit-ko' if cb < 0 else ('credit-ko' if cb < 2000 else '') %}
+  <div class="rev-card {% if r.banni %}banni{% endif %} {% if cb < 0 %}credit-neg{% elif cb < 2000 %}credit-ko{% endif %}">
     <div class="rev-head">
-      <div class="rev-avatar">{{ (r.full_name or r.email or '?')[0] }}</div>
+      <div class="rev-avatar">{{ (r.full_name or r.email or '?')[0]|upper }}</div>
       <div class="rev-info">
         <div class="rev-name">{{ r.full_name or 'Sans nom' }}</div>
         <div class="rev-email"><i class="fas fa-envelope"></i> {{ r.email }}</div>
@@ -102,7 +142,11 @@
       <span class="rev-badge b-admin"><i class="fas fa-shield-alt"></i> ADMIN</span>
       {% endif %}
       {% if r.est_revendeur %}
+      {% if r.boutique_active is sameas false %}
+      <span class="rev-badge b-danger"><i class="fas fa-pause-circle"></i> Boutique en pause</span>
+      {% else %}
       <span class="rev-badge b-ok"><i class="fas fa-store"></i> Boutique en ligne</span>
+      {% endif %}
       {% else %}
       <span class="rev-badge b-warn"><i class="fas fa-clock"></i> Brouillon</span>
       {% endif %}
@@ -122,24 +166,39 @@
       <div class="rev-meta-item"><i class="fas fa-link"></i> <strong>/r/{{ r.revendeur_slug }}</strong></div>
       {% endif %}
       <div class="rev-meta-item"><i class="fas fa-coins"></i> <strong>{{ "{:,.0f}".format(r.balance or 0) }}</strong> FCFA</div>
+      <div class="rev-meta-item {% if cb >= 2000 %}credit-ok{% elif cb >= 0 %}credit-warn{% else %}credit-ko{% endif %}">
+        <i class="fas fa-wallet"></i> <strong>{{ "{:,.0f}".format(cb) }}</strong> CB
+      </div>
       {% if r.country %}
       <div class="rev-meta-item"><i class="fas fa-globe"></i> <strong>{{ r.country }}</strong></div>
       {% endif %}
       {% if r.created_at %}
-      <div class="rev-meta-item"><i class="fas fa-calendar"></i> Inscrit le <strong>{{ r.created_at[:10] }}</strong></div>
+      <div class="rev-meta-item"><i class="fas fa-calendar"></i> <strong>{{ r.created_at[:10] }}</strong></div>
       {% endif %}
     </div>
 
     <div class="rev-actions">
+      <a href="{{ url_for('dashboard_admin.revendeur_credit', user_id=r.id) }}" class="btn-action btn-credit">
+        <i class="fas fa-wallet"></i> Credit
+      </a>
+
       <a href="{{ url_for('dashboard_admin.revendeur_features', revendeur_id=r.id) }}" class="btn-action btn-features">
         <i class="fas fa-sliders-h"></i> Features
       </a>
 
-      <button type="button" class="btn-action btn-balance" onclick='ouvrirBalance({{ r.id }}, "{{ r.email }}", {{ r.balance or 0 }})'>
+      <button type="button" class="btn-action btn-balance"
+              data-user-id="{{ r.id }}"
+              data-user-email="{{ r.email }}"
+              data-balance="{{ r.balance or 0 }}"
+              onclick="ouvrirBalance(this)">
         <i class="fas fa-coins"></i> Solde
       </button>
 
-      <button type="button" class="btn-action btn-abon" onclick='ouvrirAbon({{ r.id }}, "{{ r.email }}", "{{ r.abonnement_niveau or "gratuit" }}")'>
+      <button type="button" class="btn-action btn-abon"
+              data-user-id="{{ r.id }}"
+              data-user-email="{{ r.email }}"
+              data-niveau="{{ r.abonnement_niveau or 'gratuit' }}"
+              onclick="ouvrirAbon(this)">
         <i class="fas fa-crown"></i> Abonnement
       </button>
 
@@ -166,12 +225,18 @@
         </button>
       </form>
       {% else %}
-      <button type="button" class="btn-action btn-ban" onclick='ouvrirBan({{ r.id }}, "{{ r.email }}")'>
+      <button type="button" class="btn-action btn-ban"
+              data-user-id="{{ r.id }}"
+              data-user-email="{{ r.email }}"
+              onclick="ouvrirBan(this)">
         <i class="fas fa-ban"></i> Bannir
       </button>
       {% endif %}
 
-      <button type="button" class="btn-action btn-del" onclick='ouvrirSuppr({{ r.id }}, "{{ r.email }}")'>
+      <button type="button" class="btn-action btn-del"
+              data-user-id="{{ r.id }}"
+              data-user-email="{{ r.email }}"
+              onclick="ouvrirSuppr(this)">
         <i class="fas fa-trash"></i>
       </button>
     </div>
@@ -183,11 +248,11 @@
 <div class="empty-state">
   <i class="fas fa-users"></i>
   <h3>Aucun utilisateur</h3>
-  <p>{% if search %}Aucun résultat pour "{{ search }}"{% else %}La plateforme est vide pour l'instant{% endif %}</p>
+  <p>{% if search %}Aucun résultat pour "{{ search }}"{% elif filtre %}Aucun résultat pour ce filtre{% else %}La plateforme est vide pour l'instant{% endif %}</p>
 </div>
 {% endif %}
 
-<!-- Modal Bannir -->
+<!-- ═══ Modal Bannir ═══ -->
 <div class="modal-bg" id="modalBan">
   <div class="modal">
     <button class="modal-close" onclick="fermerModal('modalBan')">✕</button>
@@ -196,14 +261,14 @@
     <form method="POST" id="formBan">
       <div class="fg">
         <label>Raison du bannissement (optionnel)</label>
-        <textarea class="txta" name="raison" placeholder="Ex : Comportement frauduleux, tentative de spam..."></textarea>
+        <textarea class="txta" name="raison" placeholder="Ex : Comportement frauduleux, tentative de spam..." maxlength="500"></textarea>
       </div>
       <button type="submit" class="btn-save"><i class="fas fa-ban"></i> Confirmer le bannissement</button>
     </form>
   </div>
 </div>
 
-<!-- Modal Balance -->
+<!-- ═══ Modal Balance ═══ -->
 <div class="modal-bg" id="modalBalance">
   <div class="modal">
     <button class="modal-close" onclick="fermerModal('modalBalance')">✕</button>
@@ -212,15 +277,15 @@
     <form method="POST" id="formBalance">
       <div class="fg">
         <label>Nouveau solde (FCFA)</label>
-        <input class="inp" type="number" name="balance" id="balanceInput" step="0.01" required>
-        <small style="font-size:.72rem;color:#94A3B8;margin-top:6px;display:block">⚠️ Ceci remplace le solde actuel</small>
+        <input class="inp" type="number" name="balance" id="balanceInput" step="0.01" min="0" max="100000000" required>
+        <small style="font-size:.72rem;color:#94A3B8;margin-top:6px;display:block">⚠️ Ceci remplace le solde actuel (max 100 000 000)</small>
       </div>
       <button type="submit" class="btn-save"><i class="fas fa-check"></i> Enregistrer</button>
     </form>
   </div>
 </div>
 
-<!-- Modal Abonnement -->
+<!-- ═══ Modal Abonnement ═══ -->
 <div class="modal-bg" id="modalAbon">
   <div class="modal">
     <button class="modal-close" onclick="fermerModal('modalAbon')">✕</button>
@@ -233,7 +298,6 @@
           <option value="gratuit">Gratuit</option>
           <option value="pro">Pro</option>
           <option value="business">Business</option>
-          <option value="premium">Premium</option>
         </select>
       </div>
       <button type="submit" class="btn-save"><i class="fas fa-check"></i> Changer</button>
@@ -241,7 +305,7 @@
   </div>
 </div>
 
-<!-- Modal Suppression -->
+<!-- ═══ Modal Suppression ═══ -->
 <div class="modal-bg" id="modalSuppr">
   <div class="modal">
     <button class="modal-close" onclick="fermerModal('modalSuppr')">✕</button>
@@ -263,29 +327,40 @@
 <script>
 function fermerModal(id){ document.getElementById(id).classList.remove('open'); }
 
-function ouvrirBan(userId, email){
+// ═══ SÉCURITÉ : lire les données depuis data-* (pas d'injection) ═══
+function ouvrirBan(btn){
+  var userId = btn.dataset.userId;
+  var email = btn.dataset.userEmail;
   document.getElementById('banTarget').textContent = 'Utilisateur : ' + email;
-  document.getElementById('formBan').action = '/dashboard/admin/revendeurs/' + userId + '/bannir';
+  document.getElementById('formBan').action = '/dashboard/admin/revendeurs/' + encodeURIComponent(userId) + '/bannir';
   document.getElementById('modalBan').classList.add('open');
 }
 
-function ouvrirBalance(userId, email, balance){
+function ouvrirBalance(btn){
+  var userId = btn.dataset.userId;
+  var email = btn.dataset.userEmail;
+  var balance = btn.dataset.balance;
   document.getElementById('balanceTarget').textContent = 'Utilisateur : ' + email;
   document.getElementById('balanceInput').value = balance;
-  document.getElementById('formBalance').action = '/dashboard/admin/revendeurs/' + userId + '/balance';
+  document.getElementById('formBalance').action = '/dashboard/admin/revendeurs/' + encodeURIComponent(userId) + '/balance';
   document.getElementById('modalBalance').classList.add('open');
 }
 
-function ouvrirAbon(userId, email, niveau){
+function ouvrirAbon(btn){
+  var userId = btn.dataset.userId;
+  var email = btn.dataset.userEmail;
+  var niveau = btn.dataset.niveau;
   document.getElementById('abonTarget').textContent = 'Utilisateur : ' + email;
   document.querySelector('#formAbon select[name="niveau"]').value = niveau;
-  document.getElementById('formAbon').action = '/dashboard/admin/revendeurs/' + userId + '/abonnement';
+  document.getElementById('formAbon').action = '/dashboard/admin/revendeurs/' + encodeURIComponent(userId) + '/abonnement';
   document.getElementById('modalAbon').classList.add('open');
 }
 
-function ouvrirSuppr(userId, email){
+function ouvrirSuppr(btn){
+  var userId = btn.dataset.userId;
+  var email = btn.dataset.userEmail;
   document.getElementById('supprTarget').textContent = 'Utilisateur : ' + email;
-  document.getElementById('formSuppr').action = '/dashboard/admin/revendeurs/' + userId + '/supprimer';
+  document.getElementById('formSuppr').action = '/dashboard/admin/revendeurs/' + encodeURIComponent(userId) + '/supprimer';
   document.getElementById('modalSuppr').classList.add('open');
 }
 
