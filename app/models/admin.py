@@ -1,6 +1,7 @@
 """
 Modele admin — Gestion globale de la plateforme.
 SÉCURITÉ : validations strictes, UUID sanitize, plafonds, idempotence.
+DEBUG : logs exhaustifs pour diagnostic credit_boost.
 """
 import logging
 import re
@@ -16,19 +17,17 @@ logger = logging.getLogger(__name__)
 # CONSTANTES DE SÉCURITÉ
 # ═══════════════════════════════════════════════════════════════
 
-# Format UUID v4 strict (évite injection dans les URLs Supabase)
 UUID_REGEX = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
     re.IGNORECASE
 )
 
-# Plafonds métier (en FCFA)
 BALANCE_MIN = 0
-BALANCE_MAX = 100_000_000          # 100 millions
+BALANCE_MAX = 100_000_000
 CREDIT_BOOST_MIN = 0
-CREDIT_BOOST_MAX = 10_000_000      # 10 millions
-MONTANT_ADJUST_MIN = -1_000_000    # Max déduction manuelle
-MONTANT_ADJUST_MAX = 1_000_000     # Max ajout manuel
+CREDIT_BOOST_MAX = 10_000_000
+MONTANT_ADJUST_MIN = -1_000_000
+MONTANT_ADJUST_MAX = 1_000_000
 
 NIVEAUX_ABONNEMENT_VALIDES = ("gratuit", "pro", "business")
 
@@ -60,31 +59,26 @@ def _url(path):
 # ═══════════════════════════════════════════════════════════════
 
 def _valider_uuid(value, champ="identifiant"):
-    """
-    Verifie qu'une valeur est un UUID valide.
-    Bloque toute tentative d'injection dans les URLs Supabase.
-    """
+    """Verifie qu'une valeur est un UUID valide."""
     if not value or not isinstance(value, str):
+        logger.warning(f"  [_valider_uuid] {champ} : type invalide ({type(value).__name__})")
         return None
     value = value.strip()
     if not UUID_REGEX.match(value):
-        logger.warning(f"[SECURITE] UUID invalide pour {champ}: {value[:50]}")
+        logger.warning(f"  [_valider_uuid] {champ} : format UUID invalide → {value[:50]!r}")
         return None
     return value
 
 
 def _valider_montant(valeur, min_val=None, max_val=None, allow_zero=True):
-    """
-    Valide un montant numerique. Retourne (montant_float, erreur_str).
-    Utilise Decimal pour eviter les erreurs de floating point.
-    """
+    """Valide un montant numerique. Retourne (montant_float, erreur_str)."""
     if valeur is None or valeur == "":
         return None, "Montant vide"
 
     try:
-        # Convertir proprement en Decimal
         d = Decimal(str(valeur).strip().replace(",", "."))
     except (InvalidOperation, ValueError):
+        logger.warning(f"  [_valider_montant] échec conversion : {valeur!r}")
         return None, "Montant invalide"
 
     if not d.is_finite():
@@ -99,7 +93,6 @@ def _valider_montant(valeur, min_val=None, max_val=None, allow_zero=True):
     if max_val is not None and d > Decimal(str(max_val)):
         return None, f"Montant superieur au maximum ({max_val})"
 
-    # Arrondi a 2 decimales
     return float(d.quantize(Decimal("0.01"))), None
 
 
@@ -123,9 +116,8 @@ def log_admin_action(admin_id, action, cible_type=None, cible_id=None,
                      details=None, ip=None):
     """Enregistre une action admin pour audit."""
     try:
-        # Sanitize cible_id si UUID-like
         if cible_id and isinstance(cible_id, str):
-            cible_id = cible_id[:100]  # Tronquer
+            cible_id = cible_id[:100]
 
         payload = {
             "admin_id": admin_id,
@@ -133,7 +125,7 @@ def log_admin_action(admin_id, action, cible_type=None, cible_id=None,
             "cible_type": (cible_type or "")[:50] or None,
             "cible_id": cible_id,
             "details": details or {},
-            "ip": (ip or "")[:45] or None,  # IPv6 max 45
+            "ip": (ip or "")[:45] or None,
         }
         requests.post(_url("admin_logs"), json=payload,
                      headers=_headers(), timeout=10)
@@ -178,7 +170,7 @@ def get_stats_globales():
         )
         boutiques_en_pause = sum(
             1 for p in revendeurs
-            if p.get("boutique_active") is False or p.get("credit_boost", 0) < 2000
+            if p.get("boutique_active") is False
         )
         credit_negatif = sum(
             1 for p in profiles if float(p.get("credit_boost", 0) or 0) < 0
@@ -245,7 +237,6 @@ def get_tous_utilisateurs(limit=500, search=None):
         limit = max(1, min(int(limit), 1000))
         url = f"profiles?order=created_at.desc&limit={limit}"
         if search:
-            # Sanitize search (eviter injection PostgREST)
             search_clean = re.sub(r"[^\w@.\-\s]", "", search)[:100]
             if search_clean:
                 url += f"&or=(email.ilike.*{search_clean}*,full_name.ilike.*{search_clean}*)"
@@ -263,7 +254,7 @@ def bannir_utilisateur(user_id, raison=None):
     if not user_id:
         return False
 
-    raison_clean, err = _valider_raison(raison, min_len=0, max_len=500) if raison else (None, None)
+    raison_clean = raison[:500] if raison else None
 
     try:
         payload = {
@@ -339,10 +330,7 @@ def modifier_balance(user_id, nouveau_montant):
 
 
 def modifier_abonnement(user_id, niveau):
-    """
-    Change l'abonnement d'un revendeur (admin override).
-    Met aussi a jour la commission du revendeur selon le plan.
-    """
+    """Change l'abonnement d'un revendeur (admin override)."""
     user_id = _valider_uuid(user_id, "user_id")
     if not user_id:
         return False
@@ -352,7 +340,6 @@ def modifier_abonnement(user_id, niveau):
         return False
 
     try:
-        # Recuperer la commission du plan cible
         commission_pct = 0.10
         try:
             r_plan = requests.get(
@@ -393,112 +380,202 @@ def supprimer_utilisateur(user_id):
 
 
 # ═══════════════════════════════════════════════════════════════
-# CRÉDIT BOOST — GESTION ADMIN
+# CRÉDIT BOOST — GESTION ADMIN (VERSION DEBUG)
 # ═══════════════════════════════════════════════════════════════
 
 def ajouter_credit_boost(user_id, montant, raison):
     """
     Ajoute du Credit Boost manuellement (admin).
-    SÉCURITÉ : motif obligatoire, plafonds, traçabilité.
+    VERSION DEBUG : logs exhaustifs à chaque étape.
     """
-    user_id = _valider_uuid(user_id, "user_id")
-    if not user_id:
-        return False, "Identifiant invalide"
+    logger.warning(f"  ┌─ [ajouter_credit_boost] START")
+    logger.warning(f"  ├─ user_id RAW = {user_id!r}")
+    logger.warning(f"  ├─ montant RAW = {montant!r}")
+    logger.warning(f"  ├─ raison RAW = {raison!r}")
 
+    # 1. Validation UUID
+    user_id_clean = _valider_uuid(user_id, "user_id")
+    if not user_id_clean:
+        logger.warning(f"  ├─ ❌ UUID INVALIDE")
+        return False, "Identifiant utilisateur invalide"
+
+    logger.warning(f"  ├─ ✓ user_id validé = {user_id_clean}")
+
+    # 2. Validation montant
     montant_val, err = _valider_montant(montant, 1, MONTANT_ADJUST_MAX, allow_zero=False)
     if err:
+        logger.warning(f"  ├─ ❌ MONTANT INVALIDE : {err}")
         return False, err
 
+    logger.warning(f"  ├─ ✓ montant validé = {montant_val}")
+
+    # 3. Validation raison
     raison_clean, err = _valider_raison(raison, min_len=5, max_len=500)
     if err:
+        logger.warning(f"  ├─ ❌ RAISON INVALIDE : {err}")
         return False, err
 
-    try:
-        # Recuperer le solde actuel
-        r = requests.get(_url(f"profiles?id=eq.{user_id}&select=credit_boost&limit=1"),
-                        headers=_headers(), timeout=10)
-        data = r.json()
-        if not data or not isinstance(data, list):
-            return False, "Utilisateur introuvable"
+    logger.warning(f"  ├─ ✓ raison validée")
 
-        solde_actuel = float(data[0].get("credit_boost", 0) or 0)
+    # 4. GET profil
+    try:
+        url = _url(f"profiles?id=eq.{user_id_clean}&select=id,email,credit_boost")
+        logger.warning(f"  ├─ GET URL : {url}")
+
+        r = requests.get(url, headers=_headers(), timeout=10)
+
+        logger.warning(f"  ├─ GET status : {r.status_code}")
+        logger.warning(f"  ├─ GET body : {r.text[:500]}")
+
+        if r.status_code >= 300:
+            logger.error(f"  ├─ ❌ Supabase error {r.status_code}")
+            return False, f"Erreur Supabase ({r.status_code}) : {r.text[:100]}"
+
+        data = r.json()
+
+        # Cas : dict d'erreur
+        if isinstance(data, dict):
+            msg = data.get("message", str(data))
+            logger.error(f"  ├─ ❌ Réponse dict (erreur) : {msg}")
+            return False, f"Erreur base : {msg[:100]}"
+
+        # Cas : liste vide
+        if not isinstance(data, list) or len(data) == 0:
+            logger.warning(f"  ├─ ❌ AUCUN PROFIL pour id={user_id_clean}")
+            return False, f"Aucun profil trouvé (id={user_id_clean[:8]}...)"
+
+        profil = data[0]
+        solde_actuel = float(profil.get("credit_boost", 0) or 0)
         nouveau_solde = solde_actuel + montant_val
 
-        if nouveau_solde > CREDIT_BOOST_MAX:
-            return False, f"Solde final depasserait le plafond ({CREDIT_BOOST_MAX} FCFA)"
+        logger.warning(f"  ├─ ✓ profil trouvé : {profil.get('email')}")
+        logger.warning(f"  ├─ solde actuel = {solde_actuel}")
+        logger.warning(f"  ├─ nouveau solde = {nouveau_solde}")
 
-        # Mettre a jour le profil
+        # 5. Plafond
+        if nouveau_solde > CREDIT_BOOST_MAX:
+            logger.warning(f"  ├─ ❌ PLAFOND DÉPASSÉ")
+            return False, f"Solde dépasserait le plafond ({CREDIT_BOOST_MAX:,.0f} F)"
+
+        # 6. PATCH
         r2 = requests.patch(
-            _url(f"profiles?id=eq.{user_id}"),
+            _url(f"profiles?id=eq.{user_id_clean}"),
             json={"credit_boost": nouveau_solde},
             headers=_headers(), timeout=10
         )
+
+        logger.warning(f"  ├─ PATCH status : {r2.status_code}")
+        logger.warning(f"  ├─ PATCH body : {r2.text[:300]}")
+
         if r2.status_code >= 300:
-            return False, "Erreur mise a jour"
+            logger.error(f"  ├─ ❌ PATCH failed")
+            return False, f"Erreur update ({r2.status_code}) : {r2.text[:100]}"
 
-        # Log transaction
-        _log_credit_boost_transaction(
-            user_id, "ajustement_admin_credit", montant_val,
-            nouveau_solde, raison_clean, "admin_ajustement", None
-        )
+        # 7. Log transaction
+        try:
+            _log_credit_boost_transaction(
+                user_id_clean, "ajustement_admin_credit", montant_val,
+                nouveau_solde, raison_clean, "admin_ajustement", None
+            )
+            logger.warning(f"  ├─ ✓ transaction loggée")
+        except Exception as e:
+            logger.warning(f"  ├─ ⚠ log transaction failed : {type(e).__name__}")
 
-        # Reactiver la boutique si le credit redevient suffisant
-        _reactiver_boutique_si_besoin(user_id, nouveau_solde)
+        # 8. Réactivation boutique
+        try:
+            _reactiver_boutique_si_besoin(user_id_clean, nouveau_solde)
+        except Exception as e:
+            logger.warning(f"  ├─ ⚠ reactivation failed : {type(e).__name__}")
 
+        logger.warning(f"  └─ ✅ SUCCESS : +{montant_val} pour {profil.get('email')}")
         return True, None
+
+    except requests.Timeout:
+        logger.error(f"  ├─ ❌ TIMEOUT")
+        return False, "Timeout de la base de données"
     except Exception as e:
-        logger.error(f"ajouter_credit_boost: {type(e).__name__}")
-        return False, "Erreur serveur"
+        logger.exception(f"  ├─ ❌ EXCEPTION : {type(e).__name__}")
+        return False, f"Erreur technique ({type(e).__name__}) : {str(e)[:100]}"
 
 
 def deduire_credit_boost(user_id, montant, raison):
-    """
-    Deduit du Credit Boost manuellement (admin).
-    SÉCURITÉ : motif obligatoire, plafonds, solde peut devenir negatif (audit).
-    """
-    user_id = _valider_uuid(user_id, "user_id")
-    if not user_id:
-        return False, "Identifiant invalide"
+    """Deduit du Credit Boost manuellement (admin). VERSION DEBUG."""
+    logger.warning(f"  ┌─ [deduire_credit_boost] START")
+    logger.warning(f"  ├─ user_id RAW = {user_id!r}")
+    logger.warning(f"  ├─ montant RAW = {montant!r}")
+
+    user_id_clean = _valider_uuid(user_id, "user_id")
+    if not user_id_clean:
+        logger.warning(f"  ├─ ❌ UUID INVALIDE")
+        return False, "Identifiant utilisateur invalide"
 
     montant_val, err = _valider_montant(montant, 1, MONTANT_ADJUST_MAX, allow_zero=False)
     if err:
+        logger.warning(f"  ├─ ❌ MONTANT INVALIDE : {err}")
         return False, err
 
     raison_clean, err = _valider_raison(raison, min_len=5, max_len=500)
     if err:
+        logger.warning(f"  ├─ ❌ RAISON INVALIDE : {err}")
         return False, err
 
     try:
-        r = requests.get(_url(f"profiles?id=eq.{user_id}&select=credit_boost&limit=1"),
-                        headers=_headers(), timeout=10)
-        data = r.json()
-        if not data or not isinstance(data, list):
-            return False, "Utilisateur introuvable"
+        url = _url(f"profiles?id=eq.{user_id_clean}&select=id,email,credit_boost")
+        logger.warning(f"  ├─ GET URL : {url}")
 
-        solde_actuel = float(data[0].get("credit_boost", 0) or 0)
+        r = requests.get(url, headers=_headers(), timeout=10)
+        logger.warning(f"  ├─ GET status : {r.status_code}")
+        logger.warning(f"  ├─ GET body : {r.text[:500]}")
+
+        if r.status_code >= 300:
+            return False, f"Erreur Supabase ({r.status_code})"
+
+        data = r.json()
+        if isinstance(data, dict):
+            return False, f"Erreur base : {data.get('message', 'inconnue')[:100]}"
+        if not isinstance(data, list) or len(data) == 0:
+            return False, f"Aucun profil (id={user_id_clean[:8]}...)"
+
+        profil = data[0]
+        solde_actuel = float(profil.get("credit_boost", 0) or 0)
         nouveau_solde = solde_actuel - montant_val
 
+        logger.warning(f"  ├─ solde : {solde_actuel} → {nouveau_solde}")
+
         r2 = requests.patch(
-            _url(f"profiles?id=eq.{user_id}"),
+            _url(f"profiles?id=eq.{user_id_clean}"),
             json={"credit_boost": nouveau_solde},
             headers=_headers(), timeout=10
         )
+
+        logger.warning(f"  ├─ PATCH status : {r2.status_code}")
+
         if r2.status_code >= 300:
-            return False, "Erreur mise a jour"
+            return False, f"Erreur update ({r2.status_code})"
 
-        _log_credit_boost_transaction(
-            user_id, "ajustement_admin_debit", -montant_val,
-            nouveau_solde, raison_clean, "admin_ajustement", None
-        )
+        try:
+            _log_credit_boost_transaction(
+                user_id_clean, "ajustement_admin_debit", -montant_val,
+                nouveau_solde, raison_clean, "admin_ajustement", None
+            )
+        except Exception:
+            pass
 
-        # Verifier si le credit devient insuffisant → pause boutique
         if nouveau_solde < 2000:
-            _mettre_boutique_en_pause(user_id)
+            try:
+                _mettre_boutique_en_pause(user_id_clean)
+                logger.warning(f"  ├─ ⚠ boutique mise en pause (CB < 2000)")
+            except Exception:
+                pass
 
+        logger.warning(f"  └─ ✅ SUCCESS : -{montant_val}")
         return True, None
+
+    except requests.Timeout:
+        return False, "Timeout de la base de données"
     except Exception as e:
-        logger.error(f"deduire_credit_boost: {type(e).__name__}")
-        return False, "Erreur serveur"
+        logger.exception(f"  ├─ ❌ EXCEPTION : {type(e).__name__}")
+        return False, f"Erreur technique : {str(e)[:100]}"
 
 
 def get_transactions_credit_boost_admin(user_id=None, limit=200):
@@ -637,7 +714,6 @@ def modifier_fonctionnalite(code, data):
 def creer_fonctionnalite(data):
     """Cree une nouvelle fonctionnalite."""
     try:
-        # Sanitize code
         code = re.sub(r"[^a-z0-9_]", "", (data.get("code") or "").lower())[:50]
         if not code:
             return None
