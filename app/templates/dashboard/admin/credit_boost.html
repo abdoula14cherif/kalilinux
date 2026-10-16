@@ -1,0 +1,197 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Credit Boost — Admin{% endblock %}
+{% block page_title %}Credit Boost — Vue globale{% endblock %}
+{% block page_subtitle %}Gestion des soldes prepayes des revendeurs{% endblock %}
+
+{% block topbar_actions %}
+<a href="{{ url_for('dashboard_admin.revendeurs') }}" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-users"></i> Revendeurs
+</a>
+<a href="{{ url_for('dashboard_admin.index') }}" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-arrow-left"></i> Dashboard
+</a>
+{% endblock %}
+
+{% block extra_css %}
+.cb-hero{background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:20px;padding:28px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden}
+.cb-hero::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 65%);pointer-events:none}
+.cb-hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.22);backdrop-filter:blur(10px);padding:6px 14px;border-radius:20px;font-size:.72rem;font-weight:800;letter-spacing:.5px;margin-bottom:14px;position:relative;z-index:1}
+.cb-hero h2{font-size:1.3rem;font-weight:900;margin-bottom:6px;position:relative;z-index:1}
+.cb-hero p{font-size:.88rem;opacity:.92;line-height:1.6;position:relative;z-index:1}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+.kpi-card{background:#fff;border-radius:16px;padding:20px;border:1px solid #E2E8F0;transition:.25s;position:relative;overflow:hidden}
+.kpi-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.08)}
+.kpi-card.danger{border-color:#DC2626;background:linear-gradient(135deg,#fff,#FEF2F2)}
+.kpi-card.warn{border-color:#F59E0B;background:linear-gradient(135deg,#fff,#FFFBEB)}
+.kpi-ico{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;color:#fff;margin-bottom:14px}
+.kpi-label{font-size:.72rem;color:#64748B;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.kpi-value{font-size:1.7rem;font-weight:900;color:#0F172A;line-height:1.1}
+.kpi-value small{font-size:.78rem;font-weight:700;color:#94A3B8;margin-left:4px}
+.kpi-sub{font-size:.74rem;color:#94A3B8;margin-top:6px}
+.kpi-card.danger .kpi-value{color:#DC2626}
+.kpi-card.warn .kpi-value{color:#D97706}
+
+.card-box{background:#fff;border-radius:16px;padding:22px;border:1px solid #E2E8F0;margin-bottom:18px}
+.card-box h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card-box h3 i{color:#F59E0B}
+.card-box h3 .count{margin-left:auto;background:#F1F5F9;color:#64748B;font-size:.75rem;padding:4px 12px;border-radius:10px;font-weight:800}
+
+.alert-list{list-style:none;padding:0;margin:0}
+.alert-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #F1F5F9;flex-wrap:wrap}
+.alert-item:last-child{border-bottom:none}
+.alert-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;flex-shrink:0;text-transform:uppercase}
+.alert-info{flex:1;min-width:0}
+.alert-name{font-size:.85rem;font-weight:800;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alert-email{font-size:.72rem;color:#64748B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alert-credit{font-size:1rem;font-weight:900;color:#DC2626;flex-shrink:0}
+.alert-credit.neg{color:#7F1D1D}
+.alert-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-mini{padding:7px 12px;border:none;border-radius:8px;font-size:.72rem;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:.2s}
+.btn-mini.primary{background:#F59E0B;color:#fff}
+.btn-mini.primary:hover{background:#D97706}
+.btn-mini.ghost{background:#F1F5F9;color:#475569}
+.btn-mini.ghost:hover{background:#E2E8F0}
+
+.tx-list{list-style:none;padding:0;margin:0;max-height:600px;overflow-y:auto}
+.tx-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #F1F5F9}
+.tx-item:last-child{border-bottom:none}
+.tx-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.tx-ico.pos{background:#EDFFF5;color:#059669}
+.tx-ico.neg{background:#FEF2F2;color:#DC2626}
+.tx-ico.admin{background:#FEF3C7;color:#92400E}
+.tx-info{flex:1;min-width:0}
+.tx-desc{font-size:.82rem;font-weight:700;color:#0F172A;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-meta{font-size:.7rem;color:#94A3B8;margin-top:2px}
+.tx-montant{font-size:.9rem;font-weight:900;flex-shrink:0}
+.tx-montant.pos{color:#059669}
+.tx-montant.neg{color:#DC2626}
+
+.empty-state{text-align:center;padding:32px 20px;color:#94A3B8}
+.empty-state i{font-size:2.5rem;margin-bottom:12px;opacity:.5;display:block}
+.empty-state p{font-size:.85rem}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<!-- HERO -->
+<div class="cb-hero">
+  <div class="cb-hero-badge">💰 GESTION CREDIT BOOST</div>
+  <h2>Pilotage des soldes prepayes</h2>
+  <p>Suivez, rechargez et ajustez les Credit Boost de tous les revendeurs de la plateforme.</p>
+</div>
+
+<!-- KPI -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-ico" style="background:linear-gradient(135deg,#10B981,#059669)">
+      <i class="fas fa-wallet"></i>
+    </div>
+    <div class="kpi-label">Total Credit Boost</div>
+    <div class="kpi-value">{{ "{:,.0f}".format(stats.credit_boost_total or 0) }}<small>FCFA</small></div>
+    <div class="kpi-sub">Solde global en circulation</div>
+  </div>
+
+  <div class="kpi-card {% if stats.boutiques_en_pause and stats.boutiques_en_pause > 0 %}warn{% endif %}">
+    <div class="kpi-ico" style="background:linear-gradient(135deg,#F59E0B,#D97706)">
+      <i class="fas fa-pause-circle"></i>
+    </div>
+    <div class="kpi-label">Boutiques en pause</div>
+    <div class="kpi-value">{{ stats.boutiques_en_pause or 0 }}</div>
+    <div class="kpi-sub">Credit epuise ou manuel</div>
+  </div>
+
+  <div class="kpi-card {% if stats.credit_negatif and stats.credit_negatif > 0 %}danger{% endif %}">
+    <div class="kpi-ico" style="background:linear-gradient(135deg,#DC2626,#991B1B)">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <div class="kpi-label">Credit negatif</div>
+    <div class="kpi-value">{{ stats.credit_negatif or 0 }}</div>
+    <div class="kpi-sub">A recuperer</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-ico" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)">
+      <i class="fas fa-coins"></i>
+    </div>
+    <div class="kpi-label">Commissions collectees</div>
+    <div class="kpi-value">{{ "{:,.0f}".format(stats.commissions_total or 0) }}<small>F</small></div>
+    <div class="kpi-sub">Total historique</div>
+  </div>
+</div>
+
+<!-- REVENDEURS A CREDIT FAIBLE -->
+<div class="card-box">
+  <h3>
+    <i class="fas fa-exclamation-triangle"></i> Revendeurs a credit faible
+    <span class="count">{{ revendeurs_faibles|length }}</span>
+  </h3>
+
+  {% if revendeurs_faibles %}
+  <ul class="alert-list">
+    {% for r in revendeurs_faibles %}
+    {% set cb = r.credit_boost|default(0)|float %}
+    <li class="alert-item">
+      <div class="alert-avatar">{{ (r.full_name or r.email or '?')[0]|upper }}</div>
+      <div class="alert-info">
+        <div class="alert-name">{{ r.full_name or 'Sans nom' }}</div>
+        <div class="alert-email">{{ r.email }}</div>
+      </div>
+      <div class="alert-credit {% if cb < 0 %}neg{% endif %}">
+        {% if cb < 0 %}<i class="fas fa-times-circle"></i>{% else %}<i class="fas fa-exclamation-circle"></i>{% endif %}
+        {{ "{:,.0f}".format(cb) }} F
+      </div>
+      <div class="alert-actions">
+        <a href="{{ url_for('dashboard_admin.revendeur_credit', user_id=r.id) }}" class="btn-mini primary">
+          <i class="fas fa-edit"></i> Gerer
+        </a>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-check-circle"></i>
+    <p>Aucun revendeur en difficulte. Tout va bien ! 🎉</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- DERNIERES TRANSACTIONS -->
+<div class="card-box">
+  <h3>
+    <i class="fas fa-history"></i> Dernieres transactions
+    <span class="count">{{ transactions|length }}</span>
+  </h3>
+
+  {% if transactions %}
+  <ul class="tx-list">
+    {% for tx in transactions %}
+    {% set is_pos = tx.montant and tx.montant > 0 %}
+    {% set is_admin = tx.type and tx.type.startswith('ajustement_admin') %}
+    <li class="tx-item">
+      <div class="tx-ico {% if is_admin %}admin{% elif is_pos %}pos{% else %}neg{% endif %}">
+        <i class="fas {% if is_admin %}fa-user-shield{% elif is_pos %}fa-plus{% else %}fa-minus{% endif %}"></i>
+      </div>
+      <div class="tx-info">
+        <div class="tx-desc">{{ tx.description or tx.type|title }}</div>
+        <div class="tx-meta">
+          {{ tx.created_at[:16].replace('T', ' ') if tx.created_at else '' }}
+          — Revendeur: {{ tx.revendeur_id[:8] if tx.revendeur_id else '?' }}...
+        </div>
+      </div>
+      <div class="tx-montant {% if is_pos %}pos{% else %}neg{% endif %}">
+        {% if is_pos %}+{% endif %}{{ "{:,.0f}".format(tx.montant or 0) }}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-receipt"></i>
+    <p>Aucune transaction enregistree.</p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
