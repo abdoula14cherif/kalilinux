@@ -1,12 +1,44 @@
 """
 Modele admin — Gestion globale de la plateforme.
+SÉCURITÉ : validations strictes, UUID sanitize, plafonds, idempotence.
 """
 import logging
+import re
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 import requests
 from flask import current_app
 
 logger = logging.getLogger(__name__)
+
+
+# ═══════════════════════════════════════════════════════════════
+# CONSTANTES DE SÉCURITÉ
+# ═══════════════════════════════════════════════════════════════
+
+# Format UUID v4 strict (évite injection dans les URLs Supabase)
+UUID_REGEX = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    re.IGNORECASE
+)
+
+# Plafonds métier (en FCFA)
+BALANCE_MIN = 0
+BALANCE_MAX = 100_000_000          # 100 millions
+CREDIT_BOOST_MIN = 0
+CREDIT_BOOST_MAX = 10_000_000      # 10 millions
+MONTANT_ADJUST_MIN = -1_000_000    # Max déduction manuelle
+MONTANT_ADJUST_MAX = 1_000_000     # Max ajout manuel
+
+NIVEAUX_ABONNEMENT_VALIDES = ("gratuit", "pro", "business")
+
+TYPES_TRANSACTION_VALIDES = (
+    "recharge",
+    "debit_commission",
+    "remboursement",
+    "ajustement_admin_credit",
+    "ajustement_admin_debit",
+)
 
 
 def _headers():
@@ -24,21 +56,87 @@ def _url(path):
 
 
 # ═══════════════════════════════════════════════════════════════
+# VALIDATION SÉCURITÉ
+# ═══════════════════════════════════════════════════════════════
+
+def _valider_uuid(value, champ="identifiant"):
+    """
+    Verifie qu'une valeur est un UUID valide.
+    Bloque toute tentative d'injection dans les URLs Supabase.
+    """
+    if not value or not isinstance(value, str):
+        return None
+    value = value.strip()
+    if not UUID_REGEX.match(value):
+        logger.warning(f"[SECURITE] UUID invalide pour {champ}: {value[:50]}")
+        return None
+    return value
+
+
+def _valider_montant(valeur, min_val=None, max_val=None, allow_zero=True):
+    """
+    Valide un montant numerique. Retourne (montant_float, erreur_str).
+    Utilise Decimal pour eviter les erreurs de floating point.
+    """
+    if valeur is None or valeur == "":
+        return None, "Montant vide"
+
+    try:
+        # Convertir proprement en Decimal
+        d = Decimal(str(valeur).strip().replace(",", "."))
+    except (InvalidOperation, ValueError):
+        return None, "Montant invalide"
+
+    if not d.is_finite():
+        return None, "Montant invalide (infini ou NaN)"
+
+    if not allow_zero and d == 0:
+        return None, "Montant ne peut pas etre zero"
+
+    if min_val is not None and d < Decimal(str(min_val)):
+        return None, f"Montant inferieur au minimum ({min_val})"
+
+    if max_val is not None and d > Decimal(str(max_val)):
+        return None, f"Montant superieur au maximum ({max_val})"
+
+    # Arrondi a 2 decimales
+    return float(d.quantize(Decimal("0.01"))), None
+
+
+def _valider_raison(raison, min_len=3, max_len=500):
+    """Valide une raison/motif obligatoire."""
+    if not raison or not isinstance(raison, str):
+        return None, "Raison obligatoire"
+    raison = raison.strip()
+    if len(raison) < min_len:
+        return None, f"Raison trop courte (min {min_len} caracteres)"
+    if len(raison) > max_len:
+        raison = raison[:max_len]
+    return raison, None
+
+
+# ═══════════════════════════════════════════════════════════════
 # LOGS ADMIN
 # ═══════════════════════════════════════════════════════════════
 
-def log_admin_action(admin_id, action, cible_type=None, cible_id=None, details=None, ip=None):
+def log_admin_action(admin_id, action, cible_type=None, cible_id=None,
+                     details=None, ip=None):
     """Enregistre une action admin pour audit."""
     try:
+        # Sanitize cible_id si UUID-like
+        if cible_id and isinstance(cible_id, str):
+            cible_id = cible_id[:100]  # Tronquer
+
         payload = {
             "admin_id": admin_id,
-            "action": action[:100],
-            "cible_type": cible_type,
+            "action": (action or "")[:100],
+            "cible_type": (cible_type or "")[:50] or None,
             "cible_id": cible_id,
             "details": details or {},
-            "ip": ip,
+            "ip": (ip or "")[:45] or None,  # IPv6 max 45
         }
-        requests.post(_url("admin_logs"), json=payload, headers=_headers(), timeout=10)
+        requests.post(_url("admin_logs"), json=payload,
+                     headers=_headers(), timeout=10)
     except Exception as e:
         logger.error(f"log_admin_action: {type(e).__name__}")
 
@@ -46,6 +144,7 @@ def log_admin_action(admin_id, action, cible_type=None, cible_id=None, details=N
 def get_admin_logs(limit=100):
     """Recupere les derniers logs admin."""
     try:
+        limit = max(1, min(int(limit), 500))
         r = requests.get(
             _url(f"admin_logs?order=created_at.desc&limit={limit}"),
             headers=_headers(), timeout=10
@@ -73,6 +172,18 @@ def get_stats_globales():
         admins = [p for p in profiles if p.get("est_admin")]
         bannis = [p for p in profiles if p.get("banni")]
 
+        # Credit Boost stats
+        credit_boost_total = sum(
+            float(p.get("credit_boost", 0) or 0) for p in profiles
+        )
+        boutiques_en_pause = sum(
+            1 for p in revendeurs
+            if p.get("boutique_active") is False or p.get("credit_boost", 0) < 2000
+        )
+        credit_negatif = sum(
+            1 for p in profiles if float(p.get("credit_boost", 0) or 0) < 0
+        )
+
         r2 = requests.get(_url("boutique_commandes?limit=10000"), headers=_headers(), timeout=15)
         commandes = r2.json() if r2.status_code < 300 else []
         if not isinstance(commandes, list):
@@ -81,13 +192,14 @@ def get_stats_globales():
         commandes_livrees = [c for c in commandes if c.get("statut") == "livree"]
         revenus_total = sum(c.get("total", 0) or 0 for c in commandes_livrees)
 
-        # Commissions collectees par la plateforme
+        # Commissions collectees
         commissions_total = 0
         try:
-            r3 = requests.get(_url("revendeur_gains?select=commission"), headers=_headers(), timeout=15)
+            r3 = requests.get(_url("revendeur_gains?select=commission"),
+                            headers=_headers(), timeout=15)
             gains = r3.json() if r3.status_code < 300 else []
             if isinstance(gains, list):
-                commissions_total = sum(g.get("commission", 0) or 0 for g in gains)
+                commissions_total = sum(float(g.get("commission", 0) or 0) for g in gains)
         except Exception:
             pass
 
@@ -108,6 +220,9 @@ def get_stats_globales():
             "revenus_total": revenus_total,
             "commissions_total": commissions_total,
             "plans_count": plans_count,
+            "credit_boost_total": credit_boost_total,
+            "boutiques_en_pause": boutiques_en_pause,
+            "credit_negatif": credit_negatif,
         }
     except Exception as e:
         logger.error(f"get_stats_globales: {type(e).__name__}")
@@ -116,6 +231,7 @@ def get_stats_globales():
             "nb_bannis": 0, "nb_commandes": 0, "nb_commandes_livrees": 0,
             "revenus_total": 0, "commissions_total": 0,
             "plans_count": {"gratuit": 0, "pro": 0, "business": 0},
+            "credit_boost_total": 0, "boutiques_en_pause": 0, "credit_negatif": 0,
         }
 
 
@@ -126,9 +242,13 @@ def get_stats_globales():
 def get_tous_utilisateurs(limit=500, search=None):
     """Liste tous les utilisateurs (avec recherche optionnelle)."""
     try:
+        limit = max(1, min(int(limit), 1000))
         url = f"profiles?order=created_at.desc&limit={limit}"
         if search:
-            url += f"&or=(email.ilike.*{search}*,full_name.ilike.*{search}*)"
+            # Sanitize search (eviter injection PostgREST)
+            search_clean = re.sub(r"[^\w@.\-\s]", "", search)[:100]
+            if search_clean:
+                url += f"&or=(email.ilike.*{search_clean}*,full_name.ilike.*{search_clean}*)"
         r = requests.get(_url(url), headers=_headers(), timeout=15)
         data = r.json()
         return data if isinstance(data, list) else []
@@ -139,13 +259,20 @@ def get_tous_utilisateurs(limit=500, search=None):
 
 def bannir_utilisateur(user_id, raison=None):
     """Bannit un utilisateur."""
+    user_id = _valider_uuid(user_id, "user_id")
+    if not user_id:
+        return False
+
+    raison_clean, err = _valider_raison(raison, min_len=0, max_len=500) if raison else (None, None)
+
     try:
         payload = {
             "banni": True,
-            "banni_raison": raison[:500] if raison else None,
+            "banni_raison": raison_clean,
             "banni_le": datetime.now(timezone.utc).isoformat(),
         }
-        r = requests.patch(_url(f"profiles?id=eq.{user_id}"), json=payload, headers=_headers(), timeout=10)
+        r = requests.patch(_url(f"profiles?id=eq.{user_id}"),
+                          json=payload, headers=_headers(), timeout=10)
         return r.status_code < 300
     except Exception as e:
         logger.error(f"bannir_utilisateur: {type(e).__name__}")
@@ -154,9 +281,14 @@ def bannir_utilisateur(user_id, raison=None):
 
 def debannir_utilisateur(user_id):
     """Debannit un utilisateur."""
+    user_id = _valider_uuid(user_id, "user_id")
+    if not user_id:
+        return False
+
     try:
         payload = {"banni": False, "banni_raison": None, "banni_le": None}
-        r = requests.patch(_url(f"profiles?id=eq.{user_id}"), json=payload, headers=_headers(), timeout=10)
+        r = requests.patch(_url(f"profiles?id=eq.{user_id}"),
+                          json=payload, headers=_headers(), timeout=10)
         return r.status_code < 300
     except Exception as e:
         logger.error(f"debannir_utilisateur: {type(e).__name__}")
@@ -165,10 +297,14 @@ def debannir_utilisateur(user_id):
 
 def promouvoir_admin(user_id, est_admin=True):
     """Promeut ou retrograde un utilisateur admin."""
+    user_id = _valider_uuid(user_id, "user_id")
+    if not user_id:
+        return False
+
     try:
         r = requests.patch(
             _url(f"profiles?id=eq.{user_id}"),
-            json={"est_admin": est_admin},
+            json={"est_admin": bool(est_admin)},
             headers=_headers(), timeout=10
         )
         return r.status_code < 300
@@ -178,17 +314,28 @@ def promouvoir_admin(user_id, est_admin=True):
 
 
 def modifier_balance(user_id, nouveau_montant):
-    """Modifie le solde d'un utilisateur (admin override)."""
+    """
+    Modifie le solde d'un utilisateur (admin override).
+    SÉCURITÉ : plafonds appliqués.
+    """
+    user_id = _valider_uuid(user_id, "user_id")
+    if not user_id:
+        return False, "Identifiant invalide"
+
+    montant, err = _valider_montant(nouveau_montant, BALANCE_MIN, BALANCE_MAX)
+    if err:
+        return False, err
+
     try:
         r = requests.patch(
             _url(f"profiles?id=eq.{user_id}"),
-            json={"balance": float(nouveau_montant)},
+            json={"balance": montant},
             headers=_headers(), timeout=10
         )
-        return r.status_code < 300
+        return r.status_code < 300, None
     except Exception as e:
         logger.error(f"modifier_balance: {type(e).__name__}")
-        return False
+        return False, "Erreur serveur"
 
 
 def modifier_abonnement(user_id, niveau):
@@ -196,9 +343,14 @@ def modifier_abonnement(user_id, niveau):
     Change l'abonnement d'un revendeur (admin override).
     Met aussi a jour la commission du revendeur selon le plan.
     """
-    valides = ("gratuit", "pro", "business")
-    if niveau not in valides:
+    user_id = _valider_uuid(user_id, "user_id")
+    if not user_id:
         return False
+
+    if niveau not in NIVEAUX_ABONNEMENT_VALIDES:
+        logger.warning(f"[SECURITE] Niveau abonnement invalide: {niveau}")
+        return False
+
     try:
         # Recuperer la commission du plan cible
         commission_pct = 0.10
@@ -217,7 +369,8 @@ def modifier_abonnement(user_id, niveau):
             "abonnement_niveau": niveau,
             "revendeur_commission_pct": commission_pct,
         }
-        r = requests.patch(_url(f"profiles?id=eq.{user_id}"), json=payload, headers=_headers(), timeout=10)
+        r = requests.patch(_url(f"profiles?id=eq.{user_id}"),
+                          json=payload, headers=_headers(), timeout=10)
         return r.status_code < 300
     except Exception as e:
         logger.error(f"modifier_abonnement: {type(e).__name__}")
@@ -226,8 +379,13 @@ def modifier_abonnement(user_id, niveau):
 
 def supprimer_utilisateur(user_id):
     """Supprime un utilisateur et toutes ses donnees."""
+    user_id = _valider_uuid(user_id, "user_id")
+    if not user_id:
+        return False
+
     try:
-        r = requests.delete(_url(f"profiles?id=eq.{user_id}"), headers=_headers(), timeout=10)
+        r = requests.delete(_url(f"profiles?id=eq.{user_id}"),
+                          headers=_headers(), timeout=10)
         return r.status_code < 300
     except Exception as e:
         logger.error(f"supprimer_utilisateur: {type(e).__name__}")
@@ -235,13 +393,234 @@ def supprimer_utilisateur(user_id):
 
 
 # ═══════════════════════════════════════════════════════════════
-# FONCTIONNALITES DEV (modification avancee)
+# CRÉDIT BOOST — GESTION ADMIN
+# ═══════════════════════════════════════════════════════════════
+
+def ajouter_credit_boost(user_id, montant, raison):
+    """
+    Ajoute du Credit Boost manuellement (admin).
+    SÉCURITÉ : motif obligatoire, plafonds, traçabilité.
+    """
+    user_id = _valider_uuid(user_id, "user_id")
+    if not user_id:
+        return False, "Identifiant invalide"
+
+    montant_val, err = _valider_montant(montant, 1, MONTANT_ADJUST_MAX, allow_zero=False)
+    if err:
+        return False, err
+
+    raison_clean, err = _valider_raison(raison, min_len=5, max_len=500)
+    if err:
+        return False, err
+
+    try:
+        # Recuperer le solde actuel
+        r = requests.get(_url(f"profiles?id=eq.{user_id}&select=credit_boost&limit=1"),
+                        headers=_headers(), timeout=10)
+        data = r.json()
+        if not data or not isinstance(data, list):
+            return False, "Utilisateur introuvable"
+
+        solde_actuel = float(data[0].get("credit_boost", 0) or 0)
+        nouveau_solde = solde_actuel + montant_val
+
+        if nouveau_solde > CREDIT_BOOST_MAX:
+            return False, f"Solde final depasserait le plafond ({CREDIT_BOOST_MAX} FCFA)"
+
+        # Mettre a jour le profil
+        r2 = requests.patch(
+            _url(f"profiles?id=eq.{user_id}"),
+            json={"credit_boost": nouveau_solde},
+            headers=_headers(), timeout=10
+        )
+        if r2.status_code >= 300:
+            return False, "Erreur mise a jour"
+
+        # Log transaction
+        _log_credit_boost_transaction(
+            user_id, "ajustement_admin_credit", montant_val,
+            nouveau_solde, raison_clean, "admin_ajustement", None
+        )
+
+        # Reactiver la boutique si le credit redevient suffisant
+        _reactiver_boutique_si_besoin(user_id, nouveau_solde)
+
+        return True, None
+    except Exception as e:
+        logger.error(f"ajouter_credit_boost: {type(e).__name__}")
+        return False, "Erreur serveur"
+
+
+def deduire_credit_boost(user_id, montant, raison):
+    """
+    Deduit du Credit Boost manuellement (admin).
+    SÉCURITÉ : motif obligatoire, plafonds, solde peut devenir negatif (audit).
+    """
+    user_id = _valider_uuid(user_id, "user_id")
+    if not user_id:
+        return False, "Identifiant invalide"
+
+    montant_val, err = _valider_montant(montant, 1, MONTANT_ADJUST_MAX, allow_zero=False)
+    if err:
+        return False, err
+
+    raison_clean, err = _valider_raison(raison, min_len=5, max_len=500)
+    if err:
+        return False, err
+
+    try:
+        r = requests.get(_url(f"profiles?id=eq.{user_id}&select=credit_boost&limit=1"),
+                        headers=_headers(), timeout=10)
+        data = r.json()
+        if not data or not isinstance(data, list):
+            return False, "Utilisateur introuvable"
+
+        solde_actuel = float(data[0].get("credit_boost", 0) or 0)
+        nouveau_solde = solde_actuel - montant_val
+
+        r2 = requests.patch(
+            _url(f"profiles?id=eq.{user_id}"),
+            json={"credit_boost": nouveau_solde},
+            headers=_headers(), timeout=10
+        )
+        if r2.status_code >= 300:
+            return False, "Erreur mise a jour"
+
+        _log_credit_boost_transaction(
+            user_id, "ajustement_admin_debit", -montant_val,
+            nouveau_solde, raison_clean, "admin_ajustement", None
+        )
+
+        # Verifier si le credit devient insuffisant → pause boutique
+        if nouveau_solde < 2000:
+            _mettre_boutique_en_pause(user_id)
+
+        return True, None
+    except Exception as e:
+        logger.error(f"deduire_credit_boost: {type(e).__name__}")
+        return False, "Erreur serveur"
+
+
+def get_transactions_credit_boost_admin(user_id=None, limit=200):
+    """Historique des transactions Credit Boost (admin, tous revendeurs ou 1)."""
+    try:
+        limit = max(1, min(int(limit), 1000))
+        if user_id:
+            user_id = _valider_uuid(user_id, "user_id")
+            if not user_id:
+                return []
+            url = (f"credit_boost_transactions?revendeur_id=eq.{user_id}"
+                   f"&order=created_at.desc&limit={limit}")
+        else:
+            url = f"credit_boost_transactions?order=created_at.desc&limit={limit}"
+        r = requests.get(_url(url), headers=_headers(), timeout=10)
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_transactions_credit_boost_admin: {type(e).__name__}")
+        return []
+
+
+def get_revendeurs_credit_faible(seuil=2000, limit=100):
+    """Liste les revendeurs avec credit faible ou negatif."""
+    try:
+        limit = max(1, min(int(limit), 500))
+        r = requests.get(
+            _url(f"profiles?est_revendeur=eq.true&credit_boost=lt.{seuil}"
+                 f"&order=credit_boost.asc&limit={limit}"),
+            headers=_headers(), timeout=10
+        )
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_revendeurs_credit_faible: {type(e).__name__}")
+        return []
+
+
+# ═══════════════════════════════════════════════════════════════
+# HELPERS INTERNES
+# ═══════════════════════════════════════════════════════════════
+
+def _log_credit_boost_transaction(revendeur_id, type_tx, montant, solde_apres,
+                                   description=None, source_type=None,
+                                   source_id=None, metadata=None):
+    """Enregistre une transaction dans l'historique."""
+    try:
+        payload = {
+            "revendeur_id": revendeur_id,
+            "type": type_tx,
+            "montant": montant,
+            "solde_apres": solde_apres,
+            "description": (description or "")[:500] or None,
+            "source_type": (source_type or "")[:50] or None,
+            "source_id": (source_id or "")[:100] if source_id else None,
+            "metadata": metadata or {},
+        }
+        requests.post(_url("credit_boost_transactions"), json=payload,
+                     headers=_headers(), timeout=10)
+    except Exception as e:
+        logger.error(f"_log_credit_boost_transaction: {type(e).__name__}")
+
+
+def _reactiver_boutique_si_besoin(user_id, credit_actuel):
+    """Reactive la boutique si elle etait en pause et que le credit est repasse OK."""
+    try:
+        if credit_actuel < 2000:
+            return
+        r = requests.get(
+            _url(f"profiles?id=eq.{user_id}&select=est_revendeur,boutique_active&limit=1"),
+            headers=_headers(), timeout=10
+        )
+        data = r.json()
+        if not data or not isinstance(data, list):
+            return
+        p = data[0]
+        if p.get("est_revendeur") and p.get("boutique_active") is False:
+            requests.patch(
+                _url(f"profiles?id=eq.{user_id}"),
+                json={"boutique_active": True},
+                headers=_headers(), timeout=10
+            )
+            logger.info(f"[ADMIN] Boutique reactivee pour {user_id}")
+    except Exception as e:
+        logger.error(f"_reactiver_boutique_si_besoin: {type(e).__name__}")
+
+
+def _mettre_boutique_en_pause(user_id):
+    """Met la boutique en pause."""
+    try:
+        r = requests.get(
+            _url(f"profiles?id=eq.{user_id}&select=est_revendeur,boutique_active&limit=1"),
+            headers=_headers(), timeout=10
+        )
+        data = r.json()
+        if not data or not isinstance(data, list):
+            return
+        p = data[0]
+        if p.get("est_revendeur") and p.get("boutique_active") is not False:
+            requests.patch(
+                _url(f"profiles?id=eq.{user_id}"),
+                json={"boutique_active": False},
+                headers=_headers(), timeout=10
+            )
+            logger.warning(f"[ADMIN] Boutique mise en pause pour {user_id}")
+    except Exception as e:
+        logger.error(f"_mettre_boutique_en_pause: {type(e).__name__}")
+
+
+# ═══════════════════════════════════════════════════════════════
+# FONCTIONNALITES DEV
 # ═══════════════════════════════════════════════════════════════
 
 def modifier_fonctionnalite(code, data):
     """Modifie une fonctionnalite (nom, icone, couleur, ordre...)."""
+    if not code or not isinstance(code, str):
+        return False
+    code = code.strip()[:50]
+
     try:
-        autorises = {"nom", "description", "icone", "couleur", "est_premium", "actif", "ordre"}
+        autorises = {"nom", "description", "icone", "couleur",
+                     "est_premium", "actif", "ordre"}
         payload = {k: v for k, v in data.items() if k in autorises}
         if not payload:
             return False
@@ -258,7 +637,14 @@ def modifier_fonctionnalite(code, data):
 def creer_fonctionnalite(data):
     """Cree une nouvelle fonctionnalite."""
     try:
-        r = requests.post(_url("fonctionnalites_dev"), json=data, headers=_headers(), timeout=10)
+        # Sanitize code
+        code = re.sub(r"[^a-z0-9_]", "", (data.get("code") or "").lower())[:50]
+        if not code:
+            return None
+        data["code"] = code
+
+        r = requests.post(_url("fonctionnalites_dev"), json=data,
+                         headers=_headers(), timeout=10)
         result = r.json()
         return result[0] if isinstance(result, list) and result else None
     except Exception as e:
@@ -268,8 +654,12 @@ def creer_fonctionnalite(data):
 
 def supprimer_fonctionnalite(code):
     """Supprime une fonctionnalite."""
+    if not code or not isinstance(code, str):
+        return False
+    code = re.sub(r"[^a-z0-9_]", "", code.lower())[:50]
     try:
-        r = requests.delete(_url(f"fonctionnalites_dev?code=eq.{code}"), headers=_headers(), timeout=10)
+        r = requests.delete(_url(f"fonctionnalites_dev?code=eq.{code}"),
+                          headers=_headers(), timeout=10)
         return r.status_code < 300
     except Exception as e:
         logger.error(f"supprimer_fonctionnalite: {type(e).__name__}")
@@ -282,6 +672,10 @@ def supprimer_fonctionnalite(code):
 
 def modifier_plan(code, data):
     """Modifie un plan d'abonnement (admin)."""
+    if not code:
+        return False
+    code = re.sub(r"[^a-z0-9_]", "", code.lower())[:30]
+
     try:
         autorises = {
             "nom", "description", "prix_mensuel", "couleur", "icone",
@@ -309,13 +703,21 @@ def modifier_plan(code, data):
 def creer_notification_globale(titre, message, type_notif="info"):
     """Cree une notification globale visible par tous."""
     try:
+        titre = (titre or "").strip()[:100]
+        message = (message or "").strip()[:500]
+        if not titre or not message:
+            return None
+        if type_notif not in ("info", "success", "warning", "danger"):
+            type_notif = "info"
+
         payload = {
-            "titre": titre[:100],
-            "message": message[:500],
+            "titre": titre,
+            "message": message,
             "type": type_notif,
             "actif": True,
         }
-        r = requests.post(_url("notifications_globales"), json=payload, headers=_headers(), timeout=10)
+        r = requests.post(_url("notifications_globales"), json=payload,
+                         headers=_headers(), timeout=10)
         result = r.json()
         return result[0] if isinstance(result, list) and result else None
     except Exception as e:
@@ -339,10 +741,13 @@ def get_notifications_globales(actif_only=True):
 
 def toggle_notification_globale(notif_id, actif):
     """Active/desactive une notification globale."""
+    notif_id = _valider_uuid(notif_id, "notif_id")
+    if not notif_id:
+        return False
     try:
         r = requests.patch(
             _url(f"notifications_globales?id=eq.{notif_id}"),
-            json={"actif": actif},
+            json={"actif": bool(actif)},
             headers=_headers(), timeout=10
         )
         return r.status_code < 300
@@ -353,8 +758,12 @@ def toggle_notification_globale(notif_id, actif):
 
 def supprimer_notification_globale(notif_id):
     """Supprime une notification globale."""
+    notif_id = _valider_uuid(notif_id, "notif_id")
+    if not notif_id:
+        return False
     try:
-        r = requests.delete(_url(f"notifications_globales?id=eq.{notif_id}"), headers=_headers(), timeout=10)
+        r = requests.delete(_url(f"notifications_globales?id=eq.{notif_id}"),
+                          headers=_headers(), timeout=10)
         return r.status_code < 300
     except Exception as e:
         logger.error(f"supprimer_notification_globale: {type(e).__name__}")
