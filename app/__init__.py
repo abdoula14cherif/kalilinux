@@ -41,6 +41,7 @@ def create_app(config_name="production"):
     from app.routes.auth import auth_bp
     from app.routes.dashboard import dashboard_bp
     from app.routes.dashboard_shop import dashboard_shop_bp
+    from app.routes.dashboard_paiement import dashboard_paiement_bp
     from app.routes.dashboard_dev import dashboard_dev_bp
     from app.routes.dashboard_admin import dashboard_admin_bp
     from app.routes.boutique import boutique_bp
@@ -51,13 +52,14 @@ def create_app(config_name="production"):
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
     app.register_blueprint(dashboard_shop_bp, url_prefix="/dashboard")
+    app.register_blueprint(dashboard_paiement_bp, url_prefix="/dashboard")
     app.register_blueprint(dashboard_dev_bp, url_prefix="/dashboard/developpeur")
     app.register_blueprint(dashboard_admin_bp, url_prefix="/dashboard/admin")
     app.register_blueprint(boutique_bp)
     app.register_blueprint(api_v1_bp, url_prefix="/api/v1")
     app.register_blueprint(webhooks_bp, url_prefix="/webhooks")
 
-    # ─── CSRF exempt pour les API et webhooks (auth par cle/signature) ───
+    # ─── CSRF exempt pour les API et webhooks ─────────────────
     csrf.exempt(api_v1_bp)
     csrf.exempt(webhooks_bp)
 
@@ -144,8 +146,9 @@ def create_app(config_name="production"):
 
     # ─── Logging ──────────────────────────────────────────────
     logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+        level=logging.WARNING,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        force=True,
     )
 
     return app
