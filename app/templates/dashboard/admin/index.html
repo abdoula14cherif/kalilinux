@@ -4,6 +4,9 @@
 {% block page_subtitle %}Vue d'ensemble de toute la plateforme{% endblock %}
 
 {% block topbar_actions %}
+<a href="{{ url_for('dashboard_admin.credit_boost') }}" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem;background:linear-gradient(135deg,#F59E0B,#D97706)">
+  <i class="fas fa-wallet"></i> Credit Boost
+</a>
 <a href="{{ url_for('dashboard_admin.fonctionnalites') }}" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
   <i class="fas fa-cog"></i> Fonctionnalités
 </a>
@@ -19,15 +22,21 @@
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px}
 .kpi-card{background:#fff;border-radius:16px;padding:20px;border:1px solid #E2E8F0;transition:.25s;position:relative;overflow:hidden}
 .kpi-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.08)}
+.kpi-card.danger{border-color:#DC2626;background:linear-gradient(135deg,#fff,#FEF2F2)}
+.kpi-card.warn{border-color:#F59E0B;background:linear-gradient(135deg,#fff,#FFFBEB)}
 .kpi-ico{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;color:#fff;margin-bottom:14px}
 .kpi-label{font-size:.72rem;color:#64748B;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
 .kpi-value{font-size:1.9rem;font-weight:900;color:#0F172A;line-height:1.1}
 .kpi-value small{font-size:.78rem;font-weight:700;color:#94A3B8;margin-left:4px}
 .kpi-sub{font-size:.74rem;color:#94A3B8;margin-top:6px}
+.kpi-card.danger .kpi-value{color:#DC2626}
+.kpi-card.warn .kpi-value{color:#D97706}
 
 .actions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
 .action-card{background:#fff;border-radius:14px;padding:20px 16px;border:1px solid #E2E8F0;text-align:center;text-decoration:none;transition:.22s;display:flex;flex-direction:column;align-items:center;gap:12px}
 .action-card:hover{border-color:#DC2626;transform:translateY(-3px);box-shadow:0 8px 20px rgba(220,38,38,.12)}
+.action-card.credit{border-color:#F59E0B}
+.action-card.credit:hover{border-color:#D97706;box-shadow:0 8px 20px rgba(245,158,11,.2)}
 .action-ico{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#fff}
 .action-label{font-size:.85rem;font-weight:800;color:#0F172A;line-height:1.3}
 {% endblock %}
@@ -77,8 +86,48 @@
     <div class="kpi-sub">Toutes boutiques confondues</div>
   </div>
 
-  {% if stats.nb_bannis and stats.nb_bannis > 0 %}
   <div class="kpi-card">
+    <div class="kpi-ico" style="background:linear-gradient(135deg,#10B981,#047857)">
+      <i class="fas fa-hand-holding-usd"></i>
+    </div>
+    <div class="kpi-label">Commissions collectées</div>
+    <div class="kpi-value">{{ "{:,.0f}".format(stats.commissions_total or 0) }}<small>F</small></div>
+    <div class="kpi-sub">Total historique</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-ico" style="background:linear-gradient(135deg,#F59E0B,#D97706)">
+      <i class="fas fa-wallet"></i>
+    </div>
+    <div class="kpi-label">Credit Boost total</div>
+    <div class="kpi-value">{{ "{:,.0f}".format(stats.credit_boost_total or 0) }}<small>F</small></div>
+    <div class="kpi-sub">Solde en circulation</div>
+  </div>
+
+  {% if stats.boutiques_en_pause and stats.boutiques_en_pause > 0 %}
+  <div class="kpi-card warn">
+    <div class="kpi-ico" style="background:linear-gradient(135deg,#F59E0B,#D97706)">
+      <i class="fas fa-pause-circle"></i>
+    </div>
+    <div class="kpi-label">Boutiques en pause</div>
+    <div class="kpi-value">{{ stats.boutiques_en_pause }}</div>
+    <div class="kpi-sub">Credit epuise</div>
+  </div>
+  {% endif %}
+
+  {% if stats.credit_negatif and stats.credit_negatif > 0 %}
+  <div class="kpi-card danger">
+    <div class="kpi-ico" style="background:linear-gradient(135deg,#DC2626,#991B1B)">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <div class="kpi-label">Credit negatif</div>
+    <div class="kpi-value">{{ stats.credit_negatif }}</div>
+    <div class="kpi-sub">A recuperer</div>
+  </div>
+  {% endif %}
+
+  {% if stats.nb_bannis and stats.nb_bannis > 0 %}
+  <div class="kpi-card danger">
     <div class="kpi-ico" style="background:linear-gradient(135deg,#DC2626,#991B1B)">
       <i class="fas fa-user-slash"></i>
     </div>
@@ -92,20 +141,24 @@
 <div class="card">
   <div class="card-title"><i class="fas fa-bolt"></i> Actions rapides</div>
   <div class="actions-grid">
-    <a href="{{ url_for('dashboard_admin.fonctionnalites') }}" class="action-card">
-      <div class="action-ico" style="background:linear-gradient(135deg,#00BFFF,#0096C7)"><i class="fas fa-cog"></i></div>
-      <div class="action-label">Fonctionnalités</div>
+    <a href="{{ url_for('dashboard_admin.credit_boost') }}" class="action-card credit">
+      <div class="action-ico" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-wallet"></i></div>
+      <div class="action-label">Credit Boost</div>
     </a>
     <a href="{{ url_for('dashboard_admin.revendeurs') }}" class="action-card">
       <div class="action-ico" style="background:linear-gradient(135deg,#10B981,#059669)"><i class="fas fa-users-cog"></i></div>
       <div class="action-label">Revendeurs</div>
     </a>
+    <a href="{{ url_for('dashboard_admin.fonctionnalites') }}" class="action-card">
+      <div class="action-ico" style="background:linear-gradient(135deg,#00BFFF,#0096C7)"><i class="fas fa-cog"></i></div>
+      <div class="action-label">Fonctionnalités</div>
+    </a>
     <a href="{{ url_for('dashboard_admin.notifications') }}" class="action-card">
-      <div class="action-ico" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-bullhorn"></i></div>
+      <div class="action-ico" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)"><i class="fas fa-bullhorn"></i></div>
       <div class="action-label">Notifications</div>
     </a>
     <a href="{{ url_for('dashboard_admin.logs') }}" class="action-card">
-      <div class="action-ico" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)"><i class="fas fa-clipboard-list"></i></div>
+      <div class="action-ico" style="background:linear-gradient(135deg,#64748B,#475569)"><i class="fas fa-clipboard-list"></i></div>
       <div class="action-label">Logs d'audit</div>
     </a>
   </div>
