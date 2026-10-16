@@ -42,3 +42,34 @@ def cgu():
 def confidentialite():
     """Politique de Confidentialite."""
     return render_template("confidentialite.html")
+
+@home_bp.route("/health/crypto")
+def health_crypto():
+    """Vérifie que le système de chiffrement fonctionne (admin only)."""
+    from flask import session, jsonify
+    from app.models.database import get_profile
+    from app.models.crypto import tester_configuration, encrypt, masquer
+    import os
+
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "unauthorized"}), 401
+    profile = get_profile(user_id)
+    if not profile or not profile.get("est_admin"):
+        return jsonify({"error": "forbidden"}), 403
+
+    ok = tester_configuration()
+    exemple = None
+    if ok:
+        chiffre = encrypt("sk_live_example_key_12345")
+        exemple = {
+            "clair_masque": masquer("sk_live_example_key_12345"),
+            "chiffre_extrait": chiffre[:40] + "..." if chiffre else None,
+            "longueur_chiffre": len(chiffre) if chiffre else 0,
+        }
+
+    return jsonify({
+        "crypto_ok": ok,
+        "encryption_key_configured": bool(os.environ.get("ENCRYPTION_KEY")),
+        "exemple": exemple,
+    })
