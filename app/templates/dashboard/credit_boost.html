@@ -20,7 +20,6 @@
 .recharge-item.sel{border-color:#00BFFF;background:#F0FAFF;box-shadow:0 0 0 4px rgba(0,191,255,.1)}
 .recharge-item .montant{font-size:1.2rem;font-weight:900;color:#0F172A}
 .recharge-item .lbl{font-size:.7rem;color:#64748B;font-weight:700;margin-top:4px;text-transform:uppercase;letter-spacing:.3px}
-.recharge-item .bonus{position:absolute;top:-8px;right:8px;background:#10B981;color:#fff;font-size:.65rem;font-weight:900;padding:3px 8px;border-radius:8px}
 
 .card-box{background:#fff;border-radius:16px;padding:22px;border:1px solid #E2E8F0;margin-bottom:18px}
 .card-box h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:14px;display:flex;align-items:center;gap:8px}
@@ -50,39 +49,41 @@
 .alert-box{border-radius:14px;padding:16px 18px;margin-bottom:18px;font-size:.85rem;line-height:1.6}
 .alert-box.warn{background:#FFF3E6;border-left:4px solid #FF6600;color:#78350F}
 .alert-box.danger{background:#FEF2F2;border-left:4px solid #DC2626;color:#7F1D1D}
-.alert-box.info{background:#EFF6FF;border-left:4px solid #3B82F6;color:#1E3A8A}
 {% endblock %}
 
 {% block dashboard_content %}
 
-{% if solde < seuil %}
-  {% if solde <= 0 %}
-  <div class="alert-box danger">
-    <strong>🚫 Boutique en pause</strong><br>
-    Votre Credit Boost est epuise. Rechargez pour reactiver automatiquement votre boutique.
-  </div>
-  {% else %}
-  <div class="alert-box warn">
-    <strong>⚠️ Credit Boost bientot epuise</strong><br>
-    Votre solde est inferieur au seuil recommande ({{ "{:,.0f}".format(seuil) }} FCFA). Rechargez pour eviter la coupure.
-  </div>
-  {% endif %}
+{% set seuil_alerte = 2000 %}
+{% set seuil_pause = 500 %}
+
+{% if solde < seuil_pause %}
+<div class="alert-box danger">
+  <strong>🚫 Boutique en pause</strong><br>
+  Votre Credit Boost est passe sous {{ "{:,.0f}".format(seuil_pause) }} FCFA. 
+  Votre boutique a ete automatiquement mise en pause. Rechargez pour la reactiver.
+</div>
+{% elif solde < seuil_alerte %}
+<div class="alert-box warn">
+  <strong>⚠️ Credit Boost bientot epuise</strong><br>
+  Votre solde est sous {{ "{:,.0f}".format(seuil_alerte) }} FCFA. 
+  Rechargez pour eviter la mise en pause de votre boutique (seuil critique : {{ "{:,.0f}".format(seuil_pause) }} F).
+</div>
 {% endif %}
 
 <!-- HERO -->
 <div class="cb-hero">
   <div class="label">Solde Credit Boost</div>
   <div class="solde">{{ "{:,.0f}".format(solde) }} <small>FCFA</small></div>
-  {% if solde <= 0 %}
+  {% if solde < seuil_pause %}
     <div class="statut danger"><i class="fas fa-pause-circle"></i> Boutique en pause</div>
-  {% elif solde < seuil %}
+  {% elif solde < seuil_alerte %}
     <div class="statut warn"><i class="fas fa-exclamation-triangle"></i> Solde faible</div>
   {% else %}
     <div class="statut ok"><i class="fas fa-check-circle"></i> Actif</div>
   {% endif %}
 </div>
 
-<!-- MONTANTS DE RECHARGE -->
+<!-- RECHARGE -->
 <div class="card-box">
   <h3><i class="fas fa-bolt"></i> Recharger votre Credit Boost</h3>
   <p style="font-size:.82rem;color:#64748B;margin-bottom:16px;line-height:1.5">
@@ -135,7 +136,7 @@
   {% if transactions %}
   <ul class="tx-list">
     {% for tx in transactions %}
-    {% set is_credit = tx.type == 'recharge' or tx.type == 'remboursement' %}
+    {% set is_credit = tx.type == 'recharge' or tx.type == 'remboursement' or (tx.type and 'ajustement_admin_credit' in tx.type) %}
     <li class="tx-item">
       <div class="tx-ico {% if is_credit %}recharge{% else %}debit{% endif %}">
         <i class="fas {% if is_credit %}fa-plus{% else %}fa-minus{% endif %}"></i>
