@@ -10,15 +10,18 @@ from app.models.security import login_required, valider_url_generique
 from app.models.database import (
     get_profile, update_profile, get_active_services,
     get_revendeur_prix_all, set_revendeur_prix, get_service_by_id,
-    slug_deja_pris,
-    debit_balance, credit_balance, activer_revendeur,
+    slug_deja_pris, activer_revendeur,
     get_all_boutique_types, get_boutique_type, get_categories_par_type,
     get_produits_revendeur, create_produit_boutique, update_produit_boutique,
     delete_produit_boutique,
     create_categorie, update_categorie, delete_categorie,
     get_bannieres_revendeur, create_banniere, update_banniere, delete_banniere,
     get_attributs_revendeur, create_attribut, update_attribut, delete_attribut,
-    get_revendeur_clients_detail, get_revendeur_orders
+    get_revendeur_clients_detail, get_revendeur_orders,
+    # Nouvelles fonctions limites
+    peut_creer_produit, peut_creer_banniere,
+    peut_creer_attribut, peut_creer_coupon,
+    get_plan_actuel, get_commission_pct,
 )
 from app.models.storage import upload_image
 from app.models.serializers import produit_safe, banniere_safe, attribut_safe
@@ -34,8 +37,6 @@ THEMES = {
     "noir":   ("#0F172A", "#1E293B"),
     "rouge":  ("#DC2626", "#991B1B"),
 }
-
-PRIX_ACTIVATION = 5000
 
 
 def _get_profile_ou_redirect(check_type=True):
@@ -100,6 +101,10 @@ def _verifier_categorie_revendeur(cat_id, profile):
         return False
 
 
+# ═══════════════════════════════════════════════════════════════
+# CHOIX TYPE DE BOUTIQUE
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_bp.route("/choisir-type", methods=["GET", "POST"])
 @login_required
 @limiter.limit("20 per hour")
@@ -134,6 +139,10 @@ def choisir_type():
                           types_boutique=types_boutique)
 
 
+# ═══════════════════════════════════════════════════════════════
+# INDEX DASHBOARD
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_bp.route("/")
 @login_required
 def index():
@@ -142,6 +151,8 @@ def index():
         return redir
 
     type_boutique = get_boutique_type(profile["boutique_type"]) or {}
+    plan_actuel = get_plan_actuel(profile)
+    commission_pct = get_commission_pct(profile)
 
     stats = {"nb_produits": 0, "nb_commandes": 0, "revenus": 0, "nb_clients": 0}
     dernieres_commandes = []
@@ -169,7 +180,6 @@ def index():
     except Exception:
         pass
 
-    # Commandes en attente + 5 dernières commandes
     try:
         from app.models.database import get_commandes_boutique_revendeur
         commandes_boutique = get_commandes_boutique_revendeur(profile["id"], limit=50)
@@ -178,7 +188,6 @@ def index():
     except Exception as e:
         logger.error(f"index commandes load: {type(e).__name__}")
 
-    # Avis à approuver
     try:
         from app.models.database import get_avis_revendeur
         avis = get_avis_revendeur(profile["id"])
@@ -189,11 +198,17 @@ def index():
     return render_template("dashboard/index.html",
                           profile=profile,
                           type_boutique=type_boutique,
+                          plan_actuel=plan_actuel,
+                          commission_pct=commission_pct,
                           stats=stats,
                           nb_commandes_attente=nb_commandes_attente,
                           nb_avis_attente=nb_avis_attente,
                           dernieres_commandes=dernieres_commandes)
 
+
+# ═══════════════════════════════════════════════════════════════
+# BOUTIQUE (config)
+# ═══════════════════════════════════════════════════════════════
 
 @dashboard_bp.route("/boutique")
 @login_required
@@ -271,7 +286,7 @@ def boutique_enregistrer():
             data["boutique_logo_url"] = logo_url
             flash("Logo uploade !", "success")
         else:
-            flash("Erreur upload logo. Verifiez le format (PNG/JPG/GIF/WEBP) et la taille (max 5 Mo).", "warning")
+            flash("Erreur upload logo. Verifiez le format et la taille (max 5 Mo).", "warning")
 
     banniere_file = request.files.get("boutique_banniere")
     if banniere_file and banniere_file.filename:
@@ -280,13 +295,13 @@ def boutique_enregistrer():
             data["boutique_banniere_url"] = banniere_url
             flash("Banniere uploadee !", "success")
         else:
-            flash("Erreur upload banniere. Verifiez le format (PNG/JPG/GIF/WEBP) et la taille (max 5 Mo).", "warning")
+            flash("Erreur upload banniere.", "warning")
 
     ok = update_profile(user_id, data)
     if ok:
         flash("Boutique mise a jour avec succes !", "success")
     else:
-        flash("Erreur lors de la sauvegarde. Reessayez.", "error")
+        flash("Erreur lors de la sauvegarde.", "error")
 
     return redirect(url_for("dashboard.boutique"))
 
@@ -312,6 +327,10 @@ def boutique_supprimer_image():
     return redirect(url_for("dashboard.boutique"))
 
 
+# ═══════════════════════════════════════════════════════════════
+# PUBLIER (PUBLICATION GRATUITE — plus de frais d'activation)
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_bp.route("/publier")
 @login_required
 def publier():
@@ -319,17 +338,19 @@ def publier():
     if redir:
         return redir
 
-    types_boutique = get_all_boutique_types()
     etapes_ok = {
         "nom": bool(profile.get("boutique_nom")),
         "whatsapp": bool(profile.get("boutique_whatsapp")),
         "logo_ou_slogan": bool(profile.get("boutique_logo_url") or profile.get("boutique_slogan")),
     }
+    plan_actuel = get_plan_actuel(profile)
+    commission_pct = get_commission_pct(profile)
+
     return render_template("dashboard/publier.html",
                           profile=profile,
-                          prix_activation=PRIX_ACTIVATION,
                           etapes_ok=etapes_ok,
-                          types_boutique=types_boutique)
+                          plan_actuel=plan_actuel,
+                          commission_pct=commission_pct)
 
 
 @dashboard_bp.route("/publier/activer", methods=["POST"])
@@ -344,11 +365,6 @@ def publier_activer():
         flash("Votre boutique est deja publiee.", "info")
         return redirect(url_for("dashboard.index"))
 
-    balance = profile.get("balance", 0) or 0
-    if balance < PRIX_ACTIVATION:
-        flash(f"Solde insuffisant. Il vous faut {PRIX_ACTIVATION:,.0f} FCFA (solde actuel : {balance:,.0f} FCFA).", "error")
-        return redirect(url_for("dashboard.publier"))
-
     slug = request.form.get("slug", "").strip().lower()
     if not slug or len(slug) < 3 or len(slug) > 30:
         flash("Identifiant invalide : 3 a 30 caracteres.", "error")
@@ -357,22 +373,12 @@ def publier_activer():
         flash("Identifiant invalide : lettres minuscules, chiffres et tirets uniquement.", "error")
         return redirect(url_for("dashboard.publier"))
 
-    modele = request.form.get("modele", "")
-    if modele not in ("marge", "commission"):
-        flash("Choisissez un modele de gains.", "error")
-        return redirect(url_for("dashboard.publier"))
-
     if slug_deja_pris(slug):
         flash(f"L'identifiant '{slug}' est deja pris. Choisissez-en un autre.", "error")
         return redirect(url_for("dashboard.publier"))
 
-    nouveau_solde = debit_balance(profile["id"], PRIX_ACTIVATION)
-    if nouveau_solde is None:
-        flash("Erreur de paiement. Verifiez votre solde.", "error")
-        return redirect(url_for("dashboard.publier"))
-
-    commission = 0.10 if modele == "commission" else 0.0
-    ok = activer_revendeur(profile["id"], slug, modele, commission)
+    # Activation GRATUITE — la commission sera prelevee sur les ventes
+    ok = activer_revendeur(profile["id"], slug)
 
     if ok:
         update_profile(profile["id"], {
@@ -383,10 +389,13 @@ def publier_activer():
         flash(f"Felicitations ! Votre boutique est en ligne : /r/{slug}", "success")
         return redirect(url_for("dashboard.index"))
     else:
-        credit_balance(profile["id"], PRIX_ACTIVATION)
-        flash("Erreur lors de l'activation. Vous avez ete rembourse.", "error")
+        flash("Erreur lors de l'activation. Reessayez.", "error")
         return redirect(url_for("dashboard.publier"))
 
+
+# ═══════════════════════════════════════════════════════════════
+# PRIX (services digitaux)
+# ═══════════════════════════════════════════════════════════════
 
 @dashboard_bp.route("/prix")
 @login_required
@@ -441,6 +450,10 @@ def prix_enregistrer():
     return redirect(url_for("dashboard.prix"))
 
 
+# ═══════════════════════════════════════════════════════════════
+# PRODUITS (avec check limite plan)
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_bp.route("/produits")
 @login_required
 def produits():
@@ -449,10 +462,12 @@ def produits():
         return redir
     liste_produits = get_produits_revendeur(profile["id"])
     categories = get_categories_par_type(profile["boutique_type"])
+    plan_actuel = get_plan_actuel(profile)
     return render_template("dashboard/produits.html",
                           profile=profile,
                           produits=[produit_safe(p) for p in liste_produits],
-                          categories=categories)
+                          categories=categories,
+                          plan_actuel=plan_actuel)
 
 
 @dashboard_bp.route("/produits/ajouter", methods=["POST"])
@@ -462,6 +477,12 @@ def produits_ajouter():
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
+
+    # Check limite du plan
+    ok, msg = peut_creer_produit(profile)
+    if not ok:
+        flash(msg, "error")
+        return redirect(url_for("dashboard.produits"))
 
     nom = request.form.get("nom", "").strip()[:100]
     description = request.form.get("description", "").strip()[:1000]
@@ -628,6 +649,10 @@ def produits_toggle():
     return redirect(url_for("dashboard.produits"))
 
 
+# ═══════════════════════════════════════════════════════════════
+# CATEGORIES
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_bp.route("/categories")
 @login_required
 def categories():
@@ -636,10 +661,12 @@ def categories():
         return redir
     categories_liste = get_categories_par_type(profile["boutique_type"])
     produits_liste = get_produits_revendeur(profile["id"])
+    plan_actuel = get_plan_actuel(profile)
     return render_template("dashboard/categories.html",
                           profile=profile,
                           categories=categories_liste,
-                          produits=produits_liste)
+                          produits=produits_liste,
+                          plan_actuel=plan_actuel)
 
 
 @dashboard_bp.route("/categories/ajouter", methods=["POST"])
@@ -725,6 +752,10 @@ def categories_supprimer():
     return redirect(url_for("dashboard.categories"))
 
 
+# ═══════════════════════════════════════════════════════════════
+# BANNIERES (avec check limite)
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_bp.route("/bannieres")
 @login_required
 def bannieres():
@@ -732,8 +763,10 @@ def bannieres():
     if redir:
         return redir
     liste = get_bannieres_revendeur(profile["id"])
+    plan_actuel = get_plan_actuel(profile)
     return render_template("dashboard/bannieres.html", profile=profile,
-                          bannieres=[banniere_safe(b) for b in liste])
+                          bannieres=[banniere_safe(b) for b in liste],
+                          plan_actuel=plan_actuel)
 
 
 @dashboard_bp.route("/bannieres/ajouter", methods=["POST"])
@@ -743,6 +776,11 @@ def bannieres_ajouter():
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
+
+    ok_limit, msg = peut_creer_banniere(profile)
+    if not ok_limit:
+        flash(msg, "error")
+        return redirect(url_for("dashboard.bannieres"))
 
     titre = request.form.get("titre", "").strip()[:80] or None
     sous_titre = request.form.get("sous_titre", "").strip()[:120] or None
@@ -755,7 +793,7 @@ def bannieres_ajouter():
 
     image_url = upload_image(image_file, prefix="banniere_")
     if not image_url:
-        flash("Erreur upload image. Verifiez le format (PNG/JPG/GIF/WEBP) et la taille (max 5 Mo).", "error")
+        flash("Erreur upload image.", "error")
         return redirect(url_for("dashboard.bannieres"))
 
     result = create_banniere({
@@ -897,6 +935,10 @@ def bannieres_options():
     return redirect(url_for("dashboard.bannieres"))
 
 
+# ═══════════════════════════════════════════════════════════════
+# ATTRIBUTS (avec check limite)
+# ═══════════════════════════════════════════════════════════════
+
 @dashboard_bp.route("/attributs")
 @login_required
 def attributs():
@@ -904,8 +946,10 @@ def attributs():
     if redir:
         return redir
     liste = get_attributs_revendeur(profile["id"])
+    plan_actuel = get_plan_actuel(profile)
     return render_template("dashboard/attributs.html", profile=profile,
-                          attributs=[attribut_safe(a) for a in liste])
+                          attributs=[attribut_safe(a) for a in liste],
+                          plan_actuel=plan_actuel)
 
 
 @dashboard_bp.route("/attributs/ajouter", methods=["POST"])
@@ -915,6 +959,11 @@ def attributs_ajouter():
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
+
+    ok_limit, msg = peut_creer_attribut(profile)
+    if not ok_limit:
+        flash(msg, "error")
+        return redirect(url_for("dashboard.attributs"))
 
     nom = request.form.get("nom", "").strip()[:40]
     type_attr = request.form.get("type", "texte")
