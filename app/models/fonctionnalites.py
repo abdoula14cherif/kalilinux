@@ -1,5 +1,6 @@
 """
 Gestion des fonctionnalites dev (activation admin + premium).
+Mapping plan → features via table plans_fonctionnalites.
 """
 import logging
 import requests
@@ -51,7 +52,6 @@ def get_fonctionnalite(code):
 
 
 def toggle_fonctionnalite(code, actif):
-    """Active/desactive une fonctionnalite (admin seulement)."""
     try:
         r = requests.patch(
             _url(f"fonctionnalites_dev?code=eq.{code}"),
@@ -65,7 +65,6 @@ def toggle_fonctionnalite(code, actif):
 
 
 def toggle_premium_fonctionnalite(code, est_premium):
-    """Marque une fonctionnalite comme premium ou gratuite (admin)."""
     try:
         r = requests.patch(
             _url(f"fonctionnalites_dev?code=eq.{code}"),
@@ -79,7 +78,7 @@ def toggle_premium_fonctionnalite(code, est_premium):
 
 
 def get_features_revendeur(revendeur_id):
-    """Recupere les features activees par un revendeur."""
+    """Recupere les features activees manuellement par un revendeur (admin)."""
     try:
         r = requests.get(
             _url(f"revendeur_features?revendeur_id=eq.{revendeur_id}"),
@@ -92,34 +91,56 @@ def get_features_revendeur(revendeur_id):
         return []
 
 
+def get_plan_features(plan_code):
+    """Retourne la liste des feature_code accessibles pour un plan."""
+    try:
+        r = requests.get(
+            _url(f"plans_fonctionnalites?plan_code=eq.{plan_code}&select=feature_code"),
+            headers=_headers(), timeout=10
+        )
+        data = r.json()
+        if not isinstance(data, list):
+            return set()
+        return {row.get("feature_code") for row in data if row.get("feature_code")}
+    except Exception as e:
+        logger.error(f"get_plan_features: {type(e).__name__}")
+        return set()
+
+
+def _plan_a_feature(plan_code, feature_code):
+    """Verifie si un plan donne acces a une feature."""
+    if not plan_code or not feature_code:
+        return False
+    return feature_code in get_plan_features(plan_code)
+
+
 def revendeur_a_feature(revendeur_id, code, profile=None):
     """
     Verifie si un revendeur a acces a une fonctionnalite.
     Logique :
-    1. Si la feature n'existe pas ou n'est pas active → False
-    2. Si le revendeur est admin → True (acces total)
-    3. Si la feature est gratuite → True
-    4. Si la feature est premium :
-       - Verifier si le revendeur est abonne (abonnement_niveau != 'gratuit')
-       - OU si un admin a active la feature manuellement
+    1. Feature inexistante ou inactive → False
+    2. Admin → True (acces total)
+    3. Feature non premium → True
+    4. Feature premium :
+       a. Verifier le mapping plan → features
+       b. Sinon fallback : activation manuelle admin (revendeur_features)
     """
     feature = get_fonctionnalite(code)
     if not feature or not feature.get("actif"):
         return False
 
-    # Admin : acces total a tout
     if profile and profile.get("est_admin"):
         return True
 
     if not feature.get("est_premium"):
         return True
 
-    # Feature premium : verifier abonnement OU activation manuelle
-    if profile:
-        niveau = profile.get("abonnement_niveau") or "gratuit"
-        if niveau and niveau != "gratuit":
-            return True
+    # Mapping plan → feature
+    niveau = (profile or {}).get("abonnement_niveau") or "gratuit"
+    if _plan_a_feature(niveau, code):
+        return True
 
+    # Fallback : activation manuelle admin
     try:
         r = requests.get(
             _url(f"revendeur_features?revendeur_id=eq.{revendeur_id}&feature_code=eq.{code}&actif=eq.true&limit=1"),
@@ -161,7 +182,7 @@ def activer_feature_revendeur(revendeur_id, code, actif=True):
 def get_features_actives_pour_revendeur(revendeur_id, profile=None):
     """
     Retourne la liste des fonctionnalites dev accessibles a un revendeur.
-    Si le revendeur est admin, il voit TOUTES les fonctionnalites actives.
+    Admin → toutes les fonctionnalites actives.
     """
     toutes = get_toutes_fonctionnalites()
     est_admin = bool(profile.get("est_admin")) if profile else False
