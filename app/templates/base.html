@@ -4,8 +4,48 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#00BFFF">
-<title>{% block title %}Boost Reseller{% endblock %}</title>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SEO + OPEN GRAPH (aperçu WhatsApp / Facebook / Twitter)     -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<title>{% block title %}Boost Reseller — Créez votre boutique en ligne{% endblock %}</title>
+
+<meta name="description" content="{% block meta_description %}Lancez votre boutique en ligne en 2 minutes. Vendez produits et services digitaux, encaissez, gérez vos clients. Propulsé par Boost Central.{% endblock %}">
+<meta name="keywords" content="boutique en ligne, e-commerce, Cameroun, Afrique, Boost Reseller, vendeur en ligne">
+<meta name="author" content="Boost Central">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Boost Reseller">
+<meta property="og:title" content="Boost Reseller — Créez votre boutique en ligne">
+<meta property="og:description" content="Lancez votre boutique en ligne en 2 minutes. Vendez produits et services digitaux, encaissez, gérez vos clients.">
+<meta property="og:image" content="https://i.ibb.co/KpqNZmBN/file-000000007e948211aa9e5fabcecf481f.png">
+<meta property="og:image:secure_url" content="https://i.ibb.co/KpqNZmBN/file-000000007e948211aa9e5fabcecf481f.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="1280">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="Logo Boost Reseller">
+<meta property="og:url" content="{{ request.url }}">
+<meta property="og:locale" content="fr_FR">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Boost Reseller — Créez votre boutique en ligne">
+<meta name="twitter:description" content="Lancez votre boutique en ligne en 2 minutes.">
+<meta name="twitter:image" content="https://i.ibb.co/KpqNZmBN/file-000000007e948211aa9e5fabcecf481f.png">
+<meta name="twitter:image:alt" content="Logo Boost Reseller">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="https://i.ibb.co/KpqNZmBN/file-000000007e948211aa9e5fabcecf481f.png">
+<link rel="apple-touch-icon" href="https://i.ibb.co/KpqNZmBN/file-000000007e948211aa9e5fabcecf481f.png">
+<link rel="manifest" href="/manifest.json">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Bloc pour surcharge OG (boutiques revendeurs plus tard) -->
+{% block extra_head %}{% endblock %}
+
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
