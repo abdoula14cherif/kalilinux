@@ -1,7 +1,6 @@
 """
 Modele admin — Gestion globale de la plateforme.
 SÉCURITÉ : validations strictes, UUID sanitize, plafonds, idempotence.
-DEBUG : logs exhaustifs pour diagnostic credit_boost.
 """
 import logging
 import re
@@ -28,6 +27,14 @@ CREDIT_BOOST_MIN = 0
 CREDIT_BOOST_MAX = 10_000_000
 MONTANT_ADJUST_MIN = -1_000_000
 MONTANT_ADJUST_MAX = 1_000_000
+
+# ═══════════════════════════════════════════════════════════════
+# SEUILS CREDIT BOOST (alignés avec database.py)
+# ═══════════════════════════════════════════════════════════════
+
+SEUIL_CREDIT_MIN_PUBLICATION = 2000   # Pour publier
+SEUIL_CREDIT_ALERTE = 2000            # Alerte visuelle
+SEUIL_CREDIT_PAUSE = 500              # Pause automatique
 
 NIVEAUX_ABONNEMENT_VALIDES = ("gratuit", "pro", "business")
 
@@ -61,11 +68,10 @@ def _url(path):
 def _valider_uuid(value, champ="identifiant"):
     """Verifie qu'une valeur est un UUID valide."""
     if not value or not isinstance(value, str):
-        logger.warning(f"  [_valider_uuid] {champ} : type invalide ({type(value).__name__})")
         return None
     value = value.strip()
     if not UUID_REGEX.match(value):
-        logger.warning(f"  [_valider_uuid] {champ} : format UUID invalide → {value[:50]!r}")
+        logger.warning(f"[SECURITE] UUID invalide pour {champ}: {value[:50]}")
         return None
     return value
 
@@ -78,7 +84,6 @@ def _valider_montant(valeur, min_val=None, max_val=None, allow_zero=True):
     try:
         d = Decimal(str(valeur).strip().replace(",", "."))
     except (InvalidOperation, ValueError):
-        logger.warning(f"  [_valider_montant] échec conversion : {valeur!r}")
         return None, "Montant invalide"
 
     if not d.is_finite():
@@ -164,13 +169,11 @@ def get_stats_globales():
         admins = [p for p in profiles if p.get("est_admin")]
         bannis = [p for p in profiles if p.get("banni")]
 
-        # Credit Boost stats
         credit_boost_total = sum(
             float(p.get("credit_boost", 0) or 0) for p in profiles
         )
         boutiques_en_pause = sum(
-            1 for p in revendeurs
-            if p.get("boutique_active") is False
+            1 for p in revendeurs if p.get("boutique_active") is False
         )
         credit_negatif = sum(
             1 for p in profiles if float(p.get("credit_boost", 0) or 0) < 0
@@ -184,7 +187,6 @@ def get_stats_globales():
         commandes_livrees = [c for c in commandes if c.get("statut") == "livree"]
         revenus_total = sum(c.get("total", 0) or 0 for c in commandes_livrees)
 
-        # Commissions collectees
         commissions_total = 0
         try:
             r3 = requests.get(_url("revendeur_gains?select=commission"),
@@ -195,7 +197,6 @@ def get_stats_globales():
         except Exception:
             pass
 
-        # Repartition par plan
         plans_count = {"gratuit": 0, "pro": 0, "business": 0}
         for p in revendeurs:
             niveau = p.get("abonnement_niveau") or "gratuit"
@@ -305,10 +306,7 @@ def promouvoir_admin(user_id, est_admin=True):
 
 
 def modifier_balance(user_id, nouveau_montant):
-    """
-    Modifie le solde d'un utilisateur (admin override).
-    SÉCURITÉ : plafonds appliqués.
-    """
+    """Modifie le solde d'un utilisateur (admin override)."""
     user_id = _valider_uuid(user_id, "user_id")
     if not user_id:
         return False, "Identifiant invalide"
@@ -380,152 +378,93 @@ def supprimer_utilisateur(user_id):
 
 
 # ═══════════════════════════════════════════════════════════════
-# CRÉDIT BOOST — GESTION ADMIN (VERSION DEBUG)
+# CRÉDIT BOOST — GESTION ADMIN
 # ═══════════════════════════════════════════════════════════════
 
 def ajouter_credit_boost(user_id, montant, raison):
-    """
-    Ajoute du Credit Boost manuellement (admin).
-    VERSION DEBUG : logs exhaustifs à chaque étape.
-    """
-    logger.warning(f"  ┌─ [ajouter_credit_boost] START")
-    logger.warning(f"  ├─ user_id RAW = {user_id!r}")
-    logger.warning(f"  ├─ montant RAW = {montant!r}")
-    logger.warning(f"  ├─ raison RAW = {raison!r}")
-
-    # 1. Validation UUID
+    """Ajoute du Credit Boost manuellement (admin)."""
     user_id_clean = _valider_uuid(user_id, "user_id")
     if not user_id_clean:
-        logger.warning(f"  ├─ ❌ UUID INVALIDE")
         return False, "Identifiant utilisateur invalide"
 
-    logger.warning(f"  ├─ ✓ user_id validé = {user_id_clean}")
-
-    # 2. Validation montant
     montant_val, err = _valider_montant(montant, 1, MONTANT_ADJUST_MAX, allow_zero=False)
     if err:
-        logger.warning(f"  ├─ ❌ MONTANT INVALIDE : {err}")
         return False, err
 
-    logger.warning(f"  ├─ ✓ montant validé = {montant_val}")
-
-    # 3. Validation raison
     raison_clean, err = _valider_raison(raison, min_len=5, max_len=500)
     if err:
-        logger.warning(f"  ├─ ❌ RAISON INVALIDE : {err}")
         return False, err
 
-    logger.warning(f"  ├─ ✓ raison validée")
-
-    # 4. GET profil
     try:
         url = _url(f"profiles?id=eq.{user_id_clean}&select=id,email,credit_boost")
-        logger.warning(f"  ├─ GET URL : {url}")
-
         r = requests.get(url, headers=_headers(), timeout=10)
-
-        logger.warning(f"  ├─ GET status : {r.status_code}")
-        logger.warning(f"  ├─ GET body : {r.text[:500]}")
+        logger.info(f"[ADMIN CB AJOUT] GET status={r.status_code}")
 
         if r.status_code >= 300:
-            logger.error(f"  ├─ ❌ Supabase error {r.status_code}")
-            return False, f"Erreur Supabase ({r.status_code}) : {r.text[:100]}"
+            return False, f"Erreur Supabase ({r.status_code})"
 
         data = r.json()
-
-        # Cas : dict d'erreur
         if isinstance(data, dict):
-            msg = data.get("message", str(data))
-            logger.error(f"  ├─ ❌ Réponse dict (erreur) : {msg}")
-            return False, f"Erreur base : {msg[:100]}"
-
-        # Cas : liste vide
+            return False, f"Erreur base : {data.get('message', 'inconnue')[:100]}"
         if not isinstance(data, list) or len(data) == 0:
-            logger.warning(f"  ├─ ❌ AUCUN PROFIL pour id={user_id_clean}")
-            return False, f"Aucun profil trouvé (id={user_id_clean[:8]}...)"
+            return False, f"Aucun profil (id={user_id_clean[:8]}...)"
 
         profil = data[0]
         solde_actuel = float(profil.get("credit_boost", 0) or 0)
         nouveau_solde = solde_actuel + montant_val
 
-        logger.warning(f"  ├─ ✓ profil trouvé : {profil.get('email')}")
-        logger.warning(f"  ├─ solde actuel = {solde_actuel}")
-        logger.warning(f"  ├─ nouveau solde = {nouveau_solde}")
-
-        # 5. Plafond
         if nouveau_solde > CREDIT_BOOST_MAX:
-            logger.warning(f"  ├─ ❌ PLAFOND DÉPASSÉ")
             return False, f"Solde dépasserait le plafond ({CREDIT_BOOST_MAX:,.0f} F)"
 
-        # 6. PATCH
         r2 = requests.patch(
             _url(f"profiles?id=eq.{user_id_clean}"),
             json={"credit_boost": nouveau_solde},
             headers=_headers(), timeout=10
         )
 
-        logger.warning(f"  ├─ PATCH status : {r2.status_code}")
-        logger.warning(f"  ├─ PATCH body : {r2.text[:300]}")
-
         if r2.status_code >= 300:
-            logger.error(f"  ├─ ❌ PATCH failed")
-            return False, f"Erreur update ({r2.status_code}) : {r2.text[:100]}"
+            return False, f"Erreur update ({r2.status_code})"
 
-        # 7. Log transaction
         try:
             _log_credit_boost_transaction(
                 user_id_clean, "ajustement_admin_credit", montant_val,
                 nouveau_solde, raison_clean, "admin_ajustement", None
             )
-            logger.warning(f"  ├─ ✓ transaction loggée")
-        except Exception as e:
-            logger.warning(f"  ├─ ⚠ log transaction failed : {type(e).__name__}")
+        except Exception:
+            pass
 
-        # 8. Réactivation boutique
-        try:
+        # Réactivation auto si on repasse au-dessus du seuil de pause (500)
+        if nouveau_solde >= SEUIL_CREDIT_PAUSE:
             _reactiver_boutique_si_besoin(user_id_clean, nouveau_solde)
-        except Exception as e:
-            logger.warning(f"  ├─ ⚠ reactivation failed : {type(e).__name__}")
 
-        logger.warning(f"  └─ ✅ SUCCESS : +{montant_val} pour {profil.get('email')}")
+        logger.info(f"[ADMIN CB AJOUT] +{montant_val} pour {profil.get('email')}")
         return True, None
 
     except requests.Timeout:
-        logger.error(f"  ├─ ❌ TIMEOUT")
         return False, "Timeout de la base de données"
     except Exception as e:
-        logger.exception(f"  ├─ ❌ EXCEPTION : {type(e).__name__}")
-        return False, f"Erreur technique ({type(e).__name__}) : {str(e)[:100]}"
+        logger.exception(f"ajouter_credit_boost: {type(e).__name__}")
+        return False, f"Erreur technique ({type(e).__name__})"
 
 
 def deduire_credit_boost(user_id, montant, raison):
-    """Deduit du Credit Boost manuellement (admin). VERSION DEBUG."""
-    logger.warning(f"  ┌─ [deduire_credit_boost] START")
-    logger.warning(f"  ├─ user_id RAW = {user_id!r}")
-    logger.warning(f"  ├─ montant RAW = {montant!r}")
-
+    """Deduit du Credit Boost manuellement (admin)."""
     user_id_clean = _valider_uuid(user_id, "user_id")
     if not user_id_clean:
-        logger.warning(f"  ├─ ❌ UUID INVALIDE")
         return False, "Identifiant utilisateur invalide"
 
     montant_val, err = _valider_montant(montant, 1, MONTANT_ADJUST_MAX, allow_zero=False)
     if err:
-        logger.warning(f"  ├─ ❌ MONTANT INVALIDE : {err}")
         return False, err
 
     raison_clean, err = _valider_raison(raison, min_len=5, max_len=500)
     if err:
-        logger.warning(f"  ├─ ❌ RAISON INVALIDE : {err}")
         return False, err
 
     try:
         url = _url(f"profiles?id=eq.{user_id_clean}&select=id,email,credit_boost")
-        logger.warning(f"  ├─ GET URL : {url}")
-
         r = requests.get(url, headers=_headers(), timeout=10)
-        logger.warning(f"  ├─ GET status : {r.status_code}")
-        logger.warning(f"  ├─ GET body : {r.text[:500]}")
+        logger.info(f"[ADMIN CB DEDUIRE] GET status={r.status_code}")
 
         if r.status_code >= 300:
             return False, f"Erreur Supabase ({r.status_code})"
@@ -540,15 +479,11 @@ def deduire_credit_boost(user_id, montant, raison):
         solde_actuel = float(profil.get("credit_boost", 0) or 0)
         nouveau_solde = solde_actuel - montant_val
 
-        logger.warning(f"  ├─ solde : {solde_actuel} → {nouveau_solde}")
-
         r2 = requests.patch(
             _url(f"profiles?id=eq.{user_id_clean}"),
             json={"credit_boost": nouveau_solde},
             headers=_headers(), timeout=10
         )
-
-        logger.warning(f"  ├─ PATCH status : {r2.status_code}")
 
         if r2.status_code >= 300:
             return False, f"Erreur update ({r2.status_code})"
@@ -561,25 +496,23 @@ def deduire_credit_boost(user_id, montant, raison):
         except Exception:
             pass
 
-        if nouveau_solde < 2000:
-            try:
-                _mettre_boutique_en_pause(user_id_clean)
-                logger.warning(f"  ├─ ⚠ boutique mise en pause (CB < 2000)")
-            except Exception:
-                pass
+        # ⚠️ NOUVEAU SEUIL : pause si < 500 F (au lieu de 2000)
+        if nouveau_solde < SEUIL_CREDIT_PAUSE:
+            _mettre_boutique_en_pause(user_id_clean)
+            logger.warning(f"[ADMIN CB DEDUIRE] Boutique mise en pause (CB={nouveau_solde})")
 
-        logger.warning(f"  └─ ✅ SUCCESS : -{montant_val}")
+        logger.info(f"[ADMIN CB DEDUIRE] -{montant_val} pour {profil.get('email')}")
         return True, None
 
     except requests.Timeout:
         return False, "Timeout de la base de données"
     except Exception as e:
-        logger.exception(f"  ├─ ❌ EXCEPTION : {type(e).__name__}")
-        return False, f"Erreur technique : {str(e)[:100]}"
+        logger.exception(f"deduire_credit_boost: {type(e).__name__}")
+        return False, f"Erreur technique ({type(e).__name__})"
 
 
 def get_transactions_credit_boost_admin(user_id=None, limit=200):
-    """Historique des transactions Credit Boost (admin, tous revendeurs ou 1)."""
+    """Historique des transactions Credit Boost (admin)."""
     try:
         limit = max(1, min(int(limit), 1000))
         if user_id:
@@ -599,7 +532,10 @@ def get_transactions_credit_boost_admin(user_id=None, limit=200):
 
 
 def get_revendeurs_credit_faible(seuil=2000, limit=100):
-    """Liste les revendeurs avec credit faible ou negatif."""
+    """
+    Liste les revendeurs avec credit faible.
+    Seuil par defaut = 2000 (alerte). Pour la pause = 500.
+    """
     try:
         limit = max(1, min(int(limit), 500))
         r = requests.get(
@@ -640,9 +576,12 @@ def _log_credit_boost_transaction(revendeur_id, type_tx, montant, solde_apres,
 
 
 def _reactiver_boutique_si_besoin(user_id, credit_actuel):
-    """Reactive la boutique si elle etait en pause et que le credit est repasse OK."""
+    """
+    Reactive la boutique si elle etait en pause et que le credit est repasse
+    au-dessus du SEUIL_CREDIT_PAUSE (500 F).
+    """
     try:
-        if credit_actuel < 2000:
+        if credit_actuel < SEUIL_CREDIT_PAUSE:
             return
         r = requests.get(
             _url(f"profiles?id=eq.{user_id}&select=est_revendeur,boutique_active&limit=1"),
