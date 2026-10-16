@@ -1250,3 +1250,93 @@ def get_moyens_pour_revendeur(revendeur_id):
     except Exception as e:
         logger.error(f"get_moyens_pour_revendeur: {type(e).__name__}")
         return []
+
+# ═══════════════════════════════════════════════════════════════
+# COMMANDES MULTI-MÉTHODES
+# ═══════════════════════════════════════════════════════════════
+
+def create_commande_boutique_multi(data):
+    """
+    Crée une commande avec les infos de paiement.
+    """
+    try:
+        r = requests.post(_url("boutique_commandes"), json=data,
+                         headers=_headers(True), timeout=10)
+        result = r.json()
+        return result[0] if isinstance(result, list) and result else None
+    except Exception as e:
+        logger.error(f"create_commande_boutique_multi: {type(e).__name__}")
+        return None
+
+
+def get_moyens_publics_revendeur(revendeur_id):
+    """
+    Retourne les moyens actifs d'un revendeur pour affichage CLIENT.
+    Aucune clé API n'est exposée.
+    """
+    try:
+        from app.models.paiement_config import get_methodes_actives_pour_affichage
+        return get_methodes_actives_pour_affichage(revendeur_id)
+    except Exception as e:
+        logger.error(f"get_moyens_publics_revendeur: {type(e).__name__}")
+        return []
+
+
+# ═══════════════════════════════════════════════════════════════
+# PAYS DU REVENDEUR (VERROUILLÉ)
+# ═══════════════════════════════════════════════════════════════
+
+def set_pays_revendeur(user_id, pays_code):
+    """
+    Définit le pays du revendeur (UNE SEULE FOIS).
+    """
+    try:
+        profile = get_profile(user_id)
+        if not profile:
+            return False, "Utilisateur introuvable"
+
+        if profile.get("pays_verrouille"):
+            return False, "Pays deja verrouille. Contactez l'admin."
+
+        if not pays_code:
+            return False, "Code pays manquant"
+
+        pays_code = pays_code.upper().strip()
+        if not re.match(r"^[A-Z]{2}$", pays_code):
+            return False, "Code pays invalide"
+
+        ok = update_profile(user_id, {
+            "pays_code": pays_code,
+            "pays_verrouille": True,
+            "pays_verrouille_le": datetime.now(timezone.utc).isoformat(),
+        })
+        return (True, None) if ok else (False, "Erreur de sauvegarde")
+    except Exception as e:
+        logger.error(f"set_pays_revendeur: {type(e).__name__}")
+        return False, "Erreur serveur"
+
+
+def get_pays_revendeur(user_id):
+    """Retourne le pays du revendeur."""
+    try:
+        profile = get_profile(user_id)
+        if not profile:
+            return None
+        return profile.get("pays_code")
+    except Exception as e:
+        logger.error(f"get_pays_revendeur: {type(e).__name__}")
+        return None
+
+
+def get_moyens_pour_revendeur(revendeur_id):
+    """Retourne les moyens dispo pour le pays du revendeur."""
+    try:
+        profile = get_profile(revendeur_id)
+        if not profile or not profile.get("pays_code"):
+            return []
+
+        from app.models.paiement_config import get_moyens_pour_pays
+        return get_moyens_pour_pays(profile["pays_code"])
+    except Exception as e:
+        logger.error(f"get_moyens_pour_revendeur: {type(e).__name__}")
+        return []
