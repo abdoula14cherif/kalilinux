@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="{{ boutique.couleur_principale }}">
+<title>Paiement Mobile Money — {{ boutique.nom }}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F8FAFC;min-height:100vh;padding:20px;color:#0F172A}
+.wrap{max-width:520px;margin:0 auto}
+.header{text-align:center;padding:24px 0;margin-bottom:20px}
+.header .logo{width:70px;height:70px;border-radius:50%;object-fit:cover;margin:0 auto 12px;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.1);background:#fff}
+.header h1{font-size:1.15rem;font-weight:900;color:#0F172A}
+.card{background:#fff;border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.06);margin-bottom:16px}
+.card h2{font-size:1rem;font-weight:900;margin-bottom:16px;color:#0F172A;display:flex;align-items:center;gap:8px}
+.card h2 i{color:var(--primary)}
+
+.montant-box{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border-radius:14px;padding:24px;text-align:center;margin-bottom:20px}
+.montant-box .label{font-size:.78rem;opacity:.85;text-transform:uppercase;letter-spacing:.8px;font-weight:800}
+.montant-box .value{font-size:2.2rem;font-weight:900;margin-top:6px;line-height:1}
+
+.instruction{background:#FEF3C7;border-left:4px solid #F59E0B;border-radius:12px;padding:16px;font-size:.88rem;color:#78350F;line-height:1.7;margin-bottom:18px}
+.instruction strong{color:#92400E}
+
+.numero-box{background:#F0FDF4;border:2px solid #10B981;border-radius:14px;padding:18px;text-align:center;margin-bottom:18px}
+.numero-box .label{font-size:.75rem;color:#065F46;text-transform:uppercase;letter-spacing:.8px;font-weight:800;margin-bottom:8px}
+.numero-box .numero{font-size:1.4rem;font-weight:900;color:#059669;letter-spacing:1px;margin-bottom:6px;font-family:monospace}
+.numero-box .nom-titulaire{font-size:.85rem;color:#065F46;font-weight:700}
+.copy-btn{background:#059669;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:.78rem;font-weight:800;cursor:pointer;margin-top:10px;display:inline-flex;align-items:center;gap:6px}
+
+.recap{background:#F8FAFC;border-radius:12px;padding:14px 16px;margin-bottom:18px}
+.recap-line{display:flex;justify-content:space-between;font-size:.85rem;padding:6px 0;color:#475569}
+.recap-line.total{font-size:1rem;font-weight:900;color:#0F172A;border-top:2px solid #E2E8F0;margin-top:8px;padding-top:10px}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border:none;border-radius:12px;font-size:1rem;font-weight:900;cursor:pointer;text-decoration:none;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,#10B981,#059669);color:#fff;box-shadow:0 6px 18px rgba(16,185,129,.3)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-secondary{background:#F1F5F9;color:#475569;margin-top:10px}
+</style>
+</head>
+<body style="--primary:{{ boutique.couleur_principale }};--primary-dark:{{ boutique.couleur_secondaire }}">
+
+<div class="wrap">
+  <div class="header">
+    {% if boutique.logo_url %}
+    <img src="{{ boutique.logo_url }}" alt="{{ boutique.nom }}" class="logo">
+    {% else %}
+    <div class="logo" style="background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem">🏪</div>
+    {% endif %}
+    <h1>{{ boutique.nom }}</h1>
+  </div>
+
+  <div class="card">
+    <h2><i class="fas fa-mobile-alt"></i> Paiement {{ methode.nom }}</h2>
+
+    <div class="montant-box">
+      <div class="label">Montant a envoyer</div>
+      <div class="value">{{ "{:,.0f}".format(commande.total) }} FCFA</div>
+    </div>
+
+    <div class="instruction">
+      <strong>📱 Comment payer :</strong><br>
+      1. Ouvrez {{ methode.nom }} sur votre telephone<br>
+      2. Envoyez <strong>{{ "{:,.0f}".format(commande.total) }} FCFA</strong> au numero ci-dessous<br>
+      3. Revenez sur cette page et cliquez sur <strong>"J'ai paye"</strong><br>
+      4. Le vendeur confirmera votre commande
+    </div>
+
+    <div class="numero-box">
+      <div class="label">Numero {{ methode.nom }}</div>
+      <div class="numero" id="numero">{{ methode.numero }}</div>
+      <div class="nom-titulaire">{{ methode.nom_titulaire }}</div>
+      <button class="copy-btn" onclick="copierNumero()">
+        <i class="fas fa-copy"></i> Copier le numero
+      </button>
+    </div>
+
+    <div class="recap">
+      <div class="recap-line">
+        <span>Reference</span>
+        <strong>{{ commande.reference }}</strong>
+      </div>
+      <div class="recap-line">
+        <span>Nom</span>
+        <strong>{{ commande.client_nom }}</strong>
+      </div>
+      <div class="recap-line total">
+        <span>Total</span>
+        <span>{{ "{:,.0f}".format(commande.total) }} FCFA</span>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('boutique.paiement_manuel_jai_paye', slug=slug, reference=commande.reference) }}">
+      <button type="submit" class="btn btn-primary"
+              onclick="return confirm('Confirmez-vous avoir envoye {{ "{:,.0f}".format(commande.total) }} FCFA au {{ methode.numero }} ?')">
+        <i class="fas fa-check-circle"></i> J'ai paye
+      </button>
+    </form>
+
+    <a href="{{ url_for('boutique.visiter', slug=slug) }}" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i> Retour
+    </a>
+  </div>
+</div>
+
+<script>
+function copierNumero(){
+  var num = document.getElementById('numero').textContent.trim();
+  navigator.clipboard.writeText(num).then(function(){
+    alert('Numero copie !');
+  });
+}
+</script>
+
+</body>
+</html>
