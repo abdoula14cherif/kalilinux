@@ -1,0 +1,178 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Credit — {{ revendeur.full_name or revendeur.email }}{% endblock %}
+{% block page_title %}Credit Boost — {{ revendeur.full_name or revendeur.email.split('@')[0] }}{% endblock %}
+{% block page_subtitle %}Gerez le solde prepaye et consultez l'historique{% endblock %}
+
+{% block topbar_actions %}
+<a href="{{ url_for('dashboard_admin.credit_boost') }}" class="btn btn-primary" style="padding:10px 18px;font-size:.84rem">
+  <i class="fas fa-arrow-left"></i> Vue globale
+</a>
+{% endblock %}
+
+{% block extra_css %}
+.rev-header{background:linear-gradient(135deg,#0F172A,#1E293B);border-radius:20px;padding:24px 26px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden}
+.rev-header::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(245,158,11,.18),transparent 65%);pointer-events:none}
+.rev-header-head{display:flex;align-items:center;gap:16px;position:relative;z-index:1;flex-wrap:wrap}
+.rev-header-avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.35rem;flex-shrink:0}
+.rev-header-info{flex:1;min-width:0}
+.rev-header-name{font-size:1.15rem;font-weight:900;margin-bottom:4px}
+.rev-header-email{font-size:.85rem;opacity:.75;word-break:break-all}
+.rev-header-meta{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;position:relative;z-index:1}
+.rev-header-meta-item{display:flex;align-items:center;gap:6px;font-size:.82rem;opacity:.85;background:rgba(255,255,255,.1);padding:7px 14px;border-radius:10px;backdrop-filter:blur(10px)}
+
+.solde-hero{background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:20px;padding:32px 26px;margin-bottom:22px;text-align:center;color:#fff;position:relative;overflow:hidden}
+.solde-hero::before{content:'';position:absolute;top:-50%;right:-20%;width:70%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.2),transparent 65%);pointer-events:none}
+.solde-hero .label{font-size:.78rem;text-transform:uppercase;letter-spacing:1px;font-weight:800;opacity:.85;position:relative;z-index:1}
+.solde-hero .value{font-size:3rem;font-weight:900;margin:10px 0;line-height:1;position:relative;z-index:1}
+.solde-hero .value small{font-size:1rem;opacity:.6;font-weight:700}
+.solde-hero .statut{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;font-size:.82rem;font-weight:800;margin-top:12px;position:relative;z-index:1;background:rgba(255,255,255,.2)}
+.solde-hero.danger{background:linear-gradient(135deg,#DC2626,#991B1B)}
+
+.actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+@media(max-width:600px){.actions-grid{grid-template-columns:1fr}}
+.action-card{background:#fff;border-radius:16px;padding:20px;border:1px solid #E2E8F0;text-align:center}
+.action-card h4{font-size:.9rem;font-weight:900;color:#0F172A;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px}
+.action-card h4 i{color:#F59E0B}
+.action-card form{display:flex;flex-direction:column;gap:10px}
+.action-card .inp{padding:11px 13px;border:2px solid #E2E8F0;border-radius:10px;font-size:.9rem;font-family:inherit;outline:none;transition:border-color .2s}
+.action-card .inp:focus{border-color:#F59E0B}
+.btn-ajouter{padding:12px;border:none;border-radius:11px;background:linear-gradient(135deg,#10B981,#059669);color:#fff;font-weight:900;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .2s}
+.btn-ajouter:hover{transform:translateY(-2px)}
+.btn-deduire{padding:12px;border:none;border-radius:11px;background:linear-gradient(135deg,#DC2626,#991B1B);color:#fff;font-weight:900;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .2s}
+.btn-deduire:hover{transform:translateY(-2px)}
+.hint{font-size:.7rem;color:#94A3B8;text-align:left;line-height:1.4}
+
+.card-box{background:#fff;border-radius:16px;padding:22px;border:1px solid #E2E8F0;margin-bottom:18px}
+.card-box h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-box h3 i{color:#F59E0B}
+
+.tx-list{list-style:none;padding:0;margin:0;max-height:500px;overflow-y:auto}
+.tx-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #F1F5F9}
+.tx-item:last-child{border-bottom:none}
+.tx-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.tx-ico.pos{background:#EDFFF5;color:#059669}
+.tx-ico.neg{background:#FEF2F2;color:#DC2626}
+.tx-info{flex:1;min-width:0}
+.tx-desc{font-size:.82rem;font-weight:700;color:#0F172A;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-meta{font-size:.7rem;color:#94A3B8;margin-top:2px}
+.tx-montant{font-size:.9rem;font-weight:900;flex-shrink:0}
+.tx-montant.pos{color:#059669}
+.tx-montant.neg{color:#DC2626}
+.tx-solde{font-size:.68rem;color:#94A3B8;text-align:right;margin-top:2px}
+
+.empty-state{text-align:center;padding:32px 20px;color:#94A3B8}
+.empty-state i{font-size:2.5rem;margin-bottom:12px;opacity:.5;display:block}
+.empty-state p{font-size:.85rem}
+{% endblock %}
+
+{% block dashboard_content %}
+
+{% set cb = revendeur.credit_boost|default(0)|float %}
+{% set seuil = 2000 %}
+
+<!-- HEADER REVENDEUR -->
+<div class="rev-header">
+  <div class="rev-header-head">
+    <div class="rev-header-avatar">{{ (revendeur.full_name or revendeur.email or '?')[0]|upper }}</div>
+    <div class="rev-header-info">
+      <div class="rev-header-name">{{ revendeur.full_name or 'Sans nom' }}</div>
+      <div class="rev-header-email"><i class="fas fa-envelope"></i> {{ revendeur.email }}</div>
+    </div>
+  </div>
+  <div class="rev-header-meta">
+    {% if revendeur.est_revendeur %}
+    <span class="rev-header-meta-item"><i class="fas fa-store"></i> {{ revendeur.boutique_nom or 'Sans nom' }}</span>
+    <span class="rev-header-meta-item"><i class="fas fa-tag"></i> {{ revendeur.boutique_type }}</span>
+    {% if revendeur.boutique_active is sameas false %}
+    <span class="rev-header-meta-item" style="background:rgba(220,38,38,.3)"><i class="fas fa-pause-circle"></i> EN PAUSE</span>
+    {% endif %}
+    {% else %}
+    <span class="rev-header-meta-item"><i class="fas fa-clock"></i> Brouillon</span>
+    {% endif %}
+    <span class="rev-header-meta-item"><i class="fas fa-star"></i> {{ (revendeur.abonnement_niveau or 'gratuit')|capitalize }}</span>
+  </div>
+</div>
+
+<!-- SOLDE HERO -->
+<div class="solde-hero {% if cb < 0 %}danger{% endif %}">
+  <div class="label">Solde Credit Boost</div>
+  <div class="value">{{ "{:,.0f}".format(cb) }} <small>FCFA</small></div>
+  {% if cb < 0 %}
+    <div class="statut"><i class="fas fa-times-circle"></i> Credit negatif</div>
+  {% elif cb < seuil %}
+    <div class="statut"><i class="fas fa-exclamation-triangle"></i> Sous le seuil ({{ "{:,.0f}".format(seuil) }} F)</div>
+  {% else %}
+    <div class="statut"><i class="fas fa-check-circle"></i> Actif</div>
+  {% endif %}
+</div>
+
+<!-- ACTIONS -->
+<div class="actions-grid">
+
+  <!-- AJOUTER -->
+  <div class="action-card">
+    <h4><i class="fas fa-plus-circle"></i> Ajouter du credit</h4>
+    <form method="POST" action="{{ url_for('dashboard_admin.revendeur_credit_ajouter', user_id=revendeur.id) }}"
+          onsubmit="return confirm('Ajouter ce montant au Credit Boost ?')">
+      <input type="number" class="inp" name="montant" placeholder="Montant en FCFA" min="1" max="1000000" required>
+      <input type="text" class="inp" name="raison" placeholder="Motif (ex: Geste commercial, remboursement)" minlength="5" maxlength="500" required>
+      <button type="submit" class="btn-ajouter">
+        <i class="fas fa-plus"></i> Ajouter
+      </button>
+      <small class="hint"><i class="fas fa-info-circle"></i> Motif obligatoire (audit). Max 1 000 000 F par operation.</small>
+    </form>
+  </div>
+
+  <!-- DEDUIRE -->
+  <div class="action-card">
+    <h4><i class="fas fa-minus-circle"></i> Deduire du credit</h4>
+    <form method="POST" action="{{ url_for('dashboard_admin.revendeur_credit_deduire', user_id=revendeur.id) }}"
+          onsubmit="return confirm('Deduire ce montant du Credit Boost ? Cette action peut mettre la boutique en pause.')">
+      <input type="number" class="inp" name="montant" placeholder="Montant en FCFA" min="1" max="1000000" required>
+      <input type="text" class="inp" name="raison" placeholder="Motif (ex: Penalite, correction)" minlength="5" maxlength="500" required>
+      <button type="submit" class="btn-deduire">
+        <i class="fas fa-minus"></i> Deduire
+      </button>
+      <small class="hint"><i class="fas fa-exclamation-triangle"></i> Si le solde devient inférieur à 2000 F, la boutique sera automatiquement mise en pause.</small>
+    </form>
+  </div>
+
+</div>
+
+<!-- HISTORIQUE -->
+<div class="card-box">
+  <h3><i class="fas fa-history"></i> Historique des transactions</h3>
+
+  {% if transactions %}
+  <ul class="tx-list">
+    {% for tx in transactions %}
+    {% set is_pos = tx.montant and tx.montant > 0 %}
+    <li class="tx-item">
+      <div class="tx-ico {% if is_pos %}pos{% else %}neg{% endif %}">
+        <i class="fas {% if is_pos %}fa-plus{% else %}fa-minus{% endif %}"></i>
+      </div>
+      <div class="tx-info">
+        <div class="tx-desc">{{ tx.description or tx.type|title }}</div>
+        <div class="tx-meta">
+          {{ tx.created_at[:16].replace('T', ' ') if tx.created_at else '' }}
+          {% if tx.source_type %} — {{ tx.source_type }}{% endif %}
+        </div>
+      </div>
+      <div>
+        <div class="tx-montant {% if is_pos %}pos{% else %}neg{% endif %}">
+          {% if is_pos %}+{% endif %}{{ "{:,.0f}".format(tx.montant or 0) }}
+        </div>
+        <div class="tx-solde">Solde: {{ "{:,.0f}".format(tx.solde_apres or 0) }}</div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-receipt"></i>
+    <p>Aucune transaction enregistree pour ce revendeur.</p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
