@@ -107,14 +107,31 @@ def slug_deja_pris(slug):
         return True
 
 
-def activer_revendeur(user_id, slug, modele, commission_pct=0.10):
-    return update_profile(user_id, {
-        "est_revendeur": True,
-        "revendeur_slug": slug,
-        "revendeur_modele": modele,
-        "revendeur_commission_pct": commission_pct if modele == "commission" else 0.0,
-        "boutique_active": True,
-    })
+def activer_revendeur(user_id, slug):
+    """
+    Active le statut revendeur.
+    La commission est lue dynamiquement depuis le plan (get_commission_pct),
+    donc plus besoin de la passer en dur.
+    """
+    try:
+        # Récupère la commission du plan actuel pour la stocker (denormalisation)
+        profile = get_profile(user_id)
+        commission_pct = 0.10
+        if profile:
+            plan_code = profile.get("abonnement_niveau") or "gratuit"
+            plan = get_plan_by_code(plan_code)
+            if plan:
+                commission_pct = float(plan.get("commission_pct", 0.10))
+
+        return update_profile(user_id, {
+            "est_revendeur": True,
+            "revendeur_slug": slug,
+            "revendeur_commission_pct": commission_pct,
+            "boutique_active": True,
+        })
+    except Exception as e:
+        logger.error(f"activer_revendeur: {type(e).__name__}")
+        return False
 
 
 def toggle_boutique_active(revendeur_id, active):
@@ -161,6 +178,132 @@ def incrementer_visite_boutique(revendeur_id):
     except Exception as e:
         logger.error(f"incrementer_visite_boutique: {type(e).__name__}")
         return 0
+
+
+# ═══════════════════════════════════════════════════════════════
+# PLANS D'ABONNEMENT
+# ═══════════════════════════════════════════════════════════════
+
+def get_abonnements_plans():
+    try:
+        r = requests.get(_url("abonnements_plans?actif=eq.true&order=ordre"), headers=_headers(True), timeout=10)
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_abonnements_plans: {type(e).__name__}")
+        return []
+
+
+def get_plan_by_code(code):
+    """Recupere un plan par son code (gratuit, pro, business)."""
+    try:
+        r = requests.get(
+            _url(f"abonnements_plans?code=eq.{code}&limit=1"),
+            headers=_headers(True), timeout=10
+        )
+        data = r.json()
+        return data[0] if isinstance(data, list) and data else None
+    except Exception as e:
+        logger.error(f"get_plan_by_code: {type(e).__name__}")
+        return None
+
+
+def get_plan_actuel(profile):
+    """Retourne le plan complet du revendeur (ou le plan gratuit par defaut)."""
+    code = (profile or {}).get("abonnement_niveau") or "gratuit"
+    plan = get_plan_by_code(code)
+    if not plan:
+        plan = get_plan_by_code("gratuit")
+    return plan
+
+
+def get_commission_pct(profile):
+    """
+    Retourne le pourcentage de commission que la plateforme preleve
+    sur les ventes de ce revendeur (0.10 = 10%).
+    """
+    if profile and profile.get("revendeur_commission_pct") is not None:
+        return float(profile["revendeur_commission_pct"])
+    plan = get_plan_actuel(profile)
+    return float((plan or {}).get("commission_pct", 0.10))
+
+
+def get_fonctionnalites_premium():
+    try:
+        r = requests.get(_url("fonctionnalites_premium?actif=eq.true&order=ordre"), headers=_headers(True), timeout=10)
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_fonctionnalites_premium: {type(e).__name__}")
+        return []
+
+
+# ═══════════════════════════════════════════════════════════════
+# LIMITES PAR PLAN
+# ═══════════════════════════════════════════════════════════════
+
+def _compter_usage(profile):
+    """Compte l'usage actuel du revendeur pour les limites."""
+    return {
+        "produits": len(get_produits_revendeur(profile["id"])),
+        "bannieres": len(get_bannieres_revendeur(profile["id"])),
+        "attributs": len(get_attributs_revendeur(profile["id"])),
+        "coupons": len(get_coupons_revendeur(profile["id"])),
+    }
+
+
+def peut_creer_produit(profile):
+    """Retourne (True, None) si OK, sinon (False, message)."""
+    plan = get_plan_actuel(profile)
+    if not plan:
+        return True, None
+    max_p = plan.get("max_produits", 5)
+    if max_p >= 999999:
+        return True, None
+    actuels = len(get_produits_revendeur(profile["id"]))
+    if actuels >= max_p:
+        return False, f"Limite atteinte : {max_p} produits max sur le plan {plan['nom']}. Passez au plan superieur."
+    return True, None
+
+
+def peut_creer_banniere(profile):
+    plan = get_plan_actuel(profile)
+    if not plan:
+        return True, None
+    max_b = plan.get("max_bannieres", 2)
+    if max_b >= 999999:
+        return True, None
+    actuels = len(get_bannieres_revendeur(profile["id"]))
+    if actuels >= max_b:
+        return False, f"Limite atteinte : {max_b} bannieres max sur le plan {plan['nom']}."
+    return True, None
+
+
+def peut_creer_attribut(profile):
+    plan = get_plan_actuel(profile)
+    if not plan:
+        return True, None
+    max_a = plan.get("max_attributs", 2)
+    if max_a >= 999999:
+        return True, None
+    actuels = len(get_attributs_revendeur(profile["id"]))
+    if actuels >= max_a:
+        return False, f"Limite atteinte : {max_a} attributs max sur le plan {plan['nom']}."
+    return True, None
+
+
+def peut_creer_coupon(profile):
+    plan = get_plan_actuel(profile)
+    if not plan:
+        return True, None
+    max_c = plan.get("max_coupons", 0)
+    if max_c >= 999999:
+        return True, None
+    actuels = len(get_coupons_revendeur(profile["id"]))
+    if actuels >= max_c:
+        msg = f"Les coupons ne sont pas disponibles sur le plan {plan['nom']}." if max_c == 0 else f"Limite atteinte : {max_c} coupons max."
+        return False, msg
+    return True, None
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -456,28 +599,30 @@ def get_revendeur_gains_total(revendeur_id):
         return 0
 
 
-# ═══════════════════════════════════════════════════════════════
-# PLANS & PREMIUM
-# ═══════════════════════════════════════════════════════════════
-
-def get_abonnements_plans():
+def create_revendeur_gain(revendeur_id, montant_brut, montant_net, commission_pct, source_type=None, source_id=None):
+    """
+    Enregistre un gain revendeur apres calcul de la commission plateforme.
+    montant_brut  = total paye par le client
+    montant_net   = ce que le revendeur recoit reellement
+    commission_pct = taux preleve par la plateforme (ex: 0.10)
+    """
     try:
-        r = requests.get(_url("abonnements_plans?actif=eq.true&order=ordre"), headers=_headers(True), timeout=10)
-        data = r.json()
-        return data if isinstance(data, list) else []
+        commission = round(montant_brut * commission_pct, 2)
+        payload = {
+            "revendeur_id": revendeur_id,
+            "montant": montant_net,
+            "montant_brut": montant_brut,
+            "commission": commission,
+            "commission_pct": commission_pct,
+            "source_type": source_type,
+            "source_id": source_id,
+        }
+        r = requests.post(_url("revendeur_gains"), json=payload, headers=_headers(True), timeout=10)
+        result = r.json()
+        return result[0] if isinstance(result, list) and result else None
     except Exception as e:
-        logger.error(f"get_abonnements_plans: {type(e).__name__}")
-        return []
-
-
-def get_fonctionnalites_premium():
-    try:
-        r = requests.get(_url("fonctionnalites_premium?actif=eq.true&order=ordre"), headers=_headers(True), timeout=10)
-        data = r.json()
-        return data if isinstance(data, list) else []
-    except Exception as e:
-        logger.error(f"get_fonctionnalites_premium: {type(e).__name__}")
-        return []
+        logger.error(f"create_revendeur_gain: {type(e).__name__}")
+        return None
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -518,7 +663,7 @@ def delete_categorie(cat_id):
 
 
 # ═══════════════════════════════════════════════════════════════
-# BANNIERES (une seule definition)
+# BANNIERES
 # ═══════════════════════════════════════════════════════════════
 
 def get_bannieres_revendeur(revendeur_id, only_active=False):
@@ -563,7 +708,7 @@ def delete_banniere(banniere_id):
 
 
 # ═══════════════════════════════════════════════════════════════
-# ATTRIBUTS (une seule definition)
+# ATTRIBUTS
 # ═══════════════════════════════════════════════════════════════
 
 def get_attributs_revendeur(revendeur_id, only_active=False):
