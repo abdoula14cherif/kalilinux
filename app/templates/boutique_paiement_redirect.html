@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="{{ boutique.couleur_principale }}">
+<title>Paiement — {{ boutique.nom }}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F8FAFC;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;color:#0F172A}
+.wrap{max-width:440px;width:100%;text-align:center}
+.logo{width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 16px;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.1);background:#fff}
+h1{font-size:1.2rem;font-weight:900;margin-bottom:8px}
+p{font-size:.9rem;color:#64748B;line-height:1.6;margin-bottom:24px}
+.amount-box{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;border-radius:16px;padding:24px;margin-bottom:24px}
+.amount-box .label{font-size:.78rem;opacity:.85;text-transform:uppercase;letter-spacing:.8px;font-weight:800}
+.amount-box .value{font-size:2.2rem;font-weight:900;margin-top:6px;line-height:1}
+.btn-payer{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:18px;background:linear-gradient(135deg,#10B981,#059669);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:900;cursor:pointer;box-shadow:0 8px 24px rgba(16,185,129,.4);text-decoration:none;transition:transform .2s}
+.btn-payer:hover{transform:translateY(-2px)}
+.btn-payer:active{transform:scale(.98)}
+.note{font-size:.78rem;color:#94A3B8;margin-top:16px;line-height:1.5}
+</style>
+</head>
+<body style="--primary:{{ boutique.couleur_principale }}">
+
+<div class="wrap">
+  {% if boutique.logo_url %}
+  <img src="{{ boutique.logo_url }}" alt="{{ boutique.nom }}" class="logo">
+  {% else %}
+  <div class="logo" style="background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem">🏪</div>
+  {% endif %}
+  
+  <h1>Finaliser le paiement</h1>
+  <p>Cliquez sur le bouton ci-dessous pour être redirigé vers la page de paiement sécurisée.</p>
+
+  <div class="amount-box">
+    <div class="label">Montant à payer</div>
+    <div class="value">{{ "{:,.0f}".format(commande.total) }} FCFA</div>
+  </div>
+
+  <a href="{{ payment_url }}" class="btn-payer" target="_blank" rel="noopener">
+    <i class="fas fa-lock"></i> Payer maintenant
+  </a>
+
+  <div class="note">
+    <i class="fas fa-info-circle"></i> 
+    Si le bouton ne s'ouvre pas, copiez ce lien :<br>
+    <span style="font-size:.7rem;word-break:break-all;color:#00BFFF">{{ payment_url }}</span>
+  </div>
+</div>
+
+</body>
+</html>
