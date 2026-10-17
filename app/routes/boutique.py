@@ -467,7 +467,10 @@ def commander(slug):
 @boutique_bp.route("/r/<slug>/paiement-lien/<reference>")
 @limiter.limit("120 per minute")
 def paiement_lien(slug, reference):
-    """Affiche la page de paiement en ligne."""
+    """
+    Crée (ou récupère) le lien LeekPay/Mysoleas pour cette commande.
+    Redirige le client vers la page de paiement externe.
+    """
     revendeur = get_profile_by_slug(slug)
     if not revendeur or not revendeur.get("est_revendeur"):
         flash("Boutique introuvable.", "error")
@@ -480,35 +483,67 @@ def paiement_lien(slug, reference):
 
     method = commande.get("method_paiement", "cash")
 
-    try:
-        moyens = get_moyens_publics_revendeur(revendeur["id"])
-        methode_info = next((m for m in moyens if m["method"] == method), None)
-    except Exception:
-        methode_info = None
+    if method not in ("leekpay", "mysoleas", "stripe"):
+        flash("Methode de paiement invalide.", "error")
+        return redirect(url_for("boutique.visiter", slug=slug))
 
-    theme = revendeur.get("boutique_theme") or "bleu"
-    couleur_principale, couleur_secondaire = THEMES.get(theme, THEMES["bleu"])
-    if revendeur.get("boutique_couleur_principale"):
-        couleur_principale = revendeur["boutique_couleur_principale"]
-    if revendeur.get("boutique_couleur_secondaire"):
-        couleur_secondaire = revendeur["boutique_couleur_secondaire"]
+    # ─── LEEKPAY ───────────────────────────────────────────────
+    if method == "leekpay":
+        from app.models.paiement_config import get_config_decryptee
+        from app.models.leekpay import creer_checkout
 
-    boutique = {
-        "nom": revendeur.get("boutique_nom") or f"Boutique {slug.capitalize()}",
-        "logo_url": revendeur.get("boutique_logo_url"),
-        "couleur_principale": couleur_principale,
-        "couleur_secondaire": couleur_secondaire,
-        "whatsapp": revendeur.get("boutique_whatsapp"),
-    }
+        config = get_config_decryptee(revendeur["id"], "leekpay")
+        if not config or not config.get("config"):
+            flash("Paiement LeekPay non configure par le vendeur.", "error")
+            return redirect(url_for("boutique.visiter", slug=slug))
 
-    return render_template(
-        "boutique_paiement_lien.html",
-        boutique=boutique,
-        commande=commande,
-        revendeur=revendeur,
-        methode=methode_info,
-        slug=slug,
-    )
+        secret_key = config["config"].get("secret_key")
+        if not secret_key:
+            flash("Configuration LeekPay incomplete.", "error")
+            return redirect(url_for("boutique.visiter", slug=slug))
+
+        # Si un checkout existe déjà → rediriger
+        if commande.get("paiement_reference") and commande.get("statut_paiement") == "en_cours":
+            # TODO : récupérer l'ancien payment_url
+            pass
+
+        return_url = url_for("boutique.confirmation",
+                              slug=slug, reference=reference, _external=True)
+        cancel_url = url_for("boutique.visiter", slug=slug, _external=True)
+        webhook_url = url_for("webhooks.leekpay_webhook", slug=slug, _external=True)
+
+        checkout = creer_checkout(
+            amount=commande.get("total", 0),
+            currency="XOF",
+            description=f"Commande {reference}",
+            return_url=return_url,
+            cancel_url=cancel_url,
+            secret_key=secret_key,
+            customer_email=commande.get("client_email"),
+            customer_name=commande.get("client_nom"),
+            customer_phone=commande.get("client_telephone"),
+            metadata={
+                "commande_reference": reference,
+                "revendeur_slug": slug,
+            },
+            webhook_url=webhook_url,
+        )
+
+        if not checkout or not checkout.get("payment_url"):
+            flash("Erreur creation du lien de paiement LeekPay. Reessayez.", "error")
+            return redirect(url_for("boutique.visiter", slug=slug))
+
+        # Sauvegarder la reference
+        update_commande_boutique(commande["id"], {
+            "statut_paiement": "en_cours",
+            "paiement_reference": checkout.get("id"),
+        })
+
+        return redirect(checkout["payment_url"])
+
+    # ─── AUTRES METHODES (a implementer plus tard) ─────────────
+    flash("Cette methode de paiement n'est pas encore disponible.", "info")
+    return redirect(url_for("boutique.visiter", slug=slug))
 
 
 # ═══════════════════════════════════════════════════════════════
