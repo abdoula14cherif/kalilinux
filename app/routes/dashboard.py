@@ -375,7 +375,6 @@ def publier_activer():
         flash("Votre boutique est deja publiee.", "info")
         return redirect(url_for("dashboard.index"))
 
-    # Check credit boost
     credit_boost = get_credit_boost(profile["id"])
     if credit_boost < SEUIL_CREDIT_MIN_PUBLICATION:
         flash(
@@ -590,6 +589,11 @@ def produits_ajouter():
         "actif": True,
     }
 
+    # ═══ LIEN DE LIVRAISON (PRODUIT VIRTUEL) ═══
+    lien_livraison = request.form.get("lien_livraison", "").strip()[:500]
+    if lien_livraison and lien_livraison.startswith(("http://", "https://")):
+        data["lien_livraison"] = lien_livraison
+
     categorie_id = request.form.get("categorie_id", "").strip()
     if categorie_id:
         try:
@@ -614,7 +618,10 @@ def produits_ajouter():
 
     result = create_produit_boutique(data)
     if result:
-        flash(f"Produit '{nom}' ajoute avec succes !", "success")
+        if lien_livraison:
+            flash(f"Produit '{nom}' ajoute (livraison automatique activee) !", "success")
+        else:
+            flash(f"Produit '{nom}' ajoute avec succes !", "success")
     else:
         flash("Erreur lors de l'ajout du produit.", "error")
 
@@ -651,6 +658,14 @@ def produits_modifier():
             data["prix"] = prix
     except Exception:
         pass
+
+    # ═══ LIEN DE LIVRAISON (PRODUIT VIRTUEL) ═══
+    lien_livraison = request.form.get("lien_livraison", "").strip()[:500]
+    if lien_livraison:
+        if lien_livraison.startswith(("http://", "https://")):
+            data["lien_livraison"] = lien_livraison
+    else:
+        data["lien_livraison"] = None
 
     categorie_id = request.form.get("categorie_id", "").strip()
     if categorie_id:
