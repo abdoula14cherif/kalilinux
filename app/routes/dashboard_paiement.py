@@ -1,9 +1,8 @@
 """
 Dashboard revendeur — Configuration des moyens de paiement.
 SÉCURITÉ :
-- Pays verrouillé à la 1ère validation (impossible de changer seul)
+- Pays verrouillé à la 1ère validation
 - Clés API chiffrées en DB
-- Test obligatoire avant activation
 """
 import logging
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
@@ -40,6 +39,25 @@ def _get_profile_ou_redirect():
     return profile, None
 
 
+def get_webhook_url(slug, method):
+    """
+    Retourne l'URL de webhook que le revendeur doit configurer
+    dans son dashboard Stripe/LeekPay/Mysoleas.
+    """
+    if not slug:
+        return None
+    try:
+        if method == "leekpay":
+            return url_for("webhooks.leekpay_webhook", slug=slug, _external=True)
+        elif method == "mysoleas":
+            return url_for("webhooks.mysoleas_webhook", slug=slug, _external=True)
+        elif method == "stripe":
+            return url_for("webhooks.stripe_webhook", slug=slug, _external=True)
+    except Exception:
+        return None
+    return None
+
+
 # ═══════════════════════════════════════════════════════════════
 # PAGE PRINCIPALE
 # ═══════════════════════════════════════════════════════════════
@@ -47,18 +65,13 @@ def _get_profile_ou_redirect():
 @dashboard_paiement_bp.route("/paiement")
 @login_required
 def index():
-    """
-    Page de configuration des paiements.
-    - Si pays non défini → écran de choix du pays
-    - Sinon → écran de configuration des moyens
-    """
+    """Page principale : choix du pays ou config des moyens."""
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
 
     pays_code = profile.get("pays_code")
 
-    # Cas 1 : pas de pays défini → on affiche le choix
     if not pays_code:
         pays_liste = get_tous_pays()
         return render_template(
@@ -67,15 +80,12 @@ def index():
             pays_liste=pays_liste,
         )
 
-    # Cas 2 : pays défini → on affiche les moyens
     pays = get_pays_by_code(pays_code)
     moyens_disponibles = get_moyens_pour_pays(pays_code)
     mes_configs = get_config_revendeur(profile["id"])
 
-    # Dict {method: config_row}
     configs_par_method = {c["method"]: c for c in mes_configs}
 
-    # Enrichir les moyens avec leur config actuelle
     moyens_enrichis = []
     for m in moyens_disponibles:
         method = m["method"]
@@ -108,13 +118,13 @@ def index():
 @login_required
 @limiter.limit("5 per hour")
 def choisir_pays():
-    """Définit le pays du revendeur. Action IRRÉVERSIBLE."""
+    """Définit le pays du revendeur. IRRÉVERSIBLE."""
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
 
     if profile.get("pays_verrouille"):
-        flash("Votre pays est deja verrouille. Contactez l'administrateur pour le modifier.", "error")
+        flash("Votre pays est deja verrouille. Contactez l'administrateur.", "error")
         return redirect(url_for("dashboard_paiement.index"))
 
     pays_code = request.form.get("pays_code", "").strip().upper()
@@ -123,17 +133,16 @@ def choisir_pays():
         flash("Pays invalide.", "error")
         return redirect(url_for("dashboard_paiement.index"))
 
-    # Double confirmation obligatoire
     confirmation = request.form.get("confirmation", "").strip()
     if confirmation != "OUI":
-        flash("Vous devez cocher la confirmation pour valider votre pays.", "error")
+        flash("Vous devez cocher la confirmation.", "error")
         return redirect(url_for("dashboard_paiement.index"))
 
     ok, err = set_pays_revendeur(profile["id"], pays_code)
 
     if ok:
         pays = get_pays_by_code(pays_code)
-        flash(f"Votre pays ({pays['nom']}) est maintenant verrouille. Configurez vos moyens de paiement.", "success")
+        flash(f"Votre pays ({pays['nom']}) est verrouille. Configurez vos moyens.", "success")
     else:
         flash(f"Erreur : {err}", "error")
 
@@ -148,7 +157,7 @@ def choisir_pays():
 @login_required
 @limiter.limit("30 per hour")
 def configurer(method):
-    """Page de configuration d'une méthode de paiement."""
+    """Page de configuration d'une méthode."""
     profile, redir = _get_profile_ou_redirect()
     if redir:
         return redir
@@ -161,7 +170,6 @@ def configurer(method):
         flash("Definissez d'abord votre pays.", "warning")
         return redirect(url_for("dashboard_paiement.index"))
 
-    # Vérifier que la méthode est dispo dans son pays
     moyens_pays = [m["method"] for m in get_moyens_pour_pays(profile["pays_code"])]
     if method not in moyens_pays:
         flash("Cette methode n'est pas disponible dans votre pays.", "error")
@@ -170,7 +178,6 @@ def configurer(method):
     methode_info = METHODES_VALIDES[method]
 
     if request.method == "POST":
-        # Récupérer les champs
         config_data = {}
         for champ in methode_info.get("champs_requis", []):
             valeur = request.form.get(champ, "").strip()
@@ -179,7 +186,6 @@ def configurer(method):
                 return redirect(url_for("dashboard_paiement.configurer", method=method))
             config_data[champ] = valeur
 
-        # Sauvegarder
         ok, err = save_config_revendeur(profile["id"], method, config_data, actif=False)
 
         if ok:
@@ -191,6 +197,8 @@ def configurer(method):
 
     # GET : afficher le formulaire
     config_actuelle = get_config_decryptee_masquee(profile["id"], method)
+    slug = profile.get("revendeur_slug")
+    webhook_url = get_webhook_url(slug, method) if slug else None
 
     return render_template(
         "dashboard/paiement/configurer.html",
@@ -198,6 +206,7 @@ def configurer(method):
         method=method,
         methode_info=methode_info,
         config=config_actuelle,
+        webhook_url=webhook_url,
     )
 
 
@@ -221,7 +230,6 @@ def toggle(method):
     actif_actuel = request.form.get("actif") == "1"
     nouveau_statut = not actif_actuel
 
-    # Si on active, vérifier que la config existe
     if nouveau_statut:
         config = get_config_revendeur(profile["id"], method)
         if not config:
@@ -264,29 +272,3 @@ def supprimer(method):
         flash("Erreur lors de la suppression.", "error")
 
     return redirect(url_for("dashboard_paiement.index"))
-
-# ═══════════════════════════════════════════════════════════════
-# URL DE WEBHOOK À AFFICHER AU REVENDEUR
-# ═══════════════════════════════════════════════════════════════
-
-def get_webhook_url(slug, method):
-    """
-    Retourne l'URL de webhook que le revendeur doit configurer
-    dans son dashboard Stripe/LeekPay/Mysoleas.
-    """
-    from flask import url_for
-    from app.models.paiement_config import METHODES_VALIDES
-    
-    method_info = METHODES_VALIDES.get(method, {})
-    if not method_info:
-        return None
-    
-    # URL de base selon la méthode
-    if method == "leekpay":
-        return url_for("webhooks.leekpay_webhook", slug=slug, _external=True)
-    elif method == "mysoleas":
-        return url_for("webhooks.mysoleas_webhook", slug=slug, _external=True)
-    elif method == "stripe":
-        return url_for("webhooks.stripe_webhook", slug=slug, _external=True)
-    
-    return None
