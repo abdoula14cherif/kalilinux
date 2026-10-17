@@ -4,6 +4,7 @@ Boutique publique d'un revendeur : /r/<slug>
 import json
 import logging
 import secrets
+import traceback
 from flask import Blueprint, render_template, redirect, url_for, session, flash, request
 
 from app import limiter
@@ -448,104 +449,92 @@ def commander(slug):
 
 
 # ═══════════════════════════════════════════════════════════════
-# PAIEMENT EN LIGNE (LeekPay, Mysoleas, Stripe)
+# PAIEMENT EN LIGNE (Version DEBUG pour LeekPay)
 # ═══════════════════════════════════════════════════════════════
 
 @boutique_bp.route("/r/<slug>/paiement-lien/<reference>")
 @limiter.limit("120 per minute")
 def paiement_lien(slug, reference):
     """
-    Crée (ou récupère) le lien LeekPay/Mysoleas pour cette commande.
-    Redirige le client vers la page de paiement externe.
+    Version DEBUG : Affiche les erreurs à l'écran au lieu de rester bloqué.
     """
-    logger.warning(f"╔═══ [PAIEMENT LIEN] START slug={slug} ref={reference} ═══")
-
     revendeur = get_profile_by_slug(slug)
     if not revendeur or not revendeur.get("est_revendeur"):
-        logger.warning("║ ❌ Revendeur introuvable")
-        flash("Boutique introuvable.", "error")
-        return redirect(url_for("home.index"))
+        return f"<h1>Erreur 1</h1><p>Revendeur introuvable pour le slug : {slug}</p>"
 
     commande = get_commande_boutique_by_reference(reference)
     if not commande or commande.get("revendeur_id") != revendeur["id"]:
-        logger.warning("║ ❌ Commande introuvable")
-        flash("Commande introuvable.", "error")
-        return redirect(url_for("boutique.visiter", slug=slug))
+        return f"<h1>Erreur 2</h1><p>Commande introuvable : {reference}</p>"
 
     method = commande.get("method_paiement", "cash")
-    logger.warning(f"║ Methode : {method}")
 
-    if method not in ("leekpay", "mysoleas", "stripe"):
-        logger.warning(f"║ ❌ Methode invalide : {method}")
-        flash("Methode de paiement invalide.", "error")
-        return redirect(url_for("boutique.visiter", slug=slug))
-
-    # ─── LEEKPAY ───────────────────────────────────────────────
     if method == "leekpay":
-        logger.warning("║ Methode = leekpay, chargement config...")
-
         from app.models.paiement_config import get_config_decryptee
         from app.models.leekpay import creer_checkout
 
         config = get_config_decryptee(revendeur["id"], "leekpay")
         if not config or not config.get("config"):
-            logger.warning("║ ❌ Config LeekPay absente")
-            flash("Paiement LeekPay non configure par le vendeur.", "error")
-            return redirect(url_for("boutique.visiter", slug=slug))
+            return "<h1>Erreur 3</h1><p>La configuration LeekPay n'existe pas en base de données. Va sur /dashboard/paiement pour la configurer.</p>"
 
         secret_key = config["config"].get("secret_key")
         if not secret_key:
-            logger.warning("║ ❌ Secret key manquante")
-            flash("Configuration LeekPay incomplete.", "error")
-            return redirect(url_for("boutique.visiter", slug=slug))
+            return "<h1>Erreur 4</h1><p>La clé secrète (Secret Key) est vide dans la configuration.</p>"
 
-        logger.warning("║ ✓ Config LeekPay OK, création checkout...")
-
-        return_url = url_for("boutique.confirmation",
-                              slug=slug, reference=reference, _external=True)
+        return_url = url_for("boutique.confirmation", slug=slug, reference=reference, _external=True)
         cancel_url = url_for("boutique.visiter", slug=slug, _external=True)
         webhook_url = url_for("webhooks.leekpay_webhook", slug=slug, _external=True)
 
-        logger.warning(f"║ return_url={return_url}")
-        logger.warning(f"║ webhook_url={webhook_url}")
-        logger.warning(f"║ montant={commande.get('total', 0)}")
+        try:
+            checkout = creer_checkout(
+                amount=commande.get("total", 0),
+                currency="XOF",
+                description=f"Commande {reference}",
+                return_url=return_url,
+                cancel_url=cancel_url,
+                secret_key=secret_key,
+                customer_email=commande.get("client_email"),
+                customer_name=commande.get("client_nom"),
+                customer_phone=commande.get("client_telephone"),
+                metadata={
+                    "commande_reference": reference,
+                    "revendeur_slug": slug,
+                },
+                webhook_url=webhook_url,
+            )
 
-        checkout = creer_checkout(
-            amount=commande.get("total", 0),
-            currency="XOF",
-            description=f"Commande {reference}",
-            return_url=return_url,
-            cancel_url=cancel_url,
-            secret_key=secret_key,
-            customer_email=commande.get("client_email"),
-            customer_name=commande.get("client_nom"),
-            customer_phone=commande.get("client_telephone"),
-            metadata={
-                "commande_reference": reference,
-                "revendeur_slug": slug,
-            },
-            webhook_url=webhook_url,
-        )
+            if not checkout or not checkout.get("payment_url"):
+                return f"""
+                <div style="font-family:sans-serif;padding:20px;max-width:600px;margin:0 auto">
+                    <h1 style="color:red">Erreur 5 : Échec de l'API LeekPay</h1>
+                    <p>L'API LeekPay a refusé de créer le paiement.</p>
+                    <p><strong>Réponse brute de LeekPay :</strong></p>
+                    <pre style="background:#f4f4f4;padding:10px;border-radius:5px;overflow:auto">{checkout}</pre>
+                    <p>Vérifie tes clés API sur <a href="/dashboard/paiement">/dashboard/paiement</a> et regarde tes logs serveur (Vercel) pour plus de détails.</p>
+                    <a href="/r/{slug}">Retour à la boutique</a>
+                </div>
+                """
 
-        logger.warning(f"║ Checkout result : {checkout}")
+            # Si on arrive ici, c'est que LeekPay a répondu avec succès !
+            update_commande_boutique(commande["id"], {
+                "statut_paiement": "en_cours",
+                "paiement_reference": checkout.get("id"),
+            })
 
-        if not checkout or not checkout.get("payment_url"):
-            logger.warning("║ ❌ Echec création checkout LeekPay")
-            flash("Erreur creation du lien de paiement LeekPay. Reessayez.", "error")
-            return redirect(url_for("boutique.visiter", slug=slug))
+            return redirect(checkout["payment_url"])
 
-        logger.warning(f"║ ✓ Checkout OK : {checkout.get('payment_url')}")
+        except Exception as e:
+            return f"""
+            <div style="font-family:sans-serif;padding:20px;max-width:600px;margin:0 auto">
+                <h1 style="color:red">Erreur 6 : Exception Python</h1>
+                <p>Une erreur est survenue lors de l'appel à LeekPay.</p>
+                <p><strong>Type :</strong> {type(e).__name__}</p>
+                <p><strong>Message :</strong> {str(e)}</p>
+                <pre style="background:#f4f4f4;padding:10px;border-radius:5px;overflow:auto">{traceback.format_exc()}</pre>
+                <a href="/r/{slug}">Retour à la boutique</a>
+            </div>
+            """
 
-        update_commande_boutique(commande["id"], {
-            "statut_paiement": "en_cours",
-            "paiement_reference": checkout.get("id"),
-        })
-
-        logger.warning(f"╚═══ Redirection vers LeekPay ═══")
-        return redirect(checkout["payment_url"])
-
-    flash("Cette methode de paiement n'est pas encore disponible.", "info")
-    return redirect(url_for("boutique.visiter", slug=slug))
+    return f"<h1>Erreur 7</h1><p>Méthode de paiement inconnue : {method}</p>"
 
 
 # ═══════════════════════════════════════════════════════════════
