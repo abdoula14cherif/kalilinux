@@ -264,3 +264,29 @@ def supprimer(method):
         flash("Erreur lors de la suppression.", "error")
 
     return redirect(url_for("dashboard_paiement.index"))
+
+# ═══════════════════════════════════════════════════════════════
+# URL DE WEBHOOK À AFFICHER AU REVENDEUR
+# ═══════════════════════════════════════════════════════════════
+
+def get_webhook_url(slug, method):
+    """
+    Retourne l'URL de webhook que le revendeur doit configurer
+    dans son dashboard Stripe/LeekPay/Mysoleas.
+    """
+    from flask import url_for
+    from app.models.paiement_config import METHODES_VALIDES
+    
+    method_info = METHODES_VALIDES.get(method, {})
+    if not method_info:
+        return None
+    
+    # URL de base selon la méthode
+    if method == "leekpay":
+        return url_for("webhooks.leekpay_webhook", slug=slug, _external=True)
+    elif method == "mysoleas":
+        return url_for("webhooks.mysoleas_webhook", slug=slug, _external=True)
+    elif method == "stripe":
+        return url_for("webhooks.stripe_webhook", slug=slug, _external=True)
+    
+    return None
