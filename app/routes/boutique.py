@@ -4,7 +4,6 @@ Boutique publique d'un revendeur : /r/<slug>
 import json
 import logging
 import secrets
-import traceback
 from flask import Blueprint, render_template, redirect, url_for, session, flash, request
 
 from app import limiter
@@ -63,7 +62,7 @@ def _generer_reference():
 
 
 def _page_boutique_desactivee(boutique_nom):
-    """Retourne une page HTML autonome."""
+    """Retourne une page HTML autonome (aucune dependance a un template)."""
     nom_echappe = (boutique_nom or "Cette boutique").replace("<", "&lt;").replace(">", "&gt;")
     return """<!DOCTYPE html>
 <html lang="fr">
@@ -182,6 +181,7 @@ def visiter(slug):
     except Exception:
         attributs = []
 
+    # Moyens de paiement actifs du revendeur (pour affichage client)
     try:
         moyens_paiement = get_moyens_publics_revendeur(revendeur["id"])
     except Exception as e:
@@ -295,12 +295,15 @@ def commander(slug):
         flash("Nom et telephone sont requis.", "error")
         return redirect(url_for("boutique.visiter", slug=slug))
 
+    # ─── DÉTECTION DU TYPE DE BOUTIQUE ──────────────────────
     type_code = revendeur.get("boutique_type") or "general"
     type_obj = get_boutique_type(type_code) or {}
     paiement_type_boutique = type_obj.get("paiement_type", "cash")
 
+    # ─── MÉTHODE DE PAIEMENT CHOISIE ────────────────────────
     mode_paiement = request.form.get("mode_paiement", "cash").strip()[:30]
 
+    # Récupérer les méthodes actives du revendeur
     try:
         moyens_actifs = get_moyens_publics_revendeur(revendeur["id"])
     except Exception:
@@ -308,6 +311,7 @@ def commander(slug):
 
     methodes_autorisees = [m["method"] for m in moyens_actifs]
 
+    # Cash TOUJOURS autorisé
     if mode_paiement == "cash":
         methode_choisie = {"method": "cash", "nom": "Cash à la livraison", "type": "cash"}
     elif mode_paiement in methodes_autorisees:
@@ -316,6 +320,7 @@ def commander(slug):
         flash("Moyen de paiement non disponible pour ce vendeur.", "error")
         return redirect(url_for("boutique.visiter", slug=slug))
 
+    # ─── PANIER ──────────────────────────────────────────────
     panier_json = request.form.get("panier_json", "[]")
     try:
         panier = json.loads(panier_json)
@@ -386,6 +391,7 @@ def commander(slug):
         flash("Erreur lors de l'enregistrement de la commande.", "error")
         return redirect(url_for("boutique.visiter", slug=slug))
 
+    # ─── NOTIFICATIONS EMAIL ────────────────────────────────
     try:
         from app.models.mailer import (
             email_revendeur_nouvelle_commande,
@@ -426,6 +432,7 @@ def commander(slug):
     except Exception as e:
         logger.error(f"Erreur notification commande: {type(e).__name__}")
 
+    # ─── DÉCRÉMENTER STOCK ───────────────────────────────────
     for p in produits_commande:
         try:
             decrementer_stock(p["id"], p["qte"])
@@ -433,6 +440,10 @@ def commander(slug):
             pass
 
     session.pop("panier", None)
+
+    # ═══════════════════════════════════════════════════════════
+    # ROUTAGE SELON LE TYPE DE PAIEMENT
+    # ═══════════════════════════════════════════════════════════
 
     if methode_choisie and methode_choisie.get("type") == "en_ligne":
         return redirect(url_for("boutique.paiement_lien",
@@ -444,27 +455,27 @@ def commander(slug):
                                 slug=slug,
                                 reference=reference))
 
+    # Cash → confirmation normale
     flash(f"Commande {reference} enregistree ! Le vendeur va vous contacter.", "success")
     return redirect(url_for("boutique.confirmation", slug=slug, reference=reference))
 
 
 # ═══════════════════════════════════════════════════════════════
-# PAIEMENT EN LIGNE (Version DEBUG pour LeekPay)
+# PAIEMENT EN LIGNE (Stripe, LeekPay, Mysoleas)
 # ═══════════════════════════════════════════════════════════════
 
 @boutique_bp.route("/r/<slug>/paiement-lien/<reference>")
 @limiter.limit("120 per minute")
 def paiement_lien(slug, reference):
-    """
-    Version DEBUG : Affiche les erreurs à l'écran au lieu de rester bloqué.
-    """
     revendeur = get_profile_by_slug(slug)
     if not revendeur or not revendeur.get("est_revendeur"):
-        return f"<h1>Erreur 1</h1><p>Revendeur introuvable pour le slug : {slug}</p>"
+        flash("Boutique introuvable.", "error")
+        return redirect(url_for("home.index"))
 
     commande = get_commande_boutique_by_reference(reference)
     if not commande or commande.get("revendeur_id") != revendeur["id"]:
-        return f"<h1>Erreur 2</h1><p>Commande introuvable : {reference}</p>"
+        flash("Commande introuvable.", "error")
+        return redirect(url_for("boutique.visiter", slug=slug))
 
     method = commande.get("method_paiement", "cash")
 
@@ -474,76 +485,82 @@ def paiement_lien(slug, reference):
 
         config = get_config_decryptee(revendeur["id"], "leekpay")
         if not config or not config.get("config"):
-            return "<h1>Erreur 3</h1><p>La configuration LeekPay n'existe pas en base de données. Va sur /dashboard/paiement pour la configurer.</p>"
+            flash("Paiement LeekPay non configure par le vendeur.", "error")
+            return redirect(url_for("boutique.visiter", slug=slug))
 
         secret_key = config["config"].get("secret_key")
         if not secret_key:
-            return "<h1>Erreur 4</h1><p>La clé secrète (Secret Key) est vide dans la configuration.</p>"
+            flash("Configuration LeekPay incomplete.", "error")
+            return redirect(url_for("boutique.visiter", slug=slug))
+
+        # Vérifier si un checkout existe déjà (pour éviter de recréer)
+        if commande.get("paiement_reference") and commande.get("statut_paiement") == "en_cours":
+            # On redirige vers le checkout existant
+            return render_template(
+                "boutique_paiement_redirect.html",
+                boutique={
+                    "nom": revendeur.get("boutique_nom") or f"Boutique {slug.capitalize()}",
+                    "logo_url": revendeur.get("boutique_logo_url"),
+                    "couleur_principale": revendeur.get("boutique_couleur_principale") or "#00BFFF",
+                },
+                commande=commande,
+                payment_url=f"https://leekpay.me/pay/{commande.get('paiement_reference')}",
+            )
 
         return_url = url_for("boutique.confirmation", slug=slug, reference=reference, _external=True)
         cancel_url = url_for("boutique.visiter", slug=slug, _external=True)
         webhook_url = url_for("webhooks.leekpay_webhook", slug=slug, _external=True)
 
-        try:
-            checkout = creer_checkout(
-                amount=commande.get("total", 0),
-                currency="XOF",
-                description=f"Commande {reference}",
-                return_url=return_url,
-                cancel_url=cancel_url,
-                secret_key=secret_key,
-                customer_email=commande.get("client_email"),
-                customer_name=commande.get("client_nom"),
-                customer_phone=commande.get("client_telephone"),
-                metadata={
-                    "commande_reference": reference,
-                    "revendeur_slug": slug,
-                },
-                webhook_url=webhook_url,
-            )
+        checkout = creer_checkout(
+            amount=commande.get("total", 0),
+            currency="XOF",
+            description=f"Commande {reference}",
+            return_url=return_url,
+            cancel_url=cancel_url,
+            secret_key=secret_key,
+            customer_email=commande.get("client_email"),
+            customer_name=commande.get("client_nom"),
+            customer_phone=commande.get("client_telephone"),
+            metadata={
+                "commande_reference": reference,
+                "revendeur_slug": slug,
+            },
+            webhook_url=webhook_url,
+        )
 
-            if not checkout or not checkout.get("payment_url"):
-                return f"""
-                <div style="font-family:sans-serif;padding:20px;max-width:600px;margin:0 auto">
-                    <h1 style="color:red">Erreur 5 : Échec de l'API LeekPay</h1>
-                    <p>L'API LeekPay a refusé de créer le paiement.</p>
-                    <p><strong>Réponse brute de LeekPay :</strong></p>
-                    <pre style="background:#f4f4f4;padding:10px;border-radius:5px;overflow:auto">{checkout}</pre>
-                    <p>Vérifie tes clés API sur <a href="/dashboard/paiement">/dashboard/paiement</a> et regarde tes logs serveur (Vercel) pour plus de détails.</p>
-                    <a href="/r/{slug}">Retour à la boutique</a>
-                </div>
-                """
+        if not checkout or not checkout.get("payment_url"):
+            flash("Erreur creation du lien de paiement LeekPay. Reessayez.", "error")
+            return redirect(url_for("boutique.visiter", slug=slug))
 
-            # Si on arrive ici, c'est que LeekPay a répondu avec succès !
-            update_commande_boutique(commande["id"], {
-                "statut_paiement": "en_cours",
-                "paiement_reference": checkout.get("id"),
-            })
+        update_commande_boutique(commande["id"], {
+            "statut_paiement": "en_cours",
+            "paiement_reference": checkout.get("id"),
+        })
 
-            return redirect(checkout["payment_url"])
+        # ⚠️ Au lieu de rediriger, on affiche la page intermédiaire
+        return render_template(
+            "boutique_paiement_redirect.html",
+            boutique={
+                "nom": revendeur.get("boutique_nom") or f"Boutique {slug.capitalize()}",
+                "logo_url": revendeur.get("boutique_logo_url"),
+                "couleur_principale": revendeur.get("boutique_couleur_principale") or "#00BFFF",
+            },
+            commande=commande,
+            payment_url=checkout.get("payment_url"),
+        )
 
-        except Exception as e:
-            return f"""
-            <div style="font-family:sans-serif;padding:20px;max-width:600px;margin:0 auto">
-                <h1 style="color:red">Erreur 6 : Exception Python</h1>
-                <p>Une erreur est survenue lors de l'appel à LeekPay.</p>
-                <p><strong>Type :</strong> {type(e).__name__}</p>
-                <p><strong>Message :</strong> {str(e)}</p>
-                <pre style="background:#f4f4f4;padding:10px;border-radius:5px;overflow:auto">{traceback.format_exc()}</pre>
-                <a href="/r/{slug}">Retour à la boutique</a>
-            </div>
-            """
-
-    return f"<h1>Erreur 7</h1><p>Méthode de paiement inconnue : {method}</p>"
+    flash("Cette methode de paiement n'est pas encore disponible.", "info")
+    return redirect(url_for("boutique.visiter", slug=slug))
 
 
 # ═══════════════════════════════════════════════════════════════
-# PAIEMENT MANUEL
+# PAIEMENT MANUEL (Wave, Orange, MTN, Moov...)
 # ═══════════════════════════════════════════════════════════════
 
 @boutique_bp.route("/r/<slug>/paiement-manuel/<reference>")
 @limiter.limit("120 per minute")
 def paiement_manuel(slug, reference):
+    """Affiche les instructions de paiement mobile money manuel."""
     revendeur = get_profile_by_slug(slug)
     if not revendeur or not revendeur.get("est_revendeur"):
         flash("Boutique introuvable.", "error")
@@ -594,6 +611,7 @@ def paiement_manuel(slug, reference):
 @boutique_bp.route("/r/<slug>/paiement-manuel/<reference>/jai-paye", methods=["POST"])
 @limiter.limit("30 per hour")
 def paiement_manuel_jai_paye(slug, reference):
+    """Le client declare avoir paye → on notifie le revendeur."""
     revendeur = get_profile_by_slug(slug)
     if not revendeur or not revendeur.get("est_revendeur"):
         flash("Boutique introuvable.", "error")
@@ -608,6 +626,7 @@ def paiement_manuel_jai_paye(slug, reference):
         "statut_paiement": "client_declare_paye",
     })
 
+    # Notifier le revendeur par email
     try:
         from app.models.mailer import _send, _template
         notif_email = revendeur.get("notif_email") or revendeur.get("email")
@@ -676,7 +695,7 @@ def confirmation(slug, reference):
 
 
 # ═══════════════════════════════════════════════════════════════
-# MES COMMANDES
+# MES COMMANDES (côté client)
 # ═══════════════════════════════════════════════════════════════
 
 @boutique_bp.route("/r/<slug>/mes-commandes")
