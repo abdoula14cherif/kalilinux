@@ -170,7 +170,6 @@ def get_moyens_pour_pays(pays_code):
         data = r.json()
         if not isinstance(data, list):
             return []
-        # Enrichir avec les infos de METHODES_VALIDES
         resultat = []
         for m in data:
             method_code = m.get("method")
@@ -194,12 +193,7 @@ def get_moyens_pour_pays(pays_code):
 # ═══════════════════════════════════════════════════════════════
 
 def get_config_revendeur(revendeur_id, method=None):
-    """
-    Récupère la config (CHIFFRÉE) d'un revendeur.
-    Si method est fourni → retourne une seule config.
-    Sinon → retourne toutes.
-    ⚠️ La config retournée est CHIFFRÉE. Utiliser dechiffrer_config() ensuite.
-    """
+    """Récupère la config (CHIFFRÉE) d'un revendeur."""
     if not revendeur_id:
         return None if method else []
     try:
@@ -225,10 +219,7 @@ def get_config_revendeur(revendeur_id, method=None):
 
 
 def dechiffrer_config(config_row):
-    """
-    Déchiffre la config d'une ligne revendeur_paiement_methods.
-    Retourne un dict avec les valeurs en clair.
-    """
+    """Déchiffre la config d'une ligne."""
     if not config_row:
         return {}
     encrypted = config_row.get("config_encrypted")
@@ -238,10 +229,7 @@ def dechiffrer_config(config_row):
 
 
 def get_config_decryptee(revendeur_id, method):
-    """
-    Retourne la config DÉCHIFFRÉE d'un revendeur pour une méthode.
-    Utilisé par le backend pour appeler les API (Stripe, LeekPay...).
-    """
+    """Retourne la config DÉCHIFFRÉE (backend)."""
     row = get_config_revendeur(revendeur_id, method)
     if not row:
         return None
@@ -259,10 +247,7 @@ def get_config_decryptee(revendeur_id, method):
 
 
 def get_config_decryptee_masquee(revendeur_id, method):
-    """
-    Retourne la config DÉCHIFFRÉE mais avec les valeurs sensibles MASQUÉES.
-    Utilisé pour l'affichage côté admin (voir la config sans les vraies clés).
-    """
+    """Retourne la config DÉCHIFFRÉE avec valeurs sensibles MASQUÉES."""
     row = get_config_revendeur(revendeur_id, method)
     if not row:
         return None
@@ -288,10 +273,7 @@ def get_config_decryptee_masquee(revendeur_id, method):
 
 
 def save_config_revendeur(revendeur_id, method, config_data, actif=True):
-    """
-    Crée ou met à jour la config d'un revendeur.
-    Chiffre automatiquement les champs sensibles.
-    """
+    """Crée ou met à jour la config d'un revendeur."""
     if not revendeur_id or not method:
         return False, "Parametres manquants"
     if method not in METHODES_VALIDES:
@@ -299,19 +281,16 @@ def save_config_revendeur(revendeur_id, method, config_data, actif=True):
     if not isinstance(config_data, dict):
         return False, "Config invalide"
 
-    # Vérifier les champs requis
     methode_info = METHODES_VALIDES[method]
     champs_requis = methode_info.get("champs_requis", [])
     for champ in champs_requis:
         if not config_data.get(champ):
             return False, f"Champ requis manquant : {champ}"
 
-    # Chiffrer le dict complet
     encrypted = chiffrer_dict(config_data)
     if not encrypted:
         return False, "Erreur de chiffrement"
 
-    # Vérifier si existe déjà
     existing = get_config_revendeur(revendeur_id, method)
 
     payload = {
@@ -345,7 +324,7 @@ def save_config_revendeur(revendeur_id, method, config_data, actif=True):
 
 
 def toggle_config_actif(revendeur_id, method, actif):
-    """Active/désactive une méthode de paiement."""
+    """Active/désactive une méthode."""
     if not revendeur_id or method not in METHODES_VALIDES:
         return False
     existing = get_config_revendeur(revendeur_id, method)
@@ -364,7 +343,7 @@ def toggle_config_actif(revendeur_id, method, actif):
 
 
 def supprimer_config_revendeur(revendeur_id, method):
-    """Supprime une config de paiement."""
+    """Supprime une config."""
     if not revendeur_id or not method:
         return False
     existing = get_config_revendeur(revendeur_id, method)
@@ -382,7 +361,7 @@ def supprimer_config_revendeur(revendeur_id, method):
 
 
 def maj_test_config(revendeur_id, method, test_ok):
-    """Met à jour le statut de test d'une config."""
+    """Met à jour le statut de test."""
     existing = get_config_revendeur(revendeur_id, method)
     if not existing:
         return False
@@ -402,14 +381,11 @@ def maj_test_config(revendeur_id, method, test_ok):
 
 
 # ═══════════════════════════════════════════════════════════════
-# MÉTHODES ACTIVES D'UN REVENDEUR
+# MÉTHODES ACTIVES
 # ═══════════════════════════════════════════════════════════════
 
 def get_methodes_actives(revendeur_id):
-    """
-    Retourne la liste des méthodes ACTIVES d'un revendeur,
-    avec leur config chiffrée (pour usage backend).
-    """
+    """Retourne les méthodes ACTIVES (backend)."""
     configs = get_config_revendeur(revendeur_id)
     if not configs:
         return []
@@ -432,11 +408,7 @@ def get_methodes_actives(revendeur_id):
 
 
 def get_methodes_actives_pour_affichage(revendeur_id):
-    """
-    Retourne les méthodes actives d'un revendeur pour affichage CLIENT.
-    Contient uniquement les infos PUBLIQUES (numéros, nom titulaire).
-    NE CONTIENT JAMAIS les clés API.
-    """
+    """Retourne les méthodes ACTIVES pour affichage CLIENT."""
     actives = get_methodes_actives(revendeur_id)
     resultat = []
 
@@ -452,16 +424,13 @@ def get_methodes_actives_pour_affichage(revendeur_id):
             "type": type_m,
         }
 
-        # Pour les manuels : exposer numéro + nom titulaire
         if type_m == "manuel":
             item["numero"] = config.get("numero")
             item["nom_titulaire"] = config.get("nom_titulaire")
 
-        # Pour cash : juste l'info
         if type_m == "cash":
             item["instructions"] = "Paiement a la livraison"
 
-        # Pour paylater
         if type_m == "credit":
             item["max_jours"] = config.get("max_jours", 30)
 
@@ -483,13 +452,11 @@ def get_info_methode(method):
 
 
 # ═══════════════════════════════════════════════════════════════
-# LOG D'ACCÈS AUX CLÉS (ADMIN)
+# LOG ACCÈS ADMIN
 # ═══════════════════════════════════════════════════════════════
 
 def log_admin_key_access(admin_id, revendeur_id, method, raison, ip=None):
-    """
-    Log OBLIGATOIRE quand un admin révèle une clé API.
-    """
+    """Log OBLIGATOIRE quand un admin révèle une clé API."""
     try:
         payload = {
             "admin_id": admin_id,
@@ -508,7 +475,7 @@ def log_admin_key_access(admin_id, revendeur_id, method, raison, ip=None):
 
 
 def get_admin_key_access_logs(limit=200):
-    """Récupère les logs d'accès aux clés."""
+    """Récupère les logs d'accès."""
     try:
         limit = max(1, min(int(limit), 500))
         r = requests.get(
