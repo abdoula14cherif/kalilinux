@@ -11,6 +11,10 @@ from flask import current_app
 logger = logging.getLogger(__name__)
 
 
+# ═══════════════════════════════════════════════════════════════
+# ENVOI BRUT
+# ═══════════════════════════════════════════════════════════════
+
 def _send(to, subject, html_body):
     try:
         password = current_app.config.get("GMAIL_APP_PASSWORD", "")
@@ -39,6 +43,10 @@ def _send(to, subject, html_body):
         return False
 
 
+# ═══════════════════════════════════════════════════════════════
+# TEMPLATES HTML
+# ═══════════════════════════════════════════════════════════════
+
 def _template(titre, contenu, couleur="#00BFFF", couleur2="#0096C7", emoji="⚡", eyebrow="BOOST RESELLER"):
     """Template HTML premium pour tous les emails."""
     return f"""<!DOCTYPE html>
@@ -50,15 +58,13 @@ def _template(titre, contenu, couleur="#00BFFF", couleur2="#0096C7", emoji="⚡"
 </head>
 <body style="margin:0;padding:0;background:#EEF2F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased">
 
-<!-- Wrapper -->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#EEF2F9;padding:40px 16px">
 <tr>
 <td align="center">
 
-<!-- Container -->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:580px;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(15,23,42,.10),0 4px 12px rgba(15,23,42,.06)">
 
-<!-- Header avec dégradé -->
+<!-- Header -->
 <tr>
 <td style="background:linear-gradient(135deg,{couleur} 0%,{couleur2} 100%);padding:44px 40px 40px;text-align:center;position:relative">
   <div style="display:inline-block;width:72px;height:72px;background:rgba(255,255,255,.20);border-radius:20px;line-height:72px;font-size:32px;margin-bottom:18px;backdrop-filter:blur(10px)">{emoji}</div>
@@ -92,7 +98,6 @@ def _template(titre, contenu, couleur="#00BFFF", couleur2="#0096C7", emoji="⚡"
 
 </table>
 
-<!-- Footer externe -->
 <div style="text-align:center;padding:24px 16px 0;color:#94A3B8;font-size:11px;line-height:1.6">
   © 2026 Boost Reseller — Propulsé par Boost Central
 </div>
@@ -167,6 +172,106 @@ def _produits_table(produits):
 </table>"""
 
 
+# ═══════════════════════════════════════════════════════════════
+# EMAIL : LIVRAISON PRODUITS VIRTUELS
+# ═══════════════════════════════════════════════════════════════
+
+def _envoyer_lien_livraison_si_virtuel(commande, revendeur):
+    """
+    Envoie le(s) lien(s) de livraison par email au client
+    si la commande contient des produits virtuels.
+    """
+    if not commande:
+        return False
+
+    try:
+        produits = commande.get("produits") or []
+        if not produits:
+            return False
+
+        # Récupérer les liens
+        liens = []
+        for p in produits:
+            lien = p.get("lien_livraison")
+            if lien:
+                liens.append({
+                    "nom": p.get("nom"),
+                    "lien": lien,
+                })
+
+        if not liens:
+            return False
+
+        client_email = commande.get("client_email")
+        if not client_email:
+            logger.info(f"[LIVRAISON] Pas d'email pour {commande.get('reference')}")
+            return False
+
+        nom_client = commande.get("client_nom") or "cher client"
+        reference = commande.get("reference", "")
+        nom_boutique = revendeur.get("boutique_nom") or "Boutique"
+        couleur = revendeur.get("boutique_couleur_principale") or "#10B981"
+        couleur2 = revendeur.get("boutique_couleur_secondaire") or "#059669"
+
+        # Construction du contenu
+        contenu = f"""
+<p style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 14px">Bonjour <strong style="color:#0F172A">{nom_client}</strong>,</p>
+<p style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 8px">
+🎉 Merci pour votre commande <strong style="color:#0F172A">{reference}</strong> sur <strong style="color:#0F172A">{nom_boutique}</strong> !
+</p>
+<p style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 8px">
+Voici vos liens de livraison instantanée :
+</p>
+"""
+
+        for l in liens:
+            nom_esc = (l.get("nom") or "").replace("<", "&lt;").replace(">", "&gt;")
+            lien_esc = (l.get("lien") or "").replace('"', "&quot;")
+            contenu += f"""
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F0FDF4;border-radius:14px;border:1px solid #86EFAC;margin:14px 0">
+<tr>
+<td style="padding:20px 22px">
+  <div style="color:#065F46;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Produit numerique</div>
+  <div style="color:#0F172A;font-size:16px;font-weight:800;margin-bottom:14px">{nom_esc}</div>
+  {_btn("Acceder a mon contenu", lien_esc, "#10B981", "#059669")}
+  <div style="color:#94A3B8;font-size:11px;text-align:center;margin-top:10px;word-break:break-all">{lien_esc}</div>
+</td>
+</tr>
+</table>
+"""
+
+        contenu += """
+<p style="color:#94A3B8;font-size:13px;line-height:1.6;margin-top:20px">
+<i>Conseil : conservez cet email pour retrouver facilement vos liens d'acces.</i>
+</p>
+"""
+
+        ok = _send(
+            client_email,
+            f"🎁 Vos liens de livraison — {nom_boutique}",
+            _template(
+                "Merci pour votre achat !",
+                contenu,
+                couleur,
+                couleur2,
+                emoji="🎁",
+                eyebrow=nom_boutique.upper(),
+            )
+        )
+
+        if ok:
+            logger.info(f"[LIVRAISON] Lien envoye a {client_email} pour {reference}")
+        return ok
+
+    except Exception as e:
+        logger.error(f"_envoyer_lien_livraison_si_virtuel : {type(e).__name__}")
+        return False
+
+
+# ═══════════════════════════════════════════════════════════════
+# EMAILS REVENDEUR
+# ═══════════════════════════════════════════════════════════════
+
 def email_revendeur_nouvelle_commande(to_email, nom_revendeur, nom_boutique,
                                        reference, client_nom, client_telephone,
                                        produits, total, mode_paiement,
@@ -175,6 +280,9 @@ def email_revendeur_nouvelle_commande(to_email, nom_revendeur, nom_boutique,
         "cash": "Paiement à la livraison",
         "mtn": "MTN Mobile Money",
         "orange": "Orange Money",
+        "leekpay": "LeekPay",
+        "mysoleas": "Mysoleas",
+        "stripe": "Carte bancaire",
     }.get(mode_paiement, mode_paiement)
 
     info_box = _box([
@@ -213,6 +321,8 @@ def email_revendeur_paiement_recu(to_email, nom_revendeur, nom_boutique,
         "cash": "Paiement à la livraison",
         "mtn": "MTN Mobile Money",
         "orange": "Orange Money",
+        "leekpay": "LeekPay",
+        "mysoleas": "Mysoleas",
     }.get(methode, methode)
 
     info_box = _box([
@@ -339,6 +449,10 @@ def email_revendeur_stock_bas(to_email, nom_revendeur, nom_boutique,
         _template("Alerte stock bas !", contenu, "#DC2626", "#991B1B", emoji="🚨")
     )
 
+
+# ═══════════════════════════════════════════════════════════════
+# EMAILS CLIENT
+# ═══════════════════════════════════════════════════════════════
 
 def email_client_confirmation_commande(to_email, nom_client, nom_boutique,
                                          reference, produits, total,
