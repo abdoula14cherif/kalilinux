@@ -62,7 +62,7 @@ def _generer_reference():
 
 
 def _page_boutique_desactivee(boutique_nom):
-    """Retourne une page HTML autonome (aucune dependance a un template)."""
+    """Retourne une page HTML autonome."""
     nom_echappe = (boutique_nom or "Cette boutique").replace("<", "&lt;").replace(">", "&gt;")
     return """<!DOCTYPE html>
 <html lang="fr">
@@ -181,7 +181,6 @@ def visiter(slug):
     except Exception:
         attributs = []
 
-    # Moyens de paiement actifs du revendeur (pour affichage client)
     try:
         moyens_paiement = get_moyens_publics_revendeur(revendeur["id"])
     except Exception as e:
@@ -295,15 +294,12 @@ def commander(slug):
         flash("Nom et telephone sont requis.", "error")
         return redirect(url_for("boutique.visiter", slug=slug))
 
-    # ─── DÉTECTION DU TYPE DE BOUTIQUE ──────────────────────
     type_code = revendeur.get("boutique_type") or "general"
     type_obj = get_boutique_type(type_code) or {}
     paiement_type_boutique = type_obj.get("paiement_type", "cash")
 
-    # ─── MÉTHODE DE PAIEMENT CHOISIE ────────────────────────
     mode_paiement = request.form.get("mode_paiement", "cash").strip()[:30]
 
-    # Récupérer les méthodes actives du revendeur
     try:
         moyens_actifs = get_moyens_publics_revendeur(revendeur["id"])
     except Exception:
@@ -311,7 +307,6 @@ def commander(slug):
 
     methodes_autorisees = [m["method"] for m in moyens_actifs]
 
-    # Cash TOUJOURS autorisé
     if mode_paiement == "cash":
         methode_choisie = {"method": "cash", "nom": "Cash à la livraison", "type": "cash"}
     elif mode_paiement in methodes_autorisees:
@@ -320,7 +315,6 @@ def commander(slug):
         flash("Moyen de paiement non disponible pour ce vendeur.", "error")
         return redirect(url_for("boutique.visiter", slug=slug))
 
-    # ─── PANIER ──────────────────────────────────────────────
     panier_json = request.form.get("panier_json", "[]")
     try:
         panier = json.loads(panier_json)
@@ -391,7 +385,6 @@ def commander(slug):
         flash("Erreur lors de l'enregistrement de la commande.", "error")
         return redirect(url_for("boutique.visiter", slug=slug))
 
-    # ─── NOTIFICATIONS EMAIL ────────────────────────────────
     try:
         from app.models.mailer import (
             email_revendeur_nouvelle_commande,
@@ -432,7 +425,6 @@ def commander(slug):
     except Exception as e:
         logger.error(f"Erreur notification commande: {type(e).__name__}")
 
-    # ─── DÉCRÉMENTER STOCK ───────────────────────────────────
     for p in produits_commande:
         try:
             decrementer_stock(p["id"], p["qte"])
@@ -440,10 +432,6 @@ def commander(slug):
             pass
 
     session.pop("panier", None)
-
-    # ═══════════════════════════════════════════════════════════
-    # ROUTAGE SELON LE TYPE DE PAIEMENT
-    # ═══════════════════════════════════════════════════════════
 
     if methode_choisie and methode_choisie.get("type") == "en_ligne":
         return redirect(url_for("boutique.paiement_lien",
@@ -455,13 +443,12 @@ def commander(slug):
                                 slug=slug,
                                 reference=reference))
 
-    # Cash → confirmation normale
     flash(f"Commande {reference} enregistree ! Le vendeur va vous contacter.", "success")
     return redirect(url_for("boutique.confirmation", slug=slug, reference=reference))
 
 
 # ═══════════════════════════════════════════════════════════════
-# PAIEMENT EN LIGNE (Stripe, LeekPay, Mysoleas)
+# PAIEMENT EN LIGNE (LeekPay, Mysoleas, Stripe)
 # ═══════════════════════════════════════════════════════════════
 
 @boutique_bp.route("/r/<slug>/paiement-lien/<reference>")
@@ -471,46 +458,57 @@ def paiement_lien(slug, reference):
     Crée (ou récupère) le lien LeekPay/Mysoleas pour cette commande.
     Redirige le client vers la page de paiement externe.
     """
+    logger.warning(f"╔═══ [PAIEMENT LIEN] START slug={slug} ref={reference} ═══")
+
     revendeur = get_profile_by_slug(slug)
     if not revendeur or not revendeur.get("est_revendeur"):
+        logger.warning("║ ❌ Revendeur introuvable")
         flash("Boutique introuvable.", "error")
         return redirect(url_for("home.index"))
 
     commande = get_commande_boutique_by_reference(reference)
     if not commande or commande.get("revendeur_id") != revendeur["id"]:
+        logger.warning("║ ❌ Commande introuvable")
         flash("Commande introuvable.", "error")
         return redirect(url_for("boutique.visiter", slug=slug))
 
     method = commande.get("method_paiement", "cash")
+    logger.warning(f"║ Methode : {method}")
 
     if method not in ("leekpay", "mysoleas", "stripe"):
+        logger.warning(f"║ ❌ Methode invalide : {method}")
         flash("Methode de paiement invalide.", "error")
         return redirect(url_for("boutique.visiter", slug=slug))
 
     # ─── LEEKPAY ───────────────────────────────────────────────
     if method == "leekpay":
+        logger.warning("║ Methode = leekpay, chargement config...")
+
         from app.models.paiement_config import get_config_decryptee
         from app.models.leekpay import creer_checkout
 
         config = get_config_decryptee(revendeur["id"], "leekpay")
         if not config or not config.get("config"):
+            logger.warning("║ ❌ Config LeekPay absente")
             flash("Paiement LeekPay non configure par le vendeur.", "error")
             return redirect(url_for("boutique.visiter", slug=slug))
 
         secret_key = config["config"].get("secret_key")
         if not secret_key:
+            logger.warning("║ ❌ Secret key manquante")
             flash("Configuration LeekPay incomplete.", "error")
             return redirect(url_for("boutique.visiter", slug=slug))
 
-        # Si un checkout existe déjà → rediriger
-        if commande.get("paiement_reference") and commande.get("statut_paiement") == "en_cours":
-            # TODO : récupérer l'ancien payment_url
-            pass
+        logger.warning("║ ✓ Config LeekPay OK, création checkout...")
 
         return_url = url_for("boutique.confirmation",
                               slug=slug, reference=reference, _external=True)
         cancel_url = url_for("boutique.visiter", slug=slug, _external=True)
         webhook_url = url_for("webhooks.leekpay_webhook", slug=slug, _external=True)
+
+        logger.warning(f"║ return_url={return_url}")
+        logger.warning(f"║ webhook_url={webhook_url}")
+        logger.warning(f"║ montant={commande.get('total', 0)}")
 
         checkout = creer_checkout(
             amount=commande.get("total", 0),
@@ -529,31 +527,34 @@ def paiement_lien(slug, reference):
             webhook_url=webhook_url,
         )
 
+        logger.warning(f"║ Checkout result : {checkout}")
+
         if not checkout or not checkout.get("payment_url"):
+            logger.warning("║ ❌ Echec création checkout LeekPay")
             flash("Erreur creation du lien de paiement LeekPay. Reessayez.", "error")
             return redirect(url_for("boutique.visiter", slug=slug))
 
-        # Sauvegarder la reference
+        logger.warning(f"║ ✓ Checkout OK : {checkout.get('payment_url')}")
+
         update_commande_boutique(commande["id"], {
             "statut_paiement": "en_cours",
             "paiement_reference": checkout.get("id"),
         })
 
+        logger.warning(f"╚═══ Redirection vers LeekPay ═══")
         return redirect(checkout["payment_url"])
 
-    # ─── AUTRES METHODES (a implementer plus tard) ─────────────
     flash("Cette methode de paiement n'est pas encore disponible.", "info")
     return redirect(url_for("boutique.visiter", slug=slug))
 
 
 # ═══════════════════════════════════════════════════════════════
-# PAIEMENT MANUEL (Wave, Orange, MTN, Moov...)
+# PAIEMENT MANUEL
 # ═══════════════════════════════════════════════════════════════
 
 @boutique_bp.route("/r/<slug>/paiement-manuel/<reference>")
 @limiter.limit("120 per minute")
 def paiement_manuel(slug, reference):
-    """Affiche les instructions de paiement mobile money manuel."""
     revendeur = get_profile_by_slug(slug)
     if not revendeur or not revendeur.get("est_revendeur"):
         flash("Boutique introuvable.", "error")
@@ -604,7 +605,6 @@ def paiement_manuel(slug, reference):
 @boutique_bp.route("/r/<slug>/paiement-manuel/<reference>/jai-paye", methods=["POST"])
 @limiter.limit("30 per hour")
 def paiement_manuel_jai_paye(slug, reference):
-    """Le client declare avoir paye → on notifie le revendeur."""
     revendeur = get_profile_by_slug(slug)
     if not revendeur or not revendeur.get("est_revendeur"):
         flash("Boutique introuvable.", "error")
@@ -619,7 +619,6 @@ def paiement_manuel_jai_paye(slug, reference):
         "statut_paiement": "client_declare_paye",
     })
 
-    # Notifier le revendeur par email
     try:
         from app.models.mailer import _send, _template
         notif_email = revendeur.get("notif_email") or revendeur.get("email")
@@ -688,7 +687,7 @@ def confirmation(slug, reference):
 
 
 # ═══════════════════════════════════════════════════════════════
-# MES COMMANDES (côté client)
+# MES COMMANDES
 # ═══════════════════════════════════════════════════════════════
 
 @boutique_bp.route("/r/<slug>/mes-commandes")
