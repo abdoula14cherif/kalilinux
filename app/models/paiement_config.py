@@ -36,8 +36,8 @@ METHODES_VALIDES = {
     "leekpay": {
         "type": "en_ligne",
         "nom": "LeekPay",
-        "champs_requis": ["public_key", "secret_key", "webhook_secret"],
-        "champs_secrets": ["secret_key", "webhook_secret"],
+        "champs_requis": ["public_key", "secret_key"],
+        "champs_secrets": ["secret_key"],
     },
     "mysoleas": {
         "type": "en_ligne",
