@@ -17,6 +17,14 @@
 .security-badge{background:linear-gradient(135deg,#EFF6FF,#F0F9FF);border:1px solid #BFDBFE;border-radius:12px;padding:14px 16px;margin-bottom:22px;font-size:.82rem;color:#1E40AF;line-height:1.6;display:flex;gap:10px;align-items:flex-start}
 .security-badge i{font-size:1.1rem;margin-top:2px;color:#3B82F6}
 
+.webhook-box{background:#F5F3FF;border:2px solid #DDD6FE;border-radius:14px;padding:18px;margin-bottom:22px}
+.webhook-box h4{font-size:.9rem;font-weight:900;color:#5B21B6;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.webhook-box p{font-size:.82rem;color:#6D28D9;line-height:1.6;margin-bottom:12px}
+.webhook-url{background:#fff;border:1px solid #DDD6FE;border-radius:10px;padding:12px 14px;font-family:monospace;font-size:.78rem;color:#5B21B6;word-break:break-all;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.webhook-url span{flex:1}
+.btn-copy{background:#7C3AED;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.72rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;flex-shrink:0}
+.btn-copy:hover{background:#6D28D9}
+
 .fg{margin-bottom:18px}
 .fg label{display:block;font-size:.82rem;font-weight:800;color:#0F172A;margin-bottom:6px}
 .fg label .req{color:#DC2626;margin-left:4px}
@@ -40,13 +48,13 @@
   <h2>{{ methode_info.nom }}</h2>
   <div class="sub">
     {% if methode_info.type == 'en_ligne' %}
-    Renseignez vos clés API. Elles seront <strong>chiffrées de manière sécurisée</strong> avant stockage.
+    Renseignez vos cles API. Elles seront <strong>chiffrees de maniere securisee</strong> avant stockage.
     {% elif methode_info.type == 'manuel' %}
-    Renseignez votre numéro et nom. Ces informations seront visibles par vos clients.
+    Renseignez votre numero et nom. Ces informations seront visibles par vos clients.
     {% elif methode_info.type == 'cash' %}
-    Aucune configuration nécessaire. Le paiement cash est toujours disponible.
+    Aucune configuration necessaire. Le paiement cash est toujours disponible.
     {% elif methode_info.type == 'credit' %}
-    Configurez les conditions de paiement différé.
+    Configurez les conditions de paiement differe.
     {% endif %}
   </div>
 
@@ -54,10 +62,34 @@
   <div class="security-badge">
     <i class="fas fa-shield-alt"></i>
     <div>
-      <strong>Vos clés sont en sécurité.</strong><br>
-      Elles sont chiffrées avec un algorithme AES-128 avant d'être sauvegardées. 
-      Personne (ni nous, ni un attaquant) ne peut les lire, sauf le système au moment d'effectuer un paiement.
+      <strong>Vos cles sont en securite.</strong><br>
+      Elles sont chiffrees avec un algorithme AES-128 avant d'etre sauvegardees. 
+      Personne (ni nous, ni un attaquant) ne peut les lire, sauf le systeme au moment d'effectuer un paiement.
     </div>
+  </div>
+  {% endif %}
+
+  {# ═══════════════════════════════════════════════════════════ #}
+  {# SECTION WEBHOOK — UNIQUEMENT POUR STRIPE #}
+  {# ═══════════════════════════════════════════════════════════ #}
+  {% if method == 'stripe' and webhook_url %}
+  <div class="webhook-box">
+    <h4><i class="fas fa-link"></i> URL de webhook a configurer dans Stripe</h4>
+    <p>
+      Copiez cette URL dans votre dashboard Stripe (Developpeurs → Webhooks → Ajouter un endpoint). 
+      Elle permet a Stripe de notifier votre boutique quand un paiement est reussi.
+    </p>
+    <div class="webhook-url">
+      <span id="webhookUrl">{{ webhook_url }}</span>
+      <button class="btn-copy" onclick="copierWebhook()">
+        <i class="fas fa-copy"></i> Copier
+      </button>
+    </div>
+    <p style="font-size:.72rem;color:#7C3AED;margin-top:10px;margin-bottom:0">
+      <i class="fas fa-info-circle"></i> 
+      Creez un endpoint pour l'evenement <strong>checkout.session.completed</strong> 
+      et copiez le <strong>Signing Secret</strong> (commence par whsec_) dans le champ ci-dessous.
+    </p>
   </div>
   {% endif %}
 
@@ -85,7 +117,7 @@
              placeholder="Collez votre cle secrete ici"
              autocomplete="new-password" required>
       <span class="help">
-        <i class="fas fa-lock"></i> Chiffrée avant sauvegarde — jamais visible en clair.
+        <i class="fas fa-lock"></i> Chiffree avant sauvegarde — jamais visible en clair.
       </span>
       {% else %}
       <input class="inp" type="text" id="{{ champ }}" name="{{ champ }}"
@@ -99,5 +131,14 @@
     </button>
   </form>
 </div>
+
+<script>
+function copierWebhook(){
+  var url = document.getElementById('webhookUrl').textContent.trim();
+  navigator.clipboard.writeText(url).then(function(){
+    alert('URL de webhook copiee !');
+  });
+}
+</script>
 
 {% endblock %}
