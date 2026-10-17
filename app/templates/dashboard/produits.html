@@ -27,8 +27,9 @@
 .produits-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
 .produit-card{background:#fff;border-radius:14px;border:1px solid #E2E8F0;overflow:hidden;transition:all .22s;display:flex;flex-direction:column}
 .produit-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.08);border-color:#00BFFF}
-.produit-img{width:100%;height:170px;object-fit:cover;background:#F1F5F9;display:flex;align-items:center;justify-content:center;color:#CBD5E1;font-size:2.5rem}
+.produit-img{width:100%;height:170px;object-fit:cover;background:#F1F5F9;display:flex;align-items:center;justify-content:center;color:#CBD5E1;font-size:2.5rem;position:relative}
 .produit-img img{width:100%;height:100%;object-fit:cover}
+.produit-img .badge-virtuel{position:absolute;top:10px;right:10px;background:linear-gradient(135deg,#7C3AED,#6D28D9);color:#fff;font-size:.65rem;font-weight:900;padding:4px 10px;border-radius:8px;box-shadow:0 4px 12px rgba(124,58,237,.4)}
 .produit-body{padding:14px;flex:1;display:flex;flex-direction:column}
 .produit-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
 .produit-nom{font-size:.92rem;font-weight:800;color:#0F172A;line-height:1.3;flex:1}
@@ -63,9 +64,13 @@
 .modal h3 i{color:#00BFFF}
 .fg{margin-bottom:14px}
 .fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.fg label i{color:#00BFFF;margin-right:4px}
+.fg .help{font-size:.72rem;color:#94A3B8;margin-top:4px;display:block;line-height:1.4}
 .inp,.txta,.sel{width:100%;padding:11px 13px;border:2px solid #E2E8F0;border-radius:11px;font-size:.9rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
 .inp:focus,.txta:focus,.sel:focus{border-color:#00BFFF}
 .txta{min-height:80px;resize:vertical}
+.inp-lien{background:#F5F3FF;border-color:#DDD6FE}
+.inp-lien:focus{background:#fff;border-color:#7C3AED}
 .upload-box{border:2px dashed #CBD5E1;border-radius:12px;padding:18px;text-align:center;cursor:pointer;position:relative;overflow:hidden;background:#F8FAFC;transition:.2s}
 .upload-box:hover{border-color:#00BFFF;background:#F0FAFF}
 .upload-box input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
@@ -75,6 +80,9 @@
 .btn-save{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00BFFF,#0096C7);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,191,255,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
 .btn-save:hover{transform:translateY(-1px)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.section-sep{margin:22px 0 16px;padding-top:18px;border-top:2px dashed #E2E8F0}
+.section-title{font-size:.72rem;color:#7C3AED;font-weight:900;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
 {% endblock %}
 
 {% block dashboard_content %}
@@ -129,6 +137,9 @@
       {% else %}
       <i class="fas fa-image"></i>
       {% endif %}
+      {% if p.lien_livraison %}
+      <span class="badge-virtuel"><i class="fas fa-bolt"></i> VIRTUEL</span>
+      {% endif %}
     </div>
     <div class="produit-body">
       <div class="produit-header">
@@ -139,7 +150,9 @@
       </div>
       {% if p.description %}<div class="produit-desc">{{ p.description }}</div>{% endif %}
       <div class="produit-prix">{{ "{:,.0f}".format(p.prix or 0) }}<small>FCFA</small></div>
-      {% if p.stock is not none and p.stock >= 0 %}
+      {% if p.lien_livraison %}
+      <div class="produit-stock" style="color:#7C3AED"><i class="fas fa-link"></i> Livraison automatique</div>
+      {% elif p.stock is not none and p.stock >= 0 %}
       <div class="produit-stock"><i class="fas fa-cubes"></i> Stock : {{ p.stock }}</div>
       {% else %}
       <div class="produit-stock"><i class="fas fa-infinity"></i> Stock illimite</div>
@@ -221,6 +234,22 @@
         </div>
         <img id="previewAjout" class="preview-img" style="display:none">
       </div>
+
+      <!-- ═══ SECTION PRODUIT VIRTUEL ═══ -->
+      <div class="section-sep">
+        <div class="section-title">
+          <i class="fas fa-bolt"></i> Livraison automatique (produit virtuel)
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label><i class="fas fa-link"></i> Lien de livraison (optionnel)</label>
+          <input class="inp inp-lien" type="url" name="lien_livraison" placeholder="https://drive.google.com/... (laissez vide si produit physique)">
+          <small class="help">
+            Si vous remplissez ce champ, le client <strong>recevra automatiquement ce lien</strong> par email des que le paiement est confirme.
+            <br>Exemples : lien Google Drive, formation, groupe WhatsApp, page de telechargement...
+          </small>
+        </div>
+      </div>
+
       <button type="submit" class="btn-save"><i class="fas fa-check"></i> Ajouter le produit</button>
     </form>
   </div>
@@ -269,6 +298,21 @@
         </div>
         <img id="previewModif" class="preview-img" style="display:none">
       </div>
+
+      <!-- ═══ SECTION PRODUIT VIRTUEL ═══ -->
+      <div class="section-sep">
+        <div class="section-title">
+          <i class="fas fa-bolt"></i> Livraison automatique (produit virtuel)
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label><i class="fas fa-link"></i> Lien de livraison</label>
+          <input class="inp inp-lien" type="url" name="lien_livraison" id="m_lien_livraison" placeholder="https://... (vide = produit physique)">
+          <small class="help">
+            Envoyé automatiquement par email au client apres paiement. Laissez vide pour un produit physique.
+          </small>
+        </div>
+      </div>
+
       <button type="submit" class="btn-save"><i class="fas fa-save"></i> Enregistrer</button>
     </form>
   </div>
@@ -285,6 +329,7 @@ function ouvrirModif(produit){
   document.getElementById('m_prix').value = produit.prix || 0;
   document.getElementById('m_stock').value = produit.stock !== undefined && produit.stock !== null ? produit.stock : -1;
   document.getElementById('m_categorie_id').value = produit.categorie_id || '';
+  document.getElementById('m_lien_livraison').value = produit.lien_livraison || '';
   document.getElementById('modalModif').classList.add('open');
 }
 function fermerModal(id){
