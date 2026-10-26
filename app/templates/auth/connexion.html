@@ -13,10 +13,15 @@
 .sep::before,.sep::after{content:'';flex:1;height:1px;background:#E2E8F0}
 .fg{margin-bottom:14px}
 .fg label{display:block;font-size:.82rem;font-weight:600;color:#0F172A;margin-bottom:6px}
-.inp{width:100%;padding:13px 14px;border:2px solid #E2E8F0;border-radius:12px;font-size:.92rem;color:#0F172A;outline:none;transition:border-color .2s;background:#fff;font-family:inherit}
+.inp{width:100%;padding:13px 42px 13px 14px;border:2px solid #E2E8F0;border-radius:12px;font-size:.92rem;color:#0F172A;outline:none;transition:border-color .2s;background:#fff;font-family:inherit}
 .inp:focus{border-color:#00BFFF}
-.btn-classique{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6600,#E65C00);color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(255,102,0,.3);transition:transform .2s}
+.pw-wrap{position:relative}
+.pw-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94A3B8;cursor:pointer;font-size:1rem;padding:0}
+.pw-toggle:hover{color:#00BFFF}
+.btn-classique{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6600,#E65C00);color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(255,102,0,.3);transition:transform .2s;margin-top:10px}
 .btn-classique:hover{transform:translateY(-2px)}
+.forgot{display:block;text-align:right;font-size:.78rem;color:#64748B;text-decoration:none;margin-top:4px;margin-bottom:8px}
+.forgot:hover{color:#00BFFF}
 .footer-info{text-align:center;font-size:.78rem;color:#94A3B8;margin-top:20px;line-height:1.6}
 .footer-info a{color:#00BFFF;font-weight:700;text-decoration:none}
 {% endblock %}
@@ -42,10 +47,18 @@
         <label><i class="fas fa-envelope" style="color:#00BFFF"></i> Email</label>
         <input class="inp" type="email" name="email" placeholder="votre@email.com" required autocomplete="email">
       </div>
+      
       <div class="fg">
         <label><i class="fas fa-lock" style="color:#00BFFF"></i> Mot de passe</label>
-        <input class="inp" type="password" name="password" placeholder="Votre mot de passe" required autocomplete="current-password">
+        <div class="pw-wrap">
+          <input class="inp" type="password" name="password" id="passwordInput" placeholder="Votre mot de passe" required autocomplete="current-password">
+          <button type="button" class="pw-toggle" onclick="togglePassword()" title="Afficher/Masquer">
+            <i class="fas fa-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+        <a href="#" class="forgot" onclick="alert('Contactez le support Boost Central sur WhatsApp pour reinitialiser votre mot de passe.'); return false;">Mot de passe oublie ?</a>
       </div>
+
       <button type="submit" class="btn-classique">
         <i class="fas fa-arrow-right-to-bracket"></i> Se connecter
       </button>
@@ -58,4 +71,23 @@
 
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword() {
+  var input = document.getElementById("passwordInput");
+  var icon = document.getElementById("eyeIcon");
+  
+  if (input.type === "password") {
+    input.type = "text";
+    icon.classList.remove("fa-eye");
+    icon.classList.add("fa-eye-slash");
+  } else {
+    input.type = "password";
+    icon.classList.remove("fa-eye-slash");
+    icon.classList.add("fa-eye");
+  }
+}
+</script>
 {% endblock %}
