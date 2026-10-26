@@ -13,14 +13,13 @@ class BaseConfig:
     # ─── CSRF (Actif) ────────────────────────────────────────
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = 3600
-    WTF_CSRF_SSL_STRICT = False # Doit être False derrière un proxy (Vercel)
+    WTF_CSRF_SSL_STRICT = False 
 
-    # ─── Sessions ─────────────────────────────────────────────
-    # ⚠️ C'est ICI que se joue la connexion en production
-    SESSION_COOKIE_SECURE = True     # Obligatoire en HTTPS (Vercel)
-    SESSION_COOKIE_HTTPONLY = True   # Sécurité
-    SESSION_COOKIE_SAMESITE = "Lax"  # "Lax" est obligatoire pour que le POST de login fonctionne
-    PERMANENT_SESSION_LIFETIME = timedelta(days=7) # La session dure 7 jours
+    # ─── Sessions (Optimisé Vercel/HTTPS) ────────────────────
+    SESSION_COOKIE_SECURE = True     
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "None"  # 👈 LE FIX EST ICI
+    PERMANENT_SESSION_LIFETIME = timedelta(days=7)
     SESSION_REFRESH_EACH_REQUEST = True
 
     # ─── Limite upload ────────────────────────────────────────
@@ -61,14 +60,16 @@ class BaseConfig:
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
-    # En local (HTTP), on enlève le Secure sinon ça bloque
+    # En local (HTTP), on enlève le Secure et on remet Lax pour que ça marche
     SESSION_COOKIE_SECURE = False
+    SESSION_COOKIE_SAMESITE = "Lax"
 
 
 class ProductionConfig(BaseConfig):
     DEBUG = False
-    # En prod (HTTPS), on garde le Secure
+    # En prod (HTTPS), on garde le Secure et None
     SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = "None"
 
 
 config_map = {
