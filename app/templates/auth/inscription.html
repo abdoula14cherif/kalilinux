@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Inscription — Boost Reseller{% endblock %}
+
+{% block extra_css %}
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#00BFFF,#0096C7)}
+.auth-card{background:#fff;border-radius:24px;padding:36px 28px;max-width:460px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.15)}
+.auth-logo{text-align:center;margin-bottom:8px;font-size:1.4rem;font-weight:900;background:linear-gradient(90deg,#00BFFF,#FF6600);-webkit-background-clip:text;background-clip:text;color:transparent}
+.auth-sub{text-align:center;font-size:.85rem;color:#475569;margin-bottom:26px}
+
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:600;color:#0F172A;margin-bottom:6px}
+.inp,.sel{width:100%;padding:13px 14px;border:2px solid #E2E8F0;border-radius:12px;font-size:.92rem;color:#0F172A;outline:none;background:#fff;font-family:inherit;transition:border-color .2s}
+.inp:focus,.sel:focus{border-color:#00BFFF}
+.err{color:#DC2626;font-size:.75rem;margin-top:4px;display:block;font-weight:600}
+
+.pw-wrap{position:relative}
+.pw-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94A3B8;cursor:pointer;font-size:1rem}
+
+.btn-submit{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6600,#E65C00);color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(255,102,0,.3);transition:transform .2s;margin-top:10px}
+.btn-submit:hover{transform:translateY(-2px)}
+
+.footer-info{text-align:center;font-size:.82rem;color:#64748B;margin-top:20px}
+.footer-info a{color:#00BFFF;font-weight:700;text-decoration:none}
+
+.rules{background:#F8FAFC;border-radius:10px;padding:10px 14px;margin-top:6px;display:none}
+.rules.on{display:block}
+.rule{display:flex;align-items:center;gap:6px;font-size:.76rem;margin-bottom:3px;color:#DC2626}
+.rule.ok{color:#059669}
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+
+    <div class="auth-logo">BOOST RESELLER</div>
+    <div class="auth-sub">Creez votre compte revendeur gratuitement</div>
+
+    <form method="POST" action="{{ url_for('auth.inscription') }}">
+      {{ form.hidden_tag() }}
+
+      <div class="fg">
+        <label><i class="fas fa-user" style="color:#00BFFF"></i> Nom complet</label>
+        {{ form.full_name(class="inp", placeholder="Jean Dupont") }}
+        {% if form.full_name.errors %}<span class="err">{{ form.full_name.errors[0] }}</span>{% endif %}
+      </div>
+
+      <div class="fg">
+        <label><i class="fas fa-envelope" style="color:#00BFFF"></i> Email</label>
+        {{ form.email(class="inp", placeholder="votre@email.com") }}
+        {% if form.email.errors %}<span class="err">{{ form.email.errors[0] }}</span>{% endif %}
+      </div>
+
+      <div class="fg">
+        <label><i class="fas fa-globe" style="color:#00BFFF"></i> Pays</label>
+        {{ form.pays_code(class="sel") }}
+        {% if form.pays_code.errors %}<span class="err">{{ form.pays_code.errors[0] }}</span>{% endif %}
+      </div>
+
+      <div class="fg">
+        <label><i class="fas fa-lock" style="color:#00BFFF"></i> Mot de passe</label>
+        <div class="pw-wrap">
+          {{ form.password(class="inp", placeholder="Minimum 8 caracteres", id="passwordInput", oninput="checkRules(this.value)") }}
+          <button type="button" class="pw-toggle" onclick="togglePassword('passwordInput', 'eyeIcon1')">
+            <i class="fas fa-eye" id="eyeIcon1"></i>
+          </button>
+        </div>
+        <div class="rules" id="rules">
+          <div class="rule" id="r-len"><i class="fas fa-circle"></i> 8 caracteres minimum</div>
+          <div class="rule" id="r-up"><i class="fas fa-circle"></i> Une majuscule</div>
+          <div class="rule" id="r-num"><i class="fas fa-circle"></i> Un chiffre</div>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label><i class="fas fa-lock" style="color:#00BFFF"></i> Confirmer le mot de passe</label>
+        <div class="pw-wrap">
+          {{ form.confirm_password(class="inp", placeholder="Repetez le mot de passe", id="confirmInput") }}
+          <button type="button" class="pw-toggle" onclick="togglePassword('confirmInput', 'eyeIcon2')">
+            <i class="fas fa-eye" id="eyeIcon2"></i>
+          </button>
+        </div>
+        {% if form.confirm_password.errors %}<span class="err">{{ form.confirm_password.errors[0] }}</span>{% endif %}
+      </div>
+
+      <button type="submit" class="btn-submit">
+        <i class="fas fa-user-plus"></i> Creer mon compte
+      </button>
+    </form>
+
+    <div class="footer-info">
+      Deja un compte ? <a href="{{ url_for('auth.connexion') }}">Se connecter</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword(inputId, iconId) {
+  var input = document.getElementById(inputId);
+  var icon = document.getElementById(iconId);
+  if (input.type === "password") {
+    input.type = "text";
+    icon.classList.remove("fa-eye");
+    icon.classList.add("fa-eye-slash");
+  } else {
+    input.type = "password";
+    icon.classList.remove("fa-eye-slash");
+    icon.classList.add("fa-eye");
+  }
+}
+
+function checkRules(v){
+  document.getElementById('rules').classList.add('on');
+  setRule('r-len', v.length >= 8);
+  setRule('r-up', /[A-Z]/.test(v));
+  setRule('r-num', /[0-9]/.test(v));
+}
+
+function setRule(id, ok){
+  var el = document.getElementById(id);
+  el.className = 'rule ' + (ok ? 'ok' : '');
+  el.querySelector('i').className = ok ? 'fas fa-check-circle' : 'fas fa-circle';
+}
+</script>
+{% endblock %}
