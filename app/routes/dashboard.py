@@ -27,7 +27,7 @@ from app.models.database import (
     get_avis_revendeur,
 )
 from app.models.storage import upload_image
-from app.models.serializers import produit_safe, banniere_safe, attribut_safe, commande_safe
+from app.models.serializers import produit_safe, banniere_safe, attribut_safe
 
 logger = logging.getLogger(__name__)
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -184,12 +184,11 @@ def index():
     except Exception:
         pass
 
-    # --- CORRECTION ICI : Récupération et formatage sécurisé des commandes ---
+    # --- CORRECTION : on récupère les données brutes sans passer par commande_safe() ---
     try:
         commandes_boutique = get_commandes_boutique_revendeur(profile["id"], limit=50)
         nb_commandes_attente = sum(1 for c in commandes_boutique if c.get("statut") == "en_attente")
-        # On formate les 5 dernières commandes pour éviter que le HTML plante
-        dernieres_commandes = [commande_safe(c) for c in commandes_boutique[:5]]
+        dernieres_commandes = commandes_boutique[:5]
     except Exception as e:
         logger.error(f"index commandes load: {type(e).__name__}")
 
@@ -216,7 +215,6 @@ def index():
         except Exception as e:
             logger.error(f"Erreur calcul solde dynamique index: {type(e).__name__}")
 
-    # On met à jour le profil en mémoire pour que le template affiche le bon solde
     profile["solde_wallet"] = solde_wallet
     profile["balance"] = ancien_balance
 
