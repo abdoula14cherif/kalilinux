@@ -714,10 +714,31 @@ def retrait():
     if redir:
         return redir
 
+    # 1. Lecture de base (Wallet et Balance)
     solde_wallet = float(profile.get("solde_wallet") or 0)
     ancien_balance = float(profile.get("balance") or 0)
-    solde_total = solde_wallet + ancien_balance
+    
+    # 2. Sécurité : Si le solde_wallet est à 0, on vérifie s'il y a des commandes payées 
+    # qui n'ont pas encore été ajoutées au solde (pour éviter les bugs de webhook)
+    if solde_wallet == 0:
+        try:
+            # On récupère toutes les commandes du revendeur
+            commandes = get_commandes_boutique_revendeur(profile["id"], limit=1000)
+            # On additionne le total des commandes "payées" qui n'ont pas été retirées
+            # (On considère qu'une commande payée non retirée doit être dans le solde)
+            total_commandes_payees = sum(
+                float(c.get("total", 0)) for c in commandes 
+                if c.get("statut_paiement") == "paye"
+            )
+            # Si on trouve de l'argent dans les commandes, on l'utilise
+            if total_commandes_payees > 0:
+                solde_wallet = total_commandes_payees
+                # On met à jour la base pour la prochaine fois
+                update_profile(profile["id"], {"solde_wallet": solde_wallet})
+        except Exception as e:
+            logger.error(f"Erreur calcul solde dynamique: {type(e).__name__}")
 
+    solde_total = solde_wallet + ancien_balance
     historique = get_demandes_retrait_par_revendeur(profile["id"])
 
     if request.method == "POST":
@@ -733,7 +754,7 @@ def retrait():
         if montant < 1000:
             flash("Le montant minimum de retrait est de 1 000 FCFA.", "error")
         elif montant > solde_total:
-            flash(f"Solde insuffisant. Votre solde est de {solde_total:,.0f} FCFA.", "error")
+            flash(f"Solde insuffisant. Votre solde total est de {solde_total:,.0f} FCFA.", "error")
         elif methode not in ("mtn_cmr", "orange_cmr"):
             flash("Methode de retrait invalide.", "error")
         elif not numero or len(numero) < 8:
@@ -749,6 +770,7 @@ def retrait():
             })
 
             if ok:
+                # Déduction intelligente : on pioche d'abord dans le wallet, puis dans le balance
                 nouveau_wallet = solde_wallet - montant
                 nouveau_balance = ancien_balance
                 
