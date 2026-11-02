@@ -29,7 +29,6 @@
   50%{box-shadow:0 2px 14px rgba(239,68,68,.7)}
 }
 
-/* Widget Credit Boost */
 .credit-widget{
   margin:10px;padding:12px 14px;border-radius:12px;
   background:linear-gradient(135deg,rgba(0,191,255,.12),rgba(0,191,255,.04));
@@ -131,7 +130,7 @@
         <i class="fas fa-store-alt nav-ico"></i> <span class="nav-label">Type de boutique</span>
       </a>
 
-      {# ─── WIDGET CREDIT BOOST (2 seuils) ─────────────────── #}
+      {# ─── WIDGET CREDIT BOOST ─────────────────────────────── #}
       {% if profile and profile.est_revendeur %}
       {% set cb_solde = profile.credit_boost|default(0)|float %}
       {% set cb_seuil_alerte = 2000 %}
@@ -203,6 +202,11 @@
         <i class="fas fa-wallet nav-ico"></i> <span class="nav-label">Mes gains</span>
       </a>
 
+      {# 👇 NOUVEAU LIEN RETRAIT AJOUTÉ ICI 👇 #}
+      <a href="{{ url_for('dashboard_shop.retrait') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.retrait' %}active{% endif %}">
+        <i class="fas fa-money-bill-transfer nav-ico"></i> <span class="nav-label">Retrait</span>
+      </a>
+
       <div class="nav-separator"></div>
 
       <a href="{{ url_for('dashboard_shop.notifications_prefs') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.notifications_prefs' %}active{% endif %}">
@@ -220,9 +224,6 @@
 
       <a href="{{ url_for('dashboard.publier') }}" class="nav-item {% if request.endpoint == 'dashboard.publier' %}active{% endif %}">
         <i class="fas fa-rocket nav-ico"></i> <span class="nav-label">Publier</span>
-      </a>
-      <a href="{{ url_for('dashboard_paiement.index') }}" class="nav-item {% if request.endpoint and 'paiement' in request.endpoint %}active{% endif %}">
-        <i class="fas fa-credit-card nav-ico"></i> <span class="nav-label">Paiements</span>
       </a>
       <a href="{{ url_for('dashboard_shop.parametres') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.parametres' %}active{% endif %}">
         <i class="fas fa-cog nav-ico"></i> <span class="nav-label">Parametres</span>
