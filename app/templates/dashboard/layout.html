@@ -130,7 +130,7 @@
         <i class="fas fa-store-alt nav-ico"></i> <span class="nav-label">Type de boutique</span>
       </a>
 
-      {# ─── WIDGET CREDIT BOOST ─────────────────────────────── #}
+      {# WIDGET CREDIT BOOST #}
       {% if profile and profile.est_revendeur %}
       {% set cb_solde = profile.credit_boost|default(0)|float %}
       {% set cb_seuil_alerte = 2000 %}
@@ -202,7 +202,7 @@
         <i class="fas fa-wallet nav-ico"></i> <span class="nav-label">Mes gains</span>
       </a>
 
-      {# 👇 NOUVEAU LIEN RETRAIT AJOUTÉ ICI 👇 #}
+      {# RETRAIT #}
       <a href="{{ url_for('dashboard_shop.retrait') }}" class="nav-item {% if request.endpoint == 'dashboard_shop.retrait' %}active{% endif %}">
         <i class="fas fa-money-bill-transfer nav-ico"></i> <span class="nav-label">Retrait</span>
       </a>
@@ -273,6 +273,12 @@
       <a href="{{ url_for('dashboard_admin.credit_boost') }}" class="nav-item {% if request.endpoint and 'credit_boost' in request.endpoint %}active{% endif %}">
         <i class="fas fa-wallet nav-ico"></i> <span class="nav-label">Credit Boost</span>
       </a>
+
+      {# 👇 NOUVEAU : Lien vers les retraits 👇 #}
+      <a href="{{ url_for('dashboard_admin.retraits') }}" class="nav-item {% if request.endpoint and 'retrait' in request.endpoint %}active{% endif %}">
+        <i class="fas fa-hand-holding-usd nav-ico"></i> <span class="nav-label">Retraits</span>
+      </a>
+
       <a href="{{ url_for('dashboard_admin.fonctionnalites') }}" class="nav-item {% if request.endpoint == 'dashboard_admin.fonctionnalites' %}active{% endif %}">
         <i class="fas fa-cog nav-ico"></i> <span class="nav-label">Fonctionnalités</span>
       </a>
