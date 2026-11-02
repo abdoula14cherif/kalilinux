@@ -423,14 +423,29 @@
         {% set _nom = c.client_nom or c.nom_client or c.client or c.nom or 'Client' %}
         {% set _tel = c.client_telephone or c.telephone_client or c.telephone or c.tel or c.phone or '' %}
         {% set _total = c.total or c.montant or c.prix_total or c.amount or 0 %}
+        
+        {# --- GESTION DU STATUT ET DU PAIEMENT --- #}
         {% set _statut = c.statut or c.status or 'en_attente' %}
+        {% set _paiement = c.statut_paiement or c.mode_paiement or c.paiement or 'inconnu' %}
+        
         {% set badge = badge_map.get(_statut, ('b-attente', 'En attente')) %}
+        
         <a href="{{ url_for('dashboard_shop.commandes') }}" class="order-row">
           <div class="order-ico"><i class="fas fa-receipt"></i></div>
           <div class="order-info">
             <div class="order-ref">{{ _ref }}</div>
             <div class="order-client">
               <i class="fas fa-user"></i> {{ _nom }}{% if _tel %} · {{ _tel }}{% endif %}
+            </div>
+            {# Affichage du mode de paiement #}
+            <div style="font-size:.65rem;color:#94A3B8;margin-top:2px">
+              {% if _paiement == 'paye' or _paiement == 'en_ligne' %}
+                <i class="fas fa-check-circle" style="color:#10B981"></i> Payé en ligne
+              {% elif _paiement == 'cash' or _paiement == 'livraison' or _paiement == 'inconnu' %}
+                <i class="fas fa-money-bill-wave" style="color:#F59E0B"></i> Paiement à la livraison
+              {% else %}
+                <i class="fas fa-info-circle"></i> {{ _paiement }}
+              {% endif %}
             </div>
           </div>
           <div class="order-right">
