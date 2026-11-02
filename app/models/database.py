@@ -583,3 +583,20 @@ def get_fonctionnalites_premium():
 def toggle_boutique_active(revendeur_id, active):
     try: return requests.patch(_url(f"profiles?id=eq.{revendeur_id}"), json={"boutique_active": active}, headers=_headers(True), timeout=10).status_code < 300
     except Exception: return False
+
+# ═══════════════════════════════════════════════════════════════
+# ADMIN : LISTER LES REVENDEURS
+# ═══════════════════════════════════════════════════════════════
+
+def get_all_revendeurs(limit=200):
+    """Recupere la liste de tous les revendeurs (Admin)."""
+    try:
+        r = requests.get(
+            _url(f"profiles?est_revendeur=eq.true&order=created_at.desc&limit={limit}"),
+            headers=_headers(True), timeout=10
+        )
+        data = r.json()
+        return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.error(f"get_all_revendeurs: {type(e).__name__}")
+        return []
