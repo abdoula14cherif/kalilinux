@@ -13,6 +13,8 @@ from app import limiter
 from app.models.security import (
     set_session, clear_session, est_bot_fort, verifier_honeypot
 )
+from app.models.forms import LoginForm, RegisterForm
+
 from app.models.database import get_profile
 
 logger = logging.getLogger(__name__)
@@ -225,3 +227,101 @@ def logout():
     _log_securite(f"Logout : {email}", "info")
     flash("Vous etes deconnecte.", "success")
     return redirect(url_for("home.index"))
+
+# ═══════════════════════════════════════════════════════════════
+# INSCRIPTION
+# ═══════════════════════════════════════════════════════════════
+
+@auth_bp.route("/inscription", methods=["GET", "POST"])
+@limiter.limit("10 per hour")
+def inscription():
+    if "user_id" in session:
+        return redirect(url_for("dashboard.index"))
+
+    form = RegisterForm()
+
+    if form.validate_on_submit():
+        email = form.email.data.strip().lower()
+        password = form.password.data
+        full_name = form.full_name.data.strip()
+        pays_code = form.pays_code.data
+
+        try:
+            r = requests.post(
+                f"{_supabase_url()}/auth/v1/signup",
+                json={
+                    "email": email,
+                    "password": password,
+                    "data": {"full_name": full_name}
+                },
+                headers=_headers(),
+                timeout=15
+            )
+            data = r.json()
+
+            if r.status_code in (200, 201):
+                user = data.get("user") or {}
+                user_id = user.get("id") or data.get("id")
+
+                if user_id:
+                    # Créer le profil dans la table `profiles`
+                    requests.post(
+                        f"{_supabase_url()}/rest/v1/profiles",
+                        json={
+                            "id": user_id,
+                            "email": email,
+                            "full_name": full_name,
+                            "pays_code": pays_code,
+                            "pays_verrouille": True,
+                            "pays_verrouille_le": datetime.now(timezone.utc).isoformat(),
+                            "balance": 0,
+                            "credit_boost": 0,
+                            "solde_wallet": 0,
+                            "abonnement_niveau": "gratuit",
+                            "revendeur_commission_pct": 0.10,
+                        },
+                        headers=_admin_headers(),
+                        timeout=10
+                    )
+
+                    # Session immédiate
+                    set_session(user_id, email, full_name)
+                    flash(f"Bienvenue {full_name.split()[0]} ! Votre compte a ete cree.", "success")
+                    return redirect(url_for("dashboard.index"))
+
+                flash("Compte cree ! Connectez-vous.", "info")
+                return redirect(url_for("auth.connexion"))
+            else:
+                msg = data.get("msg", data.get("error_description", "Erreur inconnue"))
+                if "already" in str(msg).lower() or "registered" in str(msg).lower():
+                    flash("Cet email est deja utilise. Connectez-vous.", "error")
+                else:
+                    flash(f"Erreur : {msg}", "error")
+        except Exception as e:
+            logger.error(f"inscription error: {type(e).__name__}")
+            flash("Erreur serveur. Reessayez.", "error")
+
+    return render_template("auth/inscription.html", form=form)
+
+
+# ═══════════════════════════════════════════════════════════════
+# LISTE DES PAYS (AJAX pour le select)
+# ═══════════════════════════════════════════════════════════════
+
+@auth_bp.route("/pays")
+def liste_pays():
+    from flask import jsonify
+    pays = [
+        {"code": "CM", "nom": "Cameroun"},
+        {"code": "SN", "nom": "Sénégal"},
+        {"code": "CI", "nom": "Côte d'Ivoire"},
+        {"code": "BJ", "nom": "Bénin"},
+        {"code": "TG", "nom": "Togo"},
+        {"code": "ML", "nom": "Mali"},
+        {"code": "BF", "nom": "Burkina Faso"},
+        {"code": "NE", "nom": "Niger"},
+        {"code": "GN", "nom": "Guinée"},
+        {"code": "GA", "nom": "Gabon"},
+        {"code": "CG", "nom": "Congo"},
+    ]
+    return jsonify(pays)
