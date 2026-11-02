@@ -1,0 +1,90 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Retraits — Admin{% endblock %}
+{% block page_title %}Gestion des retraits{% endblock %}
+{% block page_subtitle %}Validez ou rejetez les demandes de retrait des revendeurs{% endblock %}
+
+{% block extra_css %}
+.filter-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.filter-tab{padding:10px 18px;border-radius:12px;font-size:.85rem;font-weight:800;background:#fff;border:2px solid #E2E8F0;color:#475569;text-decoration:none;transition:all .2s}
+.filter-tab:hover{border-color:#00BFFF;color:#00BFFF}
+.filter-tab.active{background:#00BFFF;color:#fff;border-color:#00BFFF}
+
+.demande-card{background:#fff;border-radius:16px;padding:20px;border:1px solid #E2E8F0;margin-bottom:14px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.demande-ico{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.demande-info{flex:1;min-width:0}
+.demande-nom{font-size:.95rem;font-weight:900;color:#0F172A;margin-bottom:4px}
+.demande-detail{font-size:.82rem;color:#64748B;line-height:1.5}
+.demande-detail strong{color:#0F172A}
+.demande-montant{font-size:1.3rem;font-weight:900;color:#059669;flex-shrink:0;text-align:right}
+.demande-actions{display:flex;gap:8px;flex-shrink:0;margin-left:auto}
+.btn-valider{background:#10B981;color:#fff;border:none;padding:10px 18px;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-valider:hover{background:#059669}
+.btn-rejeter{background:#FEE2E2;color:#991B1B;border:none;padding:10px 18px;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-rejeter:hover{background:#DC2626;color:#fff}
+
+.statut-badge{font-size:.7rem;font-weight:900;padding:4px 10px;border-radius:8px;text-transform:uppercase;letter-spacing:.5px}
+.statut-en_attente{background:#FEF3C7;color:#92400E}
+.statut-paye{background:#EDFFF5;color:#059669}
+.statut-rejete{background:#FEE2E2;color:#991B1B}
+
+.empty-state{background:#fff;border-radius:16px;padding:48px 24px;text-align:center;border:2px dashed #E2E8F0}
+.empty-state i{font-size:3rem;color:#CBD5E1;display:block;margin-bottom:14px}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<!-- Onglets de filtre -->
+<div class="filter-tabs">
+  <a href="{{ url_for('dashboard_admin.retraits', statut='en_attente') }}" 
+     class="filter-tab {% if statut_filtre == 'en_attente' %}active{% endif %}">
+    En attente
+  </a>
+  <a href="{{ url_for('dashboard_admin.retraits', statut='paye') }}" 
+     class="filter-tab {% if statut_filtre == 'paye' %}active{% endif %}">
+    Payés
+  </a>
+  <a href="{{ url_for('dashboard_admin.retraits', statut='rejete') }}" 
+     class="filter-tab {% if statut_filtre == 'rejete' %}active{% endif %}">
+    Rejetés
+  </a>
+</div>
+
+{% if demandes %}
+  {% for d in demandes %}
+  <div class="demande-card">
+    <div class="demande-ico">
+      <i class="fas fa-hand-holding-usd"></i>
+    </div>
+    <div class="demande-info">
+      <div class="demande-nom">{{ d.revendeur_nom }}</div>
+      <div class="demande-detail">
+        {{ d.revendeur_email }}<br>
+        <strong>{{ d.methode|upper }}</strong> — {{ d.numero_beneficiaire }} ({{ d.nom_beneficiaire }})<br>
+        Demandé le {{ d.created_at[:16].replace('T', ' ') }}
+      </div>
+    </div>
+    <div class="demande-montant">
+      {{ "{:,.0f}".format(d.montant) }} F
+      <div><span class="statut-badge statut-{{ d.statut }}">{{ d.statut|replace('_', ' ') }}</span></div>
+    </div>
+    {% if d.statut == 'en_attente' %}
+    <div class="demande-actions">
+      <form method="POST" action="{{ url_for('dashboard_admin.valider_retrait', demande_id=d.id) }}" onsubmit="return confirm('Confirmer que vous avez envoyé {{ d.montant }} FCFA au {{ d.numero_beneficiaire }} ?')">
+        <button type="submit" class="btn-valider"><i class="fas fa-check"></i> Valider</button>
+      </form>
+      <form method="POST" action="{{ url_for('dashboard_admin.rejeter_retrait', demande_id=d.id) }}" onsubmit="return confirm('Rejeter cette demande ? Le solde sera remboursé au revendeur.')">
+        <button type="submit" class="btn-rejeter"><i class="fas fa-times"></i> Rejeter</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="empty-state">
+    <i class="fas fa-inbox"></i>
+    <h3>Aucune demande {{ statut_filtre|replace('_', ' ') }}</h3>
+    <p>Les nouvelles demandes apparaîtront ici.</p>
+  </div>
+{% endif %}
+
+{% endblock %}
