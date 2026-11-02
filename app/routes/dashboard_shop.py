@@ -701,3 +701,86 @@ def api_notifications_count():
         "avis_attente": avis_attente,
         "total": commandes_attente + avis_attente
     })
+
+# ═══════════════════════════════════════════════════════════════
+# RETRAITS (Portefeuille Interne)
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_shop_bp.route("/retrait", methods=["GET", "POST"])
+@login_required
+@limiter.limit("10 per hour")
+def retrait():
+    """Page de demande de retrait du solde_wallet."""
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    solde = float(profile.get("solde_wallet", 0) or 0)
+    historique = get_demandes_retrait_par_revendeur(profile["id"])
+
+    if request.method == "POST":
+        try:
+            montant = float(request.form.get("montant", 0))
+        except ValueError:
+            montant = 0
+
+        methode = request.form.get("methode", "").strip()
+        numero = request.form.get("numero", "").strip()
+        nom = request.form.get("nom", "").strip()
+
+        if montant < 1000:
+            flash("Le montant minimum de retrait est de 1 000 FCFA.", "error")
+        elif montant > solde:
+            flash(f"Solde insuffisant. Votre solde est de {solde:,.0f} FCFA.", "error")
+        elif methode not in ("mtn_cmr", "orange_cmr"):
+            flash("Methode de retrait invalide.", "error")
+        elif not numero or len(numero) < 8:
+            flash("Numero de telephone invalide.", "error")
+        else:
+            ok = create_demande_retrait({
+                "revendeur_id": profile["id"],
+                "montant": montant,
+                "methode": methode,
+                "numero_beneficiaire": numero,
+                "nom_beneficiaire": nom,
+                "statut": "en_attente"
+            })
+
+            if ok:
+                # Déduire immédiatement du solde
+                update_profile(profile["id"], {"solde_wallet": solde - montant})
+                flash("Demande de retrait envoyee ! Traitement sous 24h.", "success")
+                return redirect(url_for("dashboard_shop.retrait"))
+            else:
+                flash("Erreur lors de l'enregistrement de la demande.", "error")
+
+    return render_template("dashboard/retrait.html",
+                          profile=profile,
+                          solde=solde,
+                          historique=historique)
+
+
+@dashboard_shop_bp.route("/retrait/<demande_id>/annuler", methods=["POST"])
+@login_required
+def annuler_retrait(demande_id):
+    """Annule une demande de retrait en attente et rembourse le solde."""
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    demande = get_demande_retrait(demande_id)
+    if not demande or demande["revendeur_id"] != profile["id"]:
+        flash("Demande introuvable.", "error")
+        return redirect(url_for("dashboard_shop.retrait"))
+
+    if demande["statut"] != "en_attente":
+        flash("Cette demande ne peut plus etre annulee.", "error")
+        return redirect(url_for("dashboard_shop.retrait"))
+
+    # Rembourser le solde
+    update_demande_retrait(demande_id, {"statut": "annule"})
+    solde_actuel = float(profile.get("solde_wallet", 0) or 0)
+    update_profile(profile["id"], {"solde_wallet": solde_actuel + float(demande["montant"])})
+    
+    flash("Demande annulee. Solde rembourse.", "success")
+    return redirect(url_for("dashboard_shop.retrait"))
