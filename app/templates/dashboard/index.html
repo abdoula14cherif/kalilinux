@@ -226,11 +226,39 @@
   {% endif %}
 </div>
 
+{% set solde_wallet = (profile.solde_wallet or 0) | float %}
+{% set solde_balance = (profile.balance or 0) | float %}
+{% set solde_total = solde_wallet + solde_balance %}
+
 <!-- KPI Cards -->
 <div class="kpi-grid">
-  <div class="kpi-card">
+
+  <!-- NOUVELLE CARTE : Solde disponible -->
+  <div class="kpi-card" style="background:linear-gradient(135deg,#ECFDF5,#D1FAE5);border-color:#10B981">
     <div class="kpi-head">
       <div class="kpi-ico" style="background:linear-gradient(135deg,#10B981,#059669)">
+        <i class="fas fa-wallet"></i>
+      </div>
+      {% if solde_total > 0 %}
+      <span class="kpi-trend up"><i class="fas fa-arrow-up"></i> Dispo</span>
+      {% else %}
+      <span class="kpi-trend down"><i class="fas fa-minus"></i> 0</span>
+      {% endif %}
+    </div>
+    <div class="kpi-label">Solde disponible</div>
+    <div class="kpi-value" style="color:#047857">{{ "{:,.0f}".format(solde_total) }}<small>FCFA</small></div>
+    <div class="kpi-sub" style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+      <span><i class="fas fa-hand-holding-usd"></i> Retirable</span>
+      <a href="{{ url_for('dashboard_shop.retrait') }}" style="font-size:.7rem;font-weight:900;color:#047857;text-decoration:none;background:#fff;padding:4px 10px;border-radius:6px;border:1px solid #10B981">
+        Retirer <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- Revenus services -->
+  <div class="kpi-card">
+    <div class="kpi-head">
+      <div class="kpi-ico" style="background:linear-gradient(135deg,#FF6600,#E65C00)">
         <i class="fas fa-coins"></i>
       </div>
       {% if stats.revenus and stats.revenus > 0 %}
@@ -239,9 +267,9 @@
       <span class="kpi-trend down"><i class="fas fa-minus"></i> 0</span>
       {% endif %}
     </div>
-    <div class="kpi-label">Revenus totaux</div>
+    <div class="kpi-label">Revenus services</div>
     <div class="kpi-value">{{ "{:,.0f}".format(stats.revenus or 0) }}<small>FCFA</small></div>
-    <div class="kpi-sub"><i class="fas fa-info-circle"></i> Commandes terminées</div>
+    <div class="kpi-sub"><i class="fas fa-info-circle"></i> Prestations terminées</div>
   </div>
 
   <div class="kpi-card">
@@ -269,16 +297,6 @@
     <div class="kpi-sub"><i class="fas fa-user-check"></i> Inscrits sur votre boutique</div>
   </div>
 
-  <div class="kpi-card">
-    <div class="kpi-head">
-      <div class="kpi-ico" style="background:linear-gradient(135deg,#FF6600,#E65C00)">
-        <i class="fas fa-eye"></i>
-      </div>
-    </div>
-    <div class="kpi-label">Visiteurs</div>
-    <div class="kpi-value">{{ profile.boutique_visites or 0 }}</div>
-    <div class="kpi-sub"><i class="fas fa-chart-line"></i> Visites totales</div>
-  </div>
 </div>
 
 <!-- 2 colonnes : Actions + Aperçu boutique -->
@@ -313,9 +331,9 @@
         <div class="action-label">Commandes</div>
       </a>
 
-      <a href="{{ url_for('dashboard_shop.gains') }}" class="action-card">
-        <div class="action-ico" style="background:#EDFFF5;color:#059669"><i class="fas fa-wallet"></i></div>
-        <div class="action-label">Mes gains</div>
+      <a href="{{ url_for('dashboard_shop.retrait') }}" class="action-card">
+        <div class="action-ico" style="background:#EDFFF5;color:#059669"><i class="fas fa-hand-holding-usd"></i></div>
+        <div class="action-label">Retirer</div>
       </a>
 
       <a href="{{ url_for('dashboard.bannieres') }}" class="action-card">
@@ -408,7 +426,7 @@
             <div class="order-client"><i class="fas fa-user"></i> {{ c.client_nom }} · {{ c.client_telephone }}</div>
           </div>
           <div class="order-right">
-            <div class="order-amount">{{ "{:,.0f}".format(c.total) }} F</div>
+            <div class="order-amount">{{ "{:,.0f}".format(c.total or 0) }} F</div>
             <span class="order-badge {{ badge[0] }}">{{ badge[1] }}</span>
           </div>
         </a>
