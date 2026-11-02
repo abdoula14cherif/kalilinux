@@ -723,10 +723,30 @@ def retrait():
     if redir:
         return redir
 
+    # 1. Lecture de base
     solde_wallet = float(profile.get("solde_wallet") or 0)
     ancien_balance = float(profile.get("balance") or 0)
-    solde_total = solde_wallet + ancien_balance
 
+    # 2. AJOUT DYNAMIQUE : on somme les commandes payées
+    try:
+        # On récupère toutes les commandes de la boutique
+        commandes = get_commandes_boutique_revendeur(profile["id"], limit=1000)
+        
+        # On additionne les totaux des commandes "payées"
+        total_commandes_payees = 0
+        for c in commandes:
+            if c.get("statut_paiement") == "paye":
+                total_commandes_payees += float(c.get("total", 0))
+        
+        # Si on a trouvé de l'argent dans les commandes, on l'ajoute
+        # (On suppose que le solde_wallet ne contient pas déjà cet argent)
+        if total_commandes_payees > solde_wallet:
+            solde_wallet = total_commandes_payees
+            
+    except Exception as e:
+        logger.error(f"Erreur calcul solde dynamique: {type(e).__name__}")
+
+    solde_total = solde_wallet + ancien_balance
     historique = get_demandes_retrait_par_revendeur(profile["id"])
 
     if request.method == "POST":
@@ -758,6 +778,7 @@ def retrait():
             })
 
             if ok:
+                # On déduit du wallet
                 nouveau_wallet = solde_wallet - montant
                 nouveau_balance = ancien_balance
                 
