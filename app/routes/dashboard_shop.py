@@ -100,9 +100,10 @@ def commandes():
     commandes_boutique = []
     try:
         raw = get_commandes_boutique_revendeur(profile["id"], limit=200)
+        # On s'assure que les commandes sont bien formatées même si la base a changé
         commandes_boutique = [commande_safe(c) for c in raw]
     except Exception as e:
-        logger.error(f"commandes boutique load: {type(e).__name__}")
+        logger.error(f"commandes boutique load: {type(e).__name__} - {str(e)}")
 
     orders_services = []
     try:
@@ -133,7 +134,6 @@ def commande_boutique_statut():
 
     if not _verifier_propriete("boutique_commandes", commande_id, profile["id"]):
         flash("Action non autorisee.", "error")
-        logger.warning(f"Tentative modif commande {commande_id} par revendeur {profile['id']}")
         return redirect(url_for("dashboard_shop.commandes"))
 
     commande = _get_commande_by_id(commande_id)
@@ -141,56 +141,45 @@ def commande_boutique_statut():
         flash("Commande introuvable.", "error")
         return redirect(url_for("dashboard_shop.commandes"))
 
+    # On met à jour le statut de base
     ok = update_commande_boutique(commande_id, {"statut": statut})
-
     if not ok:
         flash("Erreur lors de la mise a jour.", "error")
         return redirect(url_for("dashboard_shop.commandes"))
 
-    boutique_type = profile.get("boutique_type") or "general"
-    type_obj = get_boutique_type(boutique_type) or {}
-    paiement_type = type_obj.get("paiement_type", "cash")
-
-    if (statut == "livree"
-        and paiement_type == "cash"
-        and not commande.get("commission_appliquee")):
+    # ---- CORRECTION ICI ----
+    # On ne vérifie plus 'paiement_type == cash'. Si c'est livré, on crédite.
+    if statut == "livree" and not commande.get("commission_appliquee"):
         
-        # 1. Forcer le statut de paiement à "paye"
+        # 1. On force le statut de paiement à "paye" dans la base
         update_commande_boutique(commande_id, {
-            "statut": "livree",
             "statut_paiement": "paye",
+            "commission_appliquee": True # on le marque pour éviter le double crédit
         })
-        commande["statut"] = "livree"
         commande["statut_paiement"] = "paye"
+        commande["commission_appliquee"] = True
         
-        # 2. Créditer le solde du revendeur
+        # 2. On crédite le solde du revendeur
         solde_actuel = float(profile.get("solde_wallet", 0) or 0)
-        nouveau_solde = solde_actuel + float(commande.get("total", 0))
+        montant_total = float(commande.get("total", 0))
+        nouveau_solde = solde_actuel + montant_total
         update_profile(profile["id"], {"solde_wallet": nouveau_solde})
         
-        # 3. Appliquer la commission (débit Credit Boost)
-        result = appliquer_commission_commande(commande, profile)
+        # 3. Appliquer la commission (si ton système de Boost est actif)
+        try:
+            result = appliquer_commission_commande(commande, profile)
+            if result and result.get("succes"):
+                flash(f"Commande livree ! {montant_total:,.0f} FCFA ajoutes a votre solde.", "success")
+            else:
+                flash(f"Commande livree ! {montant_total:,.0f} FCFA ajoutes a votre solde.", "success")
+        except Exception as e:
+            logger.error(f"Erreur commission: {type(e).__name__}")
+            flash(f"Commande livree ! {montant_total:,.0f} FCFA ajoutes a votre solde.", "success")
 
-        if result and result.get("succes"):
-            flash(
-                f"Commande livree ! Commission de {result['commission']:,.0f} FCFA deduite "
-                f"de votre Credit Boost. Net : {result['montant_net']:,.0f} FCFA.",
-                "success"
-            )
-            if result.get("boutique_desactivee"):
-                flash(
-                    "⚠️ Votre Credit Boost est epuise. Boutique automatiquement mise en pause. "
-                    "Rechargez pour reactiver.",
-                    "warning"
-                )
-        else:
-            flash("Commande livree, mais erreur lors du calcul de la commission.", "warning")
-
-    elif (statut == "annulee"
-          and commande.get("commission_appliquee")):
+    elif statut == "annulee" and commande.get("commission_appliquee"):
         result = rembourser_commission_commande(commande, profile)
         if result:
-            flash("Commande annulee. Commission remboursee sur votre Credit Boost.", "info")
+            flash("Commande annulee. Commission remboursee.", "info")
 
     labels = {
         "en_attente": "en attente",
@@ -206,7 +195,112 @@ def commande_boutique_statut():
 
 
 # ═══════════════════════════════════════════════════════════════
-# GAINS
+# RETRAITS (Portefeuille Interne)
+# ═══════════════════════════════════════════════════════════════
+
+@dashboard_shop_bp.route("/retrait", methods=["GET", "POST"])
+@login_required
+@limiter.limit("10 per hour")
+def retrait():
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    solde_wallet = float(profile.get("solde_wallet") or 0)
+    ancien_balance = float(profile.get("balance") or 0)
+    
+    # Calcul de sécurité pour récupérer l'argent des commandes validées avant le bug
+    try:
+        commandes = get_commandes_boutique_revendeur(profile["id"], limit=1000)
+        total_commandes_payees = sum(
+            float(c.get("total", 0)) for c in commandes 
+            if c.get("statut_paiement") == "paye"
+        )
+        if total_commandes_payees > solde_wallet:
+            solde_wallet = total_commandes_payees
+    except Exception as e:
+        logger.error(f"Erreur calcul solde dynamique: {type(e).__name__}")
+
+    solde_total = solde_wallet + ancien_balance
+    historique = get_demandes_retrait_par_revendeur(profile["id"])
+
+    if request.method == "POST":
+        try:
+            montant = float(request.form.get("montant", 0))
+        except ValueError:
+            montant = 0
+
+        methode = request.form.get("methode", "").strip()
+        numero = request.form.get("numero", "").strip()
+        nom = request.form.get("nom", "").strip()
+
+        if montant < 1000:
+            flash("Le montant minimum de retrait est de 1 000 FCFA.", "error")
+        elif montant > solde_total:
+            flash(f"Solde insuffisant. Votre solde total est de {solde_total:,.0f} FCFA.", "error")
+        elif methode not in ("mtn_cmr", "orange_cmr"):
+            flash("Methode de retrait invalide.", "error")
+        elif not numero or len(numero) < 8:
+            flash("Numero de telephone invalide.", "error")
+        else:
+            ok = create_demande_retrait({
+                "revendeur_id": profile["id"],
+                "montant": montant,
+                "methode": methode,
+                "numero_beneficiaire": numero,
+                "nom_beneficiaire": nom,
+                "statut": "en_attente"
+            })
+
+            if ok:
+                nouveau_wallet = solde_wallet - montant
+                nouveau_balance = ancien_balance
+                
+                if nouveau_wallet < 0:
+                    nouveau_balance = ancien_balance + nouveau_wallet
+                    nouveau_wallet = 0
+                
+                update_profile(profile["id"], {
+                    "solde_wallet": nouveau_wallet,
+                    "balance": nouveau_balance
+                })
+                flash("Demande de retrait envoyee ! Traitement sous 24h.", "success")
+                return redirect(url_for("dashboard_shop.retrait"))
+            else:
+                flash("Erreur lors de l'enregistrement de la demande.", "error")
+
+    return render_template("dashboard/retrait.html",
+                          profile=profile,
+                          solde=solde_total,
+                          historique=historique)
+
+
+@dashboard_shop_bp.route("/retrait/<demande_id>/annuler", methods=["POST"])
+@login_required
+def annuler_retrait(demande_id):
+    profile, redir = _get_profile_ou_redirect()
+    if redir:
+        return redir
+
+    demande = get_demande_retrait(demande_id)
+    if not demande or demande["revendeur_id"] != profile["id"]:
+        flash("Demande introuvable.", "error")
+        return redirect(url_for("dashboard_shop.retrait"))
+
+    if demande["statut"] != "en_attente":
+        flash("Cette demande ne peut plus etre annulee.", "error")
+        return redirect(url_for("dashboard_shop.retrait"))
+
+    update_demande_retrait(demande_id, {"statut": "annule"})
+    solde_actuel = float(profile.get("solde_wallet", 0) or 0)
+    update_profile(profile["id"], {"solde_wallet": solde_actuel + float(demande["montant"])})
+    
+    flash("Demande annulee. Solde rembourse.", "success")
+    return redirect(url_for("dashboard_shop.retrait"))
+
+
+# ═══════════════════════════════════════════════════════════════
+# AUTRES ROUTES (GAINS, AVIS, COUPONS, ETC.)
 # ═══════════════════════════════════════════════════════════════
 
 @dashboard_shop_bp.route("/gains")
@@ -231,10 +325,6 @@ def gains():
                           commission_pct=commission_pct)
 
 
-# ═══════════════════════════════════════════════════════════════
-# CONTACTS
-# ═══════════════════════════════════════════════════════════════
-
 @dashboard_shop_bp.route("/contacts")
 @login_required
 def contacts():
@@ -249,10 +339,6 @@ def contacts():
         flash("Impossible de charger vos contacts pour le moment.", "warning")
     return render_template("dashboard/contacts.html", profile=profile, contacts=mes_contacts)
 
-
-# ═══════════════════════════════════════════════════════════════
-# AVIS
-# ═══════════════════════════════════════════════════════════════
 
 @dashboard_shop_bp.route("/reviews")
 @login_required
@@ -349,10 +435,6 @@ def reviews_supprimer():
     flash("Avis supprime.", "success")
     return redirect(url_for("dashboard_shop.reviews"))
 
-
-# ═══════════════════════════════════════════════════════════════
-# COUPONS
-# ═══════════════════════════════════════════════════════════════
 
 @dashboard_shop_bp.route("/coupons")
 @login_required
@@ -486,10 +568,6 @@ def coupons_supprimer():
     return redirect(url_for("dashboard_shop.coupons"))
 
 
-# ═══════════════════════════════════════════════════════════════
-# NOTIFICATIONS PREFERENCES
-# ═══════════════════════════════════════════════════════════════
-
 @dashboard_shop_bp.route("/notifications-prefs", methods=["GET", "POST"])
 @login_required
 @limiter.limit("20 per hour")
@@ -518,10 +596,6 @@ def notifications_prefs():
     return render_template("dashboard/notifications_prefs.html", profile=profile)
 
 
-# ═══════════════════════════════════════════════════════════════
-# PREMIUM
-# ═══════════════════════════════════════════════════════════════
-
 @dashboard_shop_bp.route("/premium")
 @login_required
 def premium():
@@ -532,10 +606,6 @@ def premium():
     return render_template("dashboard/premium.html", profile=profile, features=features)
 
 
-# ═══════════════════════════════════════════════════════════════
-# ABONNEMENT
-# ═══════════════════════════════════════════════════════════════
-
 @dashboard_shop_bp.route("/abonnement")
 @login_required
 def abonnement():
@@ -544,7 +614,6 @@ def abonnement():
         return redir
 
     plans = get_abonnements_plans()
-
     produits = get_produits_revendeur(profile["id"])
     categories = get_categories_par_type(profile["boutique_type"])
     bannieres = get_bannieres_revendeur(profile["id"])
@@ -633,10 +702,6 @@ def abonnement_choisir():
     return redirect(lien["payment_url"])
 
 
-# ═══════════════════════════════════════════════════════════════
-# PARAMETRES
-# ═══════════════════════════════════════════════════════════════
-
 @dashboard_shop_bp.route("/parametres")
 @login_required
 def parametres():
@@ -677,10 +742,6 @@ def boutique_toggle_active():
     return redirect(url_for("dashboard_shop.parametres"))
 
 
-# ═══════════════════════════════════════════════════════════════
-# API NOTIFICATIONS COUNT
-# ═══════════════════════════════════════════════════════════════
-
 @dashboard_shop_bp.route("/api/notifications-count")
 @login_required
 @limiter.limit("120 per hour")
@@ -709,117 +770,3 @@ def api_notifications_count():
         "avis_attente": avis_attente,
         "total": commandes_attente + avis_attente
     })
-
-
-# ═══════════════════════════════════════════════════════════════
-# RETRAITS (Portefeuille Interne)
-# ═══════════════════════════════════════════════════════════════
-
-@dashboard_shop_bp.route("/retrait", methods=["GET", "POST"])
-@login_required
-@limiter.limit("10 per hour")
-def retrait():
-    profile, redir = _get_profile_ou_redirect()
-    if redir:
-        return redir
-
-    # 1. Lecture de base
-    solde_wallet = float(profile.get("solde_wallet") or 0)
-    ancien_balance = float(profile.get("balance") or 0)
-
-    # 2. AJOUT DYNAMIQUE : on somme les commandes payées
-    try:
-        # On récupère toutes les commandes de la boutique
-        commandes = get_commandes_boutique_revendeur(profile["id"], limit=1000)
-        
-        # On additionne les totaux des commandes "payées"
-        total_commandes_payees = 0
-        for c in commandes:
-            if c.get("statut_paiement") == "paye":
-                total_commandes_payees += float(c.get("total", 0))
-        
-        # Si on a trouvé de l'argent dans les commandes, on l'ajoute
-        # (On suppose que le solde_wallet ne contient pas déjà cet argent)
-        if total_commandes_payees > solde_wallet:
-            solde_wallet = total_commandes_payees
-            
-    except Exception as e:
-        logger.error(f"Erreur calcul solde dynamique: {type(e).__name__}")
-
-    solde_total = solde_wallet + ancien_balance
-    historique = get_demandes_retrait_par_revendeur(profile["id"])
-
-    if request.method == "POST":
-        try:
-            montant = float(request.form.get("montant", 0))
-        except ValueError:
-            montant = 0
-
-        methode = request.form.get("methode", "").strip()
-        numero = request.form.get("numero", "").strip()
-        nom = request.form.get("nom", "").strip()
-
-        if montant < 1000:
-            flash("Le montant minimum de retrait est de 1 000 FCFA.", "error")
-        elif montant > solde_total:
-            flash(f"Solde insuffisant. Votre solde est de {solde_total:,.0f} FCFA.", "error")
-        elif methode not in ("mtn_cmr", "orange_cmr"):
-            flash("Methode de retrait invalide.", "error")
-        elif not numero or len(numero) < 8:
-            flash("Numero de telephone invalide.", "error")
-        else:
-            ok = create_demande_retrait({
-                "revendeur_id": profile["id"],
-                "montant": montant,
-                "methode": methode,
-                "numero_beneficiaire": numero,
-                "nom_beneficiaire": nom,
-                "statut": "en_attente"
-            })
-
-            if ok:
-                # On déduit du wallet
-                nouveau_wallet = solde_wallet - montant
-                nouveau_balance = ancien_balance
-                
-                if nouveau_wallet < 0:
-                    nouveau_balance = ancien_balance + nouveau_wallet
-                    nouveau_wallet = 0
-                
-                update_profile(profile["id"], {
-                    "solde_wallet": nouveau_wallet,
-                    "balance": nouveau_balance
-                })
-                flash("Demande de retrait envoyee ! Traitement sous 24h.", "success")
-                return redirect(url_for("dashboard_shop.retrait"))
-            else:
-                flash("Erreur lors de l'enregistrement de la demande.", "error")
-
-    return render_template("dashboard/retrait.html",
-                          profile=profile,
-                          solde=solde_total,
-                          historique=historique)
-
-
-@dashboard_shop_bp.route("/retrait/<demande_id>/annuler", methods=["POST"])
-@login_required
-def annuler_retrait(demande_id):
-    profile, redir = _get_profile_ou_redirect()
-    if redir:
-        return redir
-
-    demande = get_demande_retrait(demande_id)
-    if not demande or demande["revendeur_id"] != profile["id"]:
-        flash("Demande introuvable.", "error")
-        return redirect(url_for("dashboard_shop.retrait"))
-
-    if demande["statut"] != "en_attente":
-        flash("Cette demande ne peut plus etre annulee.", "error")
-        return redirect(url_for("dashboard_shop.retrait"))
-
-    update_demande_retrait(demande_id, {"statut": "annule"})
-    solde_actuel = float(profile.get("solde_wallet", 0) or 0)
-    update_profile(profile["id"], {"solde_wallet": solde_actuel + float(demande["montant"])})
-    
-    flash("Demande annulee. Solde rembourse.", "success")
-    return redirect(url_for("dashboard_shop.retrait"))
