@@ -544,3 +544,52 @@ def get_fonctionnalites_premium():
 def toggle_boutique_active(revendeur_id, active):
     try: return requests.patch(_url(f"profiles?id=eq.{revendeur_id}"), json={"boutique_active": active}, headers=_headers(True), timeout=10).status_code < 300
     except Exception: return False
+
+# ═══════════════════════════════════════════════════════════════
+# REMBOURSEMENT COMMISSION (Annulation de commande)
+# ═══════════════════════════════════════════════════════════════
+
+def rembourser_commission_commande(commande, profile=None):
+    """Rembourse la commission (commande annulee apres application)."""
+    try:
+        if not commande or not commande.get("commission_appliquee"):
+            return False
+        revendeur_id = commande.get("revendeur_id")
+        commission = float(commande.get("commission_montant", 0) or 0)
+        if commission <= 0:
+            return False
+
+        # Recrediter le credit_boost
+        crediter_credit_boost(
+            revendeur_id, commission,
+            description=f"Remboursement commande {commande.get('reference')}",
+            source_type="remboursement",
+            source_id=str(commande.get("id")),
+        )
+
+        # Si vente EN LIGNE : retirer le net du solde wallet
+        if not profile:
+            profile = get_profile(revendeur_id)
+        if profile:
+            boutique_type = profile.get("boutique_type") or "general"
+            type_obj = get_boutique_type(boutique_type) or {}
+            
+            # Si c'était une vente en ligne, on retire l'argent du wallet
+            if type_obj.get("paiement_type") == "en_ligne" or commande.get("method_paiement") in ("leekpay", "stripe", "soleaspay"):
+                total = float(commande.get("total", 0) or 0)
+                commission_pct = float(profile.get("revendeur_commission_pct", 0.10))
+                net = round(total - (total * commission_pct), 2)
+                
+                # Déduire du wallet
+                solde_actuel = float(profile.get("solde_wallet", 0) or 0)
+                update_profile(revendeur_id, {"solde_wallet": max(0, solde_actuel - net)})
+
+        # Marquer la commande comme non appliquée
+        update_commande_boutique(commande["id"], {
+            "commission_appliquee": False,
+            "commission_montant": 0,
+        })
+        return True
+    except Exception as e:
+        logger.error(f"rembourser_commission_commande: {type(e).__name__}")
+        return False
