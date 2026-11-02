@@ -784,3 +784,19 @@ def toggle_boutique_active(revendeur_id, active):
         return requests.patch(_url(f"profiles?id=eq.{revendeur_id}"), json={"boutique_active": active}, headers=_headers(True), timeout=10).status_code < 300
     except Exception:
         return False
+
+# ═══════════════════════════════════════════════════════════════
+# MOYENS DE PAIEMENT PUBLICS (Affichage Boutique)
+# ═══════════════════════════════════════════════════════════════
+
+def get_moyens_publics_revendeur(revendeur_id):
+    """
+    Retourne les moyens actifs d'un revendeur pour affichage CLIENT.
+    Aucune clé API n'est exposée.
+    """
+    try:
+        from app.models.paiement_config import get_methodes_actives_pour_affichage
+        return get_methodes_actives_pour_affichage(revendeur_id)
+    except Exception as e:
+        logger.error(f"get_moyens_publics_revendeur: {type(e).__name__}")
+        return []
