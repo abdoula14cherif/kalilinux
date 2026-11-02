@@ -21,6 +21,11 @@ from app.models.database import (
     get_boutique_type,
     appliquer_commission_commande,
     rembourser_commission_commande,
+    get_solde_wallet,                # 👈 AJOUTÉ
+    create_demande_retrait,          # 👈 AJOUTÉ
+    get_demandes_retrait_par_revendeur, # 👈 AJOUTÉ
+    get_demande_retrait,             # 👈 AJOUTÉ
+    update_demande_retrait,          # 👈 AJOUTÉ
     _url, _headers,
 )
 from app.models.serializers import avis_safe, coupon_safe, commande_safe
@@ -701,6 +706,7 @@ def api_notifications_count():
         "avis_attente": avis_attente,
         "total": commandes_attente + avis_attente
     })
+
 
 # ═══════════════════════════════════════════════════════════════
 # RETRAITS (Portefeuille Interne)
