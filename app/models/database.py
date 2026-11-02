@@ -1,6 +1,6 @@
 """
 Fonctions Supabase pour Boost Reseller.
-LE FICHIER COMPLET ET DEFINITIF (Toutes les fonctions).
+LE FICHIER COMPLET ET DEFINITIF (Toutes les fonctions, y compris Admin et Wallet).
 """
 import logging
 import re
@@ -55,6 +55,22 @@ def update_profile(user_id, data):
         r = requests.patch(_url(f"profiles?id=eq.{user_id}"), json=data, headers=_headers(True), timeout=10)
         return r.status_code < 300
     except Exception: return False
+
+def get_all_revendeurs(limit=500):
+    try:
+        r = requests.get(_url(f"profiles?est_revendeur=eq.true&order=created_at.desc&limit={limit}"), headers=_headers(True), timeout=10)
+        return r.json() if r.status_code == 200 else []
+    except Exception: return []
+
+def get_tous_utilisateurs(limit=500, search=None):
+    try:
+        url = f"profiles?order=created_at.desc&limit={limit}"
+        if search:
+            search_clean = re.sub(r"[^\w@.\-\s]", "", search)[:100]
+            if search_clean: url += f"&or=(email.ilike.*{search_clean}*,full_name.ilike.*{search_clean}*)"
+        r = requests.get(_url(url), headers=_headers(True), timeout=10)
+        return r.json() if r.status_code == 200 else []
+    except Exception: return []
 
 def slug_deja_pris(slug):
     try:
@@ -218,12 +234,11 @@ def get_demandes_retrait_par_revendeur(revendeur_id):
 
 def update_demande_retrait(demande_id, data):
     try:
-        r = requests.patch(_url(f"demandes_retrait?id=eq.{demande_id}"), json=data, headers=_headers(True), timeout=10)
-        return r.status_code < 300
+        return requests.patch(_url(f"demandes_retrait?id=eq.{demande_id}"), json=data, headers=_headers(True), timeout=10).status_code < 300
     except Exception: return False
 
 # ═══════════════════════════════════════════════════════════════
-# COMMISSION & GAINS
+# COMMISSION, GAINS & REMBOURSEMENT
 # ═══════════════════════════════════════════════════════════════
 def get_revendeur_gains_total(revendeur_id):
     try:
@@ -231,6 +246,15 @@ def get_revendeur_gains_total(revendeur_id):
         data = r.json()
         return sum(g.get("montant", 0) or 0 for g in data) if isinstance(data, list) else 0
     except Exception: return 0
+
+def create_revendeur_gain(revendeur_id, montant_brut, montant_net, commission_pct, source_type=None, source_id=None):
+    try:
+        commission = round(montant_brut * commission_pct, 2)
+        payload = {"revendeur_id": revendeur_id, "montant": montant_net, "montant_brut": montant_brut, "commission": commission, "commission_pct": commission_pct, "source_type": source_type, "source_id": source_id}
+        r = requests.post(_url("revendeur_gains"), json=payload, headers=_headers(True), timeout=10)
+        result = r.json()
+        return result[0] if isinstance(result, list) and result else None
+    except Exception: return None
 
 def appliquer_commission_commande(commande, profile=None):
     try:
@@ -248,9 +272,7 @@ def appliquer_commission_commande(commande, profile=None):
 
         debiter_credit_boost(revendeur_id, commission, description=f"Commission {commande.get('reference')}", source_type="commande_boutique", source_id=str(commande.get("id")))
         
-        try:
-            requests.post(_url("revendeur_gains"), json={"revendeur_id": revendeur_id, "montant": montant_net, "montant_brut": total, "commission": commission, "commission_pct": commission_pct, "source_type": "commande_boutique", "source_id": str(commande.get("id"))}, headers=_headers(True), timeout=10)
-        except Exception: pass
+        create_revendeur_gain(revendeur_id, total, montant_net, commission_pct, source_type="commande_boutique", source_id=str(commande.get("id")))
 
         update_commande_boutique(commande["id"], {"commission_appliquee": True, "commission_montant": commission})
 
@@ -262,6 +284,30 @@ def appliquer_commission_commande(commande, profile=None):
 
         return {"succes": True, "commission": commission, "montant_net": montant_net, "boutique_desactivee": boutique_desactivee}
     except Exception: return None
+
+def rembourser_commission_commande(commande, profile=None):
+    try:
+        if not commande or not commande.get("commission_appliquee"): return False
+        revendeur_id = commande.get("revendeur_id")
+        commission = float(commande.get("commission_montant", 0) or 0)
+        if commission <= 0: return False
+
+        crediter_credit_boost(revendeur_id, commission, description=f"Remboursement {commande.get('reference')}", source_type="remboursement", source_id=str(commande.get("id")))
+
+        if not profile: profile = get_profile(revendeur_id)
+        if profile:
+            boutique_type = profile.get("boutique_type") or "general"
+            type_obj = get_boutique_type(boutique_type) or {}
+            if type_obj.get("paiement_type") == "en_ligne" or commande.get("method_paiement") in ("leekpay", "stripe", "soleaspay"):
+                total = float(commande.get("total", 0) or 0)
+                commission_pct = float(profile.get("revendeur_commission_pct", 0.10))
+                net = round(total - (total * commission_pct), 2)
+                solde_actuel = float(profile.get("solde_wallet", 0) or 0)
+                update_profile(revendeur_id, {"solde_wallet": max(0, solde_actuel - net)})
+
+        update_commande_boutique(commande["id"], {"commission_appliquee": False, "commission_montant": 0})
+        return True
+    except Exception: return False
 
 # ═══════════════════════════════════════════════════════════════
 # BOUTIQUE TYPES / SERVICES / CATEGORIES
@@ -295,13 +341,11 @@ def create_categorie(type_code, nom, description=None):
     except Exception: return None
 
 def update_categorie(cat_id, data):
-    try:
-        return requests.patch(_url(f"boutique_categories?id=eq.{cat_id}"), json=data, headers=_headers(True), timeout=10).status_code < 300
+    try: return requests.patch(_url(f"boutique_categories?id=eq.{cat_id}"), json=data, headers=_headers(True), timeout=10).status_code < 300
     except Exception: return False
 
 def delete_categorie(cat_id):
-    try:
-        return requests.delete(_url(f"boutique_categories?id=eq.{cat_id}"), headers=_headers(True), timeout=10).status_code < 300
+    try: return requests.delete(_url(f"boutique_categories?id=eq.{cat_id}"), headers=_headers(True), timeout=10).status_code < 300
     except Exception: return False
 
 def get_active_services(network=None):
@@ -319,9 +363,7 @@ def get_service_by_id(service_id):
     except Exception: return None
 
 def get_revendeur_prix_all(revendeur_id):
-    try:
-        r = requests.get(_url(f"revendeur_prix?revendeur_id=eq.{revendeur_id}"), headers=_headers(True), timeout=10)
-        return r.json() if r.status_code == 200 else []
+    try: return requests.get(_url(f"revendeur_prix?revendeur_id=eq.{revendeur_id}"), headers=_headers(True), timeout=10).json()
     except Exception: return []
 
 def get_revendeur_prix(revendeur_id, service_id):
@@ -346,8 +388,7 @@ def get_produits_revendeur(revendeur_id, only_active=False):
     try:
         url = f"boutique_produits?revendeur_id=eq.{revendeur_id}&order=ordre,created_at.desc"
         if only_active: url += "&actif=eq.true"
-        r = requests.get(_url(url), headers=_headers(True), timeout=10)
-        return r.json() if r.status_code == 200 else []
+        return requests.get(_url(url), headers=_headers(True), timeout=10).json()
     except Exception: return []
 
 def get_produit_boutique(produit_id):
@@ -365,13 +406,11 @@ def create_produit_boutique(data):
     except Exception: return None
 
 def update_produit_boutique(produit_id, data):
-    try:
-        return requests.patch(_url(f"boutique_produits?id=eq.{produit_id}"), json=data, headers=_headers(True), timeout=10).status_code < 300
+    try: return requests.patch(_url(f"boutique_produits?id=eq.{produit_id}"), json=data, headers=_headers(True), timeout=10).status_code < 300
     except Exception: return False
 
 def delete_produit_boutique(produit_id):
-    try:
-        return requests.delete(_url(f"boutique_produits?id=eq.{produit_id}"), headers=_headers(True), timeout=10).status_code < 300
+    try: return requests.delete(_url(f"boutique_produits?id=eq.{produit_id}"), headers=_headers(True), timeout=10).status_code < 300
     except Exception: return False
 
 def get_produit_by_id(produit_id):
@@ -544,52 +583,3 @@ def get_fonctionnalites_premium():
 def toggle_boutique_active(revendeur_id, active):
     try: return requests.patch(_url(f"profiles?id=eq.{revendeur_id}"), json={"boutique_active": active}, headers=_headers(True), timeout=10).status_code < 300
     except Exception: return False
-
-# ═══════════════════════════════════════════════════════════════
-# REMBOURSEMENT COMMISSION (Annulation de commande)
-# ═══════════════════════════════════════════════════════════════
-
-def rembourser_commission_commande(commande, profile=None):
-    """Rembourse la commission (commande annulee apres application)."""
-    try:
-        if not commande or not commande.get("commission_appliquee"):
-            return False
-        revendeur_id = commande.get("revendeur_id")
-        commission = float(commande.get("commission_montant", 0) or 0)
-        if commission <= 0:
-            return False
-
-        # Recrediter le credit_boost
-        crediter_credit_boost(
-            revendeur_id, commission,
-            description=f"Remboursement commande {commande.get('reference')}",
-            source_type="remboursement",
-            source_id=str(commande.get("id")),
-        )
-
-        # Si vente EN LIGNE : retirer le net du solde wallet
-        if not profile:
-            profile = get_profile(revendeur_id)
-        if profile:
-            boutique_type = profile.get("boutique_type") or "general"
-            type_obj = get_boutique_type(boutique_type) or {}
-            
-            # Si c'était une vente en ligne, on retire l'argent du wallet
-            if type_obj.get("paiement_type") == "en_ligne" or commande.get("method_paiement") in ("leekpay", "stripe", "soleaspay"):
-                total = float(commande.get("total", 0) or 0)
-                commission_pct = float(profile.get("revendeur_commission_pct", 0.10))
-                net = round(total - (total * commission_pct), 2)
-                
-                # Déduire du wallet
-                solde_actuel = float(profile.get("solde_wallet", 0) or 0)
-                update_profile(revendeur_id, {"solde_wallet": max(0, solde_actuel - net)})
-
-        # Marquer la commande comme non appliquée
-        update_commande_boutique(commande["id"], {
-            "commission_appliquee": False,
-            "commission_montant": 0,
-        })
-        return True
-    except Exception as e:
-        logger.error(f"rembourser_commission_commande: {type(e).__name__}")
-        return False
