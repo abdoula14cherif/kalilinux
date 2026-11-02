@@ -1,7 +1,3 @@
-"""
-Webhooks globaux : LeekPay, Stripe, Mysoleas, SoleasPay, Abonnements.
-SÉCURITÉ MAXIMALE : Signature vérifiée, re-vérification API, idempotence.
-"""
 import json
 import logging
 import hashlib
@@ -36,28 +32,18 @@ logger = logging.getLogger(__name__)
 webhooks_bp = Blueprint("webhooks", __name__)
 
 
-# ═══════════════════════════════════════════════════════════════
-# WEBHOOK SOLEASPAY (Le portefeuille interne)
-# ═══════════════════════════════════════════════════════════════
-
 @webhooks_bp.route("/soleaspay", methods=["POST"])
 @limiter.limit("600 per hour")
 def soleaspay_webhook():
-    """
-    Webhook global pour SoleasPay (ton compte marchand).
-    - Si COLLECTION (paiement client) : crédite le solde_wallet du revendeur.
-    - Si DISBURSEMENT (retrait payé) : met à jour le statut du retrait.
-    """
     logger.info("[SOLEASPAY WEBHOOK] Received")
 
     private_key = request.headers.get("x-private-key", "")
     secret = current_app.config.get("MYSOLEAS_WEBHOOK_SECRET", "")
-    
+
     if not secret:
         return jsonify({"error": "config_missing"}), 500
 
-    # Vérification de la signature (SHA256 du secret)
-    expected_hash = hashlib.sha256(secret.encode('utf-8')).hexdigest()
+    expected_hash = hashlib.sha256(secret.encode("utf-8")).hexdigest()
     if private_key != expected_hash:
         logger.warning("[SOLEASPAY WEBHOOK] Signature invalide")
         return jsonify({"error": "invalid_signature"}), 401
@@ -75,33 +61,24 @@ def soleaspay_webhook():
     if not invoice_ref:
         return jsonify({"received": True})
 
-    # ─── CAS 1 : PAIEMENT ENTRANT (COLLECTION) ────────────────
     if operation == "COLLECTION" and statut in ("COMPLETED", "SUCCESS"):
         commande = get_commande_boutique_by_reference(invoice_ref)
         if commande and commande.get("statut_paiement") != "paye":
-            
-            # Marquer la commande payée
             update_commande_boutique(commande["id"], {
                 "statut": "confirmee",
                 "statut_paiement": "paye",
                 "paiement_reference": transaction_ref,
             })
 
-            # Créditer le Wallet Interne du revendeur
             revendeur = get_profile(commande["revendeur_id"])
             if revendeur:
                 solde_actuel = float(revendeur.get("solde_wallet", 0) or 0)
                 nouveau_solde = solde_actuel + float(commande.get("total", 0))
                 update_profile(revendeur["id"], {"solde_wallet": nouveau_solde})
-                
-                # Débiter la commission (Credit Boost)
                 appliquer_commission_commande(commande, revendeur)
 
-            logger.info(f"[SOLEASPAY] Commande {invoice_ref} payée, wallet crédité.")
-        
         return jsonify({"received": True})
 
-    # ─── CAS 2 : RETRAIT PAYÉ (DISBURSEMENT) ──────────────────
     if operation == "DISBURSEMENT":
         demande = get_demande_retrait(invoice_ref)
         if demande:
@@ -110,25 +87,18 @@ def soleaspay_webhook():
                     "statut": "paye",
                     "reference_payout": transaction_ref
                 })
-                logger.info(f"[SOLEASPAY] Retrait {invoice_ref} payé.")
             elif statut in ("FAILED", "CANCELLED"):
-                # Rembourser le solde au revendeur
                 update_demande_retrait(demande["id"], {"statut": "echec"})
                 revendeur = get_profile(demande["revendeur_id"])
                 if revendeur:
                     solde_actuel = float(revendeur.get("solde_wallet", 0) or 0)
                     nouveau_solde = solde_actuel + float(demande.get("montant", 0))
                     update_profile(revendeur["id"], {"solde_wallet": nouveau_solde})
-                logger.warning(f"[SOLEASPAY] Retrait {invoice_ref} échoué, solde remboursé.")
 
         return jsonify({"received": True})
 
     return jsonify({"received": True})
 
-
-# ═══════════════════════════════════════════════════════════════
-# WEBHOOK LEEKPAY
-# ═══════════════════════════════════════════════════════════════
 
 @webhooks_bp.route("/leekpay/<slug>", methods=["POST"])
 @limiter.limit("600 per hour")
@@ -161,7 +131,6 @@ def leekpay_webhook(slug):
     except Exception:
         return jsonify({"error": "invalid_json"}), 400
 
-    event = data.get("event", "")
     payload = data.get("data", {})
     checkout_id = payload.get("checkout_id") or payload.get("transaction_id", "")
     status = (payload.get("status") or "").lower()
@@ -203,6 +172,10 @@ def leekpay_webhook(slug):
             commande_maj = get_commande_boutique_by_reference(commande_ref)
             if commande_maj and not commande_maj.get("commission_appliquee"):
                 profil = get_profile(commande_maj.get("revendeur_id"))
+                if profil:
+                    solde_actuel = float(profil.get("solde_wallet", 0) or 0)
+                    nouveau_solde = solde_actuel + float(commande_maj.get("total", 0))
+                    update_profile(profil["id"], {"solde_wallet": nouveau_solde})
                 appliquer_commission_commande(commande_maj, profil)
 
             from app.models.mailer import _envoyer_lien_livraison_si_virtuel
@@ -224,10 +197,6 @@ def leekpay_webhook(slug):
 
     return jsonify({"received": True})
 
-
-# ═══════════════════════════════════════════════════════════════
-# WEBHOOK STRIPE
-# ═══════════════════════════════════════════════════════════════
 
 @webhooks_bp.route("/stripe/<slug>", methods=["POST"])
 @limiter.limit("600 per hour")
@@ -302,6 +271,10 @@ def stripe_webhook(slug):
         commande_maj = get_commande_boutique_by_reference(commande_ref)
         if commande_maj and not commande_maj.get("commission_appliquee"):
             profil = get_profile(commande_maj.get("revendeur_id"))
+            if profil:
+                solde_actuel = float(profil.get("solde_wallet", 0) or 0)
+                nouveau_solde = solde_actuel + float(commande_maj.get("total", 0))
+                update_profile(profil["id"], {"solde_wallet": nouveau_solde})
             appliquer_commission_commande(commande_maj, profil)
 
         from app.models.mailer import _envoyer_lien_livraison_si_virtuel
@@ -313,10 +286,6 @@ def stripe_webhook(slug):
 
     return jsonify({"received": True})
 
-
-# ═══════════════════════════════════════════════════════════════
-# WEBHOOK MYSOLEAS (Ancien système multi-revendeur)
-# ═══════════════════════════════════════════════════════════════
 
 @webhooks_bp.route("/mysoleas/<slug>", methods=["POST"])
 @limiter.limit("600 per hour")
@@ -365,6 +334,10 @@ def mysoleas_webhook(slug):
             commande_maj = get_commande_boutique_by_reference(invoice_ref)
             if commande_maj and not commande_maj.get("commission_appliquee"):
                 profil = get_profile(commande_maj.get("revendeur_id"))
+                if profil:
+                    solde_actuel = float(profil.get("solde_wallet", 0) or 0)
+                    nouveau_solde = solde_actuel + float(commande_maj.get("total", 0))
+                    update_profile(profil["id"], {"solde_wallet": nouveau_solde})
                 appliquer_commission_commande(commande_maj, profil)
 
             from app.models.mailer import _envoyer_lien_livraison_si_virtuel
@@ -381,10 +354,6 @@ def mysoleas_webhook(slug):
 
     return jsonify({"received": True})
 
-
-# ═══════════════════════════════════════════════════════════════
-# WEBHOOK ABONNEMENT
-# ═══════════════════════════════════════════════════════════════
 
 @webhooks_bp.route("/abonnement", methods=["POST"])
 @limiter.limit("300 per hour")
@@ -416,10 +385,6 @@ def abonnement_webhook():
 
     return jsonify({"received": True})
 
-
-# ═══════════════════════════════════════════════════════════════
-# HEALTH CHECK
-# ═══════════════════════════════════════════════════════════════
 
 @webhooks_bp.route("/ping", methods=["GET", "POST"])
 def webhooks_ping():
