@@ -800,3 +800,19 @@ def get_moyens_publics_revendeur(revendeur_id):
     except Exception as e:
         logger.error(f"get_moyens_publics_revendeur: {type(e).__name__}")
         return []
+
+# ═══════════════════════════════════════════════════════════════
+# ADMIN : GESTION DES RETRAITS
+# ═══════════════════════════════════════════════════════════════
+
+def get_toutes_demandes_retrait(statut=None, limit=100):
+    """Récupère toutes les demandes de retrait (Admin)."""
+    try:
+        url = f"demandes_retrait?order=created_at.desc&limit={limit}"
+        if statut:
+            url += f"&statut=eq.{statut}"
+        r = requests.get(_url(url), headers=_headers(True), timeout=10)
+        return r.json() if r.status_code == 200 else []
+    except Exception as e:
+        logger.error(f"get_toutes_demandes_retrait: {type(e).__name__}")
+        return []
