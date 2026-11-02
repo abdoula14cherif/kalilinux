@@ -408,7 +408,7 @@
     </a>
   </div>
 
-  {% if dernieres_commandes %}
+  {% if dernieres_commandes and dernieres_commandes|length > 0 %}
     {% set badge_map = {
       'en_attente': ('b-attente', 'En attente'),
       'confirmee': ('b-confirmee', 'Confirmée'),
@@ -418,15 +418,23 @@
     } %}
     <div class="orders-list" style="border:none;border-radius:0">
       {% for c in dernieres_commandes %}
-        {% set badge = badge_map.get(c.statut, ('b-attente', 'En attente')) %}
+        {# --- Extraction tolérante des champs (accepte tous les noms possibles) --- #}
+        {% set _ref = c.reference or c.numero or c.code or (c.id[:8] if c.id else '—') %}
+        {% set _nom = c.client_nom or c.nom_client or c.client or c.nom or 'Client' %}
+        {% set _tel = c.client_telephone or c.telephone_client or c.telephone or c.tel or c.phone or '' %}
+        {% set _total = c.total or c.montant or c.prix_total or c.amount or 0 %}
+        {% set _statut = c.statut or c.status or 'en_attente' %}
+        {% set badge = badge_map.get(_statut, ('b-attente', 'En attente')) %}
         <a href="{{ url_for('dashboard_shop.commandes') }}" class="order-row">
           <div class="order-ico"><i class="fas fa-receipt"></i></div>
           <div class="order-info">
-            <div class="order-ref">{{ c.reference }}</div>
-            <div class="order-client"><i class="fas fa-user"></i> {{ c.client_nom }} · {{ c.client_telephone }}</div>
+            <div class="order-ref">{{ _ref }}</div>
+            <div class="order-client">
+              <i class="fas fa-user"></i> {{ _nom }}{% if _tel %} · {{ _tel }}{% endif %}
+            </div>
           </div>
           <div class="order-right">
-            <div class="order-amount">{{ "{:,.0f}".format(c.total or 0) }} F</div>
+            <div class="order-amount">{{ "{:,.0f}".format(_total|float) }} F</div>
             <span class="order-badge {{ badge[0] }}">{{ badge[1] }}</span>
           </div>
         </a>
