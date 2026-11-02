@@ -23,9 +23,11 @@ from app.models.database import (
     get_plan_actuel, get_commission_pct,
     get_credit_boost, SEUIL_CREDIT_MIN_PUBLICATION,
     get_transactions_credit_boost,
+    get_commandes_boutique_revendeur,
+    get_avis_revendeur,
 )
 from app.models.storage import upload_image
-from app.models.serializers import produit_safe, banniere_safe, attribut_safe
+from app.models.serializers import produit_safe, banniere_safe, attribut_safe, commande_safe
 
 logger = logging.getLogger(__name__)
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -182,20 +184,41 @@ def index():
     except Exception:
         pass
 
+    # --- CORRECTION ICI : Récupération et formatage sécurisé des commandes ---
     try:
-        from app.models.database import get_commandes_boutique_revendeur
         commandes_boutique = get_commandes_boutique_revendeur(profile["id"], limit=50)
         nb_commandes_attente = sum(1 for c in commandes_boutique if c.get("statut") == "en_attente")
-        dernieres_commandes = commandes_boutique[:5]
+        # On formate les 5 dernières commandes pour éviter que le HTML plante
+        dernieres_commandes = [commande_safe(c) for c in commandes_boutique[:5]]
     except Exception as e:
         logger.error(f"index commandes load: {type(e).__name__}")
 
     try:
-        from app.models.database import get_avis_revendeur
         avis = get_avis_revendeur(profile["id"])
         nb_avis_attente = sum(1 for a in avis if not a.get("approuve"))
     except Exception as e:
         logger.error(f"index avis load: {type(e).__name__}")
+
+    # --- CORRECTION SOLDE : Calcul dynamique comme sur la page /retrait ---
+    solde_wallet = float(profile.get("solde_wallet") or 0)
+    ancien_balance = float(profile.get("balance") or 0)
+
+    if solde_wallet == 0:
+        try:
+            commandes = get_commandes_boutique_revendeur(profile["id"], limit=1000)
+            total_commandes_payees = sum(
+                float(c.get("total", 0)) for c in commandes 
+                if c.get("statut_paiement") == "paye"
+            )
+            if total_commandes_payees > 0:
+                solde_wallet = total_commandes_payees
+                update_profile(profile["id"], {"solde_wallet": solde_wallet})
+        except Exception as e:
+            logger.error(f"Erreur calcul solde dynamique index: {type(e).__name__}")
+
+    # On met à jour le profil en mémoire pour que le template affiche le bon solde
+    profile["solde_wallet"] = solde_wallet
+    profile["balance"] = ancien_balance
 
     return render_template("dashboard/index.html",
                           profile=profile,
