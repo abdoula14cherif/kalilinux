@@ -1,0 +1,168 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Retrait — Boost Reseller{% endblock %}
+{% block page_title %}Retrait de mes gains{% endblock %}
+{% block page_subtitle %}Retirez votre solde disponible vers votre compte Mobile Money{% endblock %}
+
+{% block extra_css %}
+.retrait-hero{background:linear-gradient(135deg,#0F172A,#1E293B);color:#fff;border-radius:20px;padding:28px;margin-bottom:24px;position:relative;overflow:hidden;text-align:center}
+.retrait-hero::before{content:'';position:absolute;top:-50%;right:-20%;width:60%;height:200%;background:radial-gradient(circle,rgba(0,191,255,.15),transparent 65%);pointer-events:none}
+.retrait-hero .label{font-size:.8rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:1px;font-weight:800;position:relative;z-index:1}
+.retrait-hero .solde{font-size:2.8rem;font-weight:900;color:#fff;margin:10px 0;position:relative;z-index:1;line-height:1}
+.retrait-hero .solde small{font-size:1rem;color:rgba(255,255,255,.5);font-weight:700}
+
+.card-form{background:#fff;border-radius:16px;padding:26px;border:1px solid #E2E8F0;margin-bottom:18px}
+.card-form h3{font-size:1.05rem;font-weight:900;color:#0F172A;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.card-form h3 i{color:#00BFFF}
+
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:.82rem;font-weight:700;color:#0F172A;margin-bottom:6px}
+.fg .help{font-size:.72rem;color:#94A3B8;margin-top:4px;display:block}
+.inp,.sel{width:100%;padding:12px 14px;border:2px solid #E2E8F0;border-radius:11px;font-size:.92rem;color:#0F172A;outline:none;background:#F8FAFC;font-family:inherit;transition:border-color .2s}
+.inp:focus,.sel:focus{border-color:#00BFFF;background:#fff}
+
+.operateurs{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+.op-btn{border:2px solid #E2E8F0;border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
+.op-btn:hover{border-color:#00BFFF;transform:translateY(-2px)}
+.op-btn input{display:none}
+.op-btn.sel{border-color:#00BFFF;background:#F0FAFF;box-shadow:0 0 0 3px rgba(0,191,255,.15)}
+.op-btn .op-logo{font-size:1.8rem;margin-bottom:6px;display:block}
+.op-btn .op-nom{font-size:.8rem;font-weight:800;color:#0F172A}
+
+.btn-submit{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#10B981,#059669);color:#fff;font-weight:900;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(16,185,129,.3);transition:transform .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-submit:hover{transform:translateY(-2px)}
+
+.histo-card{background:#fff;border-radius:16px;padding:22px;border:1px solid #E2E8F0}
+.histo-card h3{font-size:1rem;font-weight:900;color:#0F172A;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.histo-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #F1F5F9}
+.histo-item:last-child{border-bottom:none}
+.histo-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.histo-ico.wait{background:#FEF3C7;color:#D97706}
+.histo-ico.ok{background:#EDFFF5;color:#059669}
+.histo-ico.ko{background:#FEE2E2;color:#DC2626}
+.histo-info{flex:1;min-width:0}
+.histo-nom{font-size:.85rem;font-weight:800;color:#0F172A}
+.histo-date{font-size:.72rem;color:#94A3B8;margin-top:2px}
+.histo-montant{font-size:.95rem;font-weight:900;color:#0F172A;flex-shrink:0}
+.histo-badge{font-size:.65rem;padding:3px 8px;border-radius:6px;font-weight:800;margin-top:4px;display:inline-block}
+.histo-badge.wait{background:#FEF3C7;color:#92400E}
+.histo-badge.ok{background:#EDFFF5;color:#059669}
+.histo-badge.ko{background:#FEE2E2;color:#991B1B}
+
+.empty-state{text-align:center;padding:30px 20px;color:#94A3B8}
+.empty-state i{font-size:2.5rem;opacity:.5;margin-bottom:10px;display:block}
+{% endblock %}
+
+{% block dashboard_content %}
+
+<!-- SOLDE -->
+<div class="retrait-hero">
+  <div class="label">Solde retirable</div>
+  <div class="solde">{{ "{:,.0f}".format(solde or 0) }} <small>FCFA</small></div>
+</div>
+
+<!-- FORMULAIRE -->
+<div class="card-form">
+  <h3><i class="fas fa-money-bill-transfer"></i> Nouvelle demande de retrait</h3>
+  
+  <form method="POST" action="{{ url_for('dashboard_shop.retrait') }}">
+    
+    <!-- PAYS (Lecture seule) -->
+    <div class="fg">
+      <label><i class="fas fa-globe" style="color:#00BFFF"></i> Pays</label>
+      <select class="sel" name="pays" id="paysSelect" required>
+        <option value="CM" {% if profile.pays_code == 'CM' %}selected{% endif %}>🇨🇲 Cameroun (XAF)</option>
+        <option value="SN" {% if profile.pays_code == 'SN' %}selected{% endif %}>🇸🇳 Sénégal (XOF)</option>
+        <option value="CI" {% if profile.pays_code == 'CI' %}selected{% endif %}>🇨🇮 Côte d'Ivoire (XOF)</option>
+        <option value="BJ" {% if profile.pays_code == 'BJ' %}selected{% endif %}>🇧🇯 Bénin (XOF)</option>
+        <option value="TG" {% if profile.pays_code == 'TG' %}selected{% endif %}>🇹🇬 Togo (XOF)</option>
+      </select>
+      <span class="help">Le pays est lié à votre profil et ne peut pas être modifié ici.</span>
+    </div>
+
+    <!-- OPÉRATEUR -->
+    <div class="fg">
+      <label><i class="fas fa-sim-card" style="color:#00BFFF"></i> Opérateur Mobile Money</label>
+      <div class="operateurs">
+        <label class="op-btn" onclick="selectOp(this)">
+          <input type="radio" name="methode" value="mtn_cmr" required>
+          <span class="op-logo">📱</span>
+          <span class="op-nom">MTN MoMo</span>
+        </label>
+        <label class="op-btn" onclick="selectOp(this)">
+          <input type="radio" name="methode" value="orange_cmr" required>
+          <span class="op-logo">🟠</span>
+          <span class="op-nom">Orange Money</span>
+        </label>
+        <label class="op-btn" onclick="selectOp(this)">
+          <input type="radio" name="methode" value="wave" required>
+          <span class="op-logo">🌊</span>
+          <span class="op-nom">Wave</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- MONTANT -->
+    <div class="fg">
+      <label><i class="fas fa-coins" style="color:#00BFFF"></i> Montant à retirer (FCFA)</label>
+      <input class="inp" type="number" name="montant" min="1000" max="{{ solde|int }}" placeholder="Ex: 5000" required>
+      <span class="help">Minimum : 1 000 FCFA — Maximum : {{ "{:,.0f}".format(solde or 0) }} FCFA</span>
+    </div>
+
+    <!-- NUMÉRO -->
+    <div class="fg">
+      <label><i class="fas fa-phone" style="color:#00BFFF"></i> Numéro de téléphone</label>
+      <input class="inp" type="tel" name="numero" placeholder="Ex: 6XX XXX XXX" required>
+      <span class="help">Le numéro sur lequel vous souhaitez recevoir l'argent.</span>
+    </div>
+
+    <!-- NOM -->
+    <div class="fg">
+      <label><i class="fas fa-user" style="color:#00BFFF"></i> Nom du titulaire du compte</label>
+      <input class="inp" type="text" name="nom" placeholder="Ex: Jean Dupont" required>
+      <span class="help">Le nom enregistré sur le compte Mobile Money.</span>
+    </div>
+
+    <button type="submit" class="btn-submit" {% if solde < 1000 %}disabled style="opacity:.5;cursor:not-allowed"{% endif %}>
+      <i class="fas fa-paper-plane"></i> 
+      {% if solde < 1000 %}Solde insuffisant (min 1 000 FCFA){% else %}Demander le retrait{% endif %}
+    </button>
+  </form>
+</div>
+
+<!-- HISTORIQUE -->
+<div class="histo-card">
+  <h3><i class="fas fa-history"></i> Historique des retraits</h3>
+
+  {% if historique %}
+    {% for h in historique %}
+    <div class="histo-item">
+      <div class="histo-ico {% if h.statut == 'paye' %}ok{% elif h.statut in ['echec', 'annule'] %}ko{% else %}wait{% endif %}">
+        <i class="fas {% if h.statut == 'paye' %}fa-check{% elif h.statut in ['echec', 'annule'] %}fa-times{% else %}fa-clock{% endif %}"></i>
+      </div>
+      <div class="histo-info">
+        <div class="histo-nom">{{ h.methode|upper }} — {{ h.numero_beneficiaire }}</div>
+        <div class="histo-date">{{ h.created_at[:16].replace('T', ' ') }}</div>
+        <span class="histo-badge {% if h.statut == 'paye' %}ok{% elif h.statut in ['echec', 'annule'] %}ko{% else %}wait{% endif %}">
+          {{ h.statut|upper }}
+        </span>
+      </div>
+      <div class="histo-montant">{{ "{:,.0f}".format(h.montant) }} F</div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <i class="fas fa-receipt"></i>
+      <p>Aucun retrait pour le moment.</p>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+function selectOp(el) {
+  document.querySelectorAll('.op-btn').forEach(function(b) { b.classList.remove('sel'); });
+  el.classList.add('sel');
+  el.querySelector('input').checked = true;
+}
+</script>
+
+{% endblock %}
